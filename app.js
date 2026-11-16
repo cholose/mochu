@@ -362,10 +362,9 @@ function initMap() {
   const defaultCoords = [-34.6037, -58.3816];
   state.map = L.map("map", { zoomControl: false }).setView(defaultCoords, 14);
 
-  // CartoDB Voyager tiles (estilo moderno de alta legibilidad para turismo)
-  L.tileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png", {
-    attribution: '&copy; <a href="https://carto.com/">CARTO</a> &copy; OpenStreetMap',
-    subdomains: "abcd",
+  // OpenStreetMap tiles (100% libre, sin marcas de agua ni API key)
+  L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
     maxZoom: 19
   }).addTo(state.map);
 
