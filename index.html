@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>BsAs Local Guide - Mapa y Recomendaciones</title>
+  
+  <!-- Leaflet Map CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+  <!-- App Styles -->
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .activation-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.94);
+      backdrop-filter: blur(8px);
+      z-index: 5000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      overflow-y: auto;
+    }
+    .activation-card {
+      background: #1e293b;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 20px;
+      padding: 22px;
+      max-width: 400px;
+      width: 100%;
+      text-align: center;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+      animation: popIn 0.25s ease-out;
+    }
+    @keyframes popIn {
+      from { transform: scale(0.95); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+    .service-banner {
+      background: #0f172a;
+      padding: 12px;
+      border-radius: 12px;
+      margin-bottom: 14px;
+      border: 1px solid rgba(245, 158, 11, 0.3);
+      text-align: left;
+    }
+    .service-benefits {
+      text-align: left;
+      font-size: 0.8rem;
+      color: #cbd5e1;
+      margin-bottom: 14px;
+      line-height: 1.6;
+    }
+    .service-benefits li {
+      margin-bottom: 4px;
+      list-style: none;
+    }
+    .input-pass {
+      width: 100%;
+      padding: 11px 12px;
+      background: #0f172a;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 8px;
+      color: #fff;
+      font-size: 0.95rem;
+      margin-bottom: 10px;
+      box-sizing: border-box;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- MODAL DE DESBLOQUEO VIP (PIN DEL MOZO O MERCADO PAGO) -->
+  <div class="activation-overlay" id="unlock-modal" style="display:none;">
+    <div class="activation-card">
+      <div style="font-size:1.8rem; margin-bottom:4px;">🔑</div>
+      <h2 style="font-size:1.25rem; margin-bottom:4px;">Desbloqueo VIP</h2>
+      
+      <div class="service-banner">
+        <div style="font-size:0.75rem; color:#94a3b8;">ATENDIDO POR TU MOZO:</div>
+        <div style="font-size:1.1rem; font-weight:700; color:#f59e0b;" id="activation-waiter-banner">👨‍🍳 Isaias</div>
+      </div>
+
+      <ul class="service-benefits">
+        <li>✅ <strong>Tips Secretos del Mozo</strong> en todas las parrillas y paseos.</li>
+        <li>✅ <strong>Acceso directo a Uber y DiDi</strong> con destinos listos.</li>
+        <li>✅ <strong>Descuentos exclusivos</strong> en cenas shows de Tango.</li>
+      </ul>
+
+      <!-- Opción 1: Ingreso con PIN -->
+      <div style="background:#0f172a; border:1px solid rgba(245,158,11,0.3); border-radius:12px; padding:14px; margin-bottom:12px;">
+        <div style="font-size:0.8rem; color:#f59e0b; font-weight:700; margin-bottom:8px;">
+          ¿Le pagaste a tu mozo en efectivo o propina?
+        </div>
+        <input type="text" id="input-pin-name" class="input-pass" placeholder="Tu Nombre (ej. Sarah o John)">
+        <input type="password" id="input-pin-code" class="input-pass" placeholder="Ingresá el PIN de 4 dígitos" maxlength="6" style="text-align:center; font-size:1.25rem; letter-spacing:4px; font-weight:bold;">
+        <button type="button" onclick="submitTouristPin()" class="btn-transport" style="background:#f59e0b; color:#0f172a; font-weight:800; width:100%; padding:12px; border:none; cursor:pointer;">
+          🔓 Desbloquear con PIN
+        </button>
+      </div>
+
+      <!-- Opción 2: Mercado Pago -->
+      <button type="button" onclick="payWithMercadoPago()" class="btn-transport" style="background:#009ee3; width:100%; padding:11px; font-size:0.9rem; cursor:pointer; border:none; margin-bottom:8px; font-weight:700;">
+        💙 Pagar $4.000 con Mercado Pago
+      </button>
+
+      <!-- Opción 3: Modo Prueba -->
+      <button type="button" onclick="activateTestMode()" class="btn-transport" style="background:#334155; width:100%; padding:8px; font-size:0.75rem; border:1px dashed #64748b; color:#cbd5e1; cursor:pointer; margin-bottom:8px;">
+        🧪 Modo Prueba (Activar gratis para testear)
+      </button>
+
+      <button type="button" onclick="closeUnlockModal()" class="btn-transport" style="background:transparent; color:#94a3b8; border:none; font-size:0.8rem; cursor:pointer; text-decoration:underline;">
+        Cerrar y seguir en modo básico
+      </button>
+    </div>
+  </div>
+
+  <!-- Header -->
+  <header class="app-header">
+    <div class="brand-section">
+      <h1 id="lbl-title">📍 BsAs Local Guide</h1>
+      <div class="subtitle" id="lbl-subtitle">Recomendaciones reales de mozos</div>
+      <div id="waiter-tag" class="waiter-badge" style="display:none;"></div>
+      <button id="btn-header-unlock" class="btn-unlock-pill" onclick="openUnlockModal()">🔑 Desbloquear VIP</button>
+      <div id="pass-tag" class="vip-active-pill" style="display:none;"></div>
+    </div>
+    <div class="lang-switch">
+      <button class="lang-btn active" data-lang="es">🇪🇸</button>
+      <button class="lang-btn" data-lang="en">🇺🇸</button>
+      <button class="lang-btn" data-lang="pt">🇧🇷</button>
+    </div>
+  </header>
+
+  <!-- Navigation Tabs -->
+  <nav class="tab-navigation">
+    <button class="tab-btn active" data-tab="tab-map">
+      <span>🗺️</span>
+      <span id="nav-map">Mapa</span>
+    </button>
+    <button class="tab-btn" data-tab="tab-tango">
+      <span>💃</span>
+      <span id="nav-tango">Tango & Tours</span>
+    </button>
+    <button class="tab-btn" data-tab="tab-guide">
+      <span>🛡️</span>
+      <span id="nav-guide">Seguridad & Tips</span>
+    </button>
+  </nav>
+
+  <!-- TAB 1: MAP VIEW -->
+  <main id="tab-map" class="tab-content active">
+    <!-- Category Filter Chips -->
+    <div class="map-filters">
+      <button class="filter-chip active" data-category="food" id="btn-filter-food">🥩 Parrillas</button>
+      <button class="filter-chip" data-category="tango" id="btn-filter-tango">💃 Tango</button>
+      <button class="filter-chip" data-category="shopping" id="btn-filter-shopping">🛍️ Shoppings</button>
+      <button class="filter-chip" data-category="all" id="btn-filter-all">🗺️ Todos</button>
+    </div>
+
+    <div id="map"></div>
+    <button id="btn-locate" class="locate-btn" title="Mi ubicación">📍</button>
+  </main>
+
+  <!-- TAB 2: TANGO & TOURS -->
+  <main id="tab-tango" class="tab-content">
+    <div class="scrollable-list" id="tango-list-container"></div>
+  </main>
+
+  <!-- TAB 3: GUIDE & SAFETY -->
+  <main id="tab-guide" class="tab-content">
+    <div class="scrollable-list" id="guide-list-container"></div>
+  </main>
+
+  <!-- MODAL: PLACE DETAILS & HOW TO GET THERE -->
+  <div class="modal-overlay" id="place-modal">
+    <div class="bottom-sheet">
+      <div class="sheet-handle"></div>
+      
+      <div class="sheet-header">
+        <div>
+          <h2 class="sheet-title" id="sheet-name">Nombre del Lugar</h2>
+          <div class="sheet-meta">
+            <span id="sheet-neighborhood">Palermo</span> • 
+            <span id="sheet-price">$$$</span>
+          </div>
+        </div>
+        <span class="sheet-badge" id="sheet-tag">Top Recomendado</span>
+      </div>
+
+      <img id="sheet-image" class="sheet-image" src="" alt="Lugar">
+
+      <!-- Contenedor dinámico del Tip (Limpio si es VIP, con Candado si es Freemium) -->
+      <div id="sheet-tip-wrapper"></div>
+
+      <div class="transport-title" id="lbl-how-to-get">Cómo llegar:</div>
+      <div class="transport-buttons">
+        <a id="btn-uber" href="#" class="btn-transport btn-uber" onclick="handleTransportClick(event, 'uber')">
+          <span>🚗</span> <span id="lbl-uber">Pedir con Uber</span>
+        </a>
+        <a id="btn-didi" href="#" class="btn-transport btn-didi" onclick="handleTransportClick(event, 'didi')">
+          <span>🚕</span> <span id="lbl-didi">Pedir con DiDi</span>
+        </a>
+        <a id="btn-gmaps" href="#" target="_blank" class="btn-transport btn-gmaps" onclick="trackClick('gmaps')">
+          <span>🗺️</span> <span id="lbl-gmaps">Abrir en Google Maps (Gratis)</span>
+        </a>
+      </div>
+
+      <button id="btn-close-modal" class="btn-transport" style="background:#475569; margin-top:12px; width:100%;">
+        <span id="lbl-close">Cerrar</span>
+      </button>
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="data.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

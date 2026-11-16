@@ -1,0 +1,872 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin - BsAs Local Guide</title>
+  
+  <!-- Leaflet CSS para los mapas del admin -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <link rel="stylesheet" href="style.css">
+
+  <style>
+    body {
+      overflow-y: auto;
+      background: #0f172a;
+      padding: 16px;
+    }
+    .admin-container {
+      max-width: 860px;
+      margin: 0 auto;
+      padding-bottom: 60px;
+    }
+    .admin-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+    .stat-card {
+      background: #1e293b;
+      padding: 16px;
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      text-align: center;
+    }
+    .stat-val {
+      font-size: 1.6rem;
+      font-weight: 800;
+      color: #10b981;
+    }
+    .stat-lbl {
+      font-size: 0.75rem;
+      color: #94a3b8;
+      text-transform: uppercase;
+      font-weight: 600;
+    }
+    .admin-card {
+      background: #1e293b;
+      border-radius: 14px;
+      padding: 18px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      margin-bottom: 22px;
+    }
+    .section-title {
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin-bottom: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .btn-action {
+      background: #10b981;
+      color: white;
+      border: none;
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 0.85rem;
+      cursor: pointer;
+    }
+    .btn-transfer {
+      background: #3b82f6;
+    }
+    .btn-qr {
+      background: #6366f1;
+    }
+    .btn-copy {
+      background: #334155;
+      font-size: 0.75rem;
+      padding: 4px 8px;
+    }
+    .btn-danger {
+      background: #ef4444;
+    }
+    .btn-secondary {
+      background: #475569;
+    }
+    .waiter-card {
+      background: #0f172a;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      padding: 14px;
+      margin-bottom: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .waiter-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .waiter-alias-box {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(255, 255, 255, 0.05);
+      padding: 6px 10px;
+      border-radius: 6px;
+      font-family: monospace;
+      font-size: 0.85rem;
+      color: #38bdf8;
+    }
+    .waiter-money {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(16, 185, 129, 0.1);
+      border: 1px solid rgba(16, 185, 129, 0.25);
+      padding: 8px 12px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+    }
+    .places-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .place-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: #0f172a;
+      padding: 12px;
+      border-radius: 10px;
+      gap: 10px;
+    }
+    .toggle-active {
+      cursor: pointer;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      border: none;
+    }
+    .toggle-active.on {
+      background: rgba(16, 185, 129, 0.2);
+      color: #34d399;
+      border: 1px solid #10b981;
+    }
+    .toggle-active.off {
+      background: rgba(239, 68, 68, 0.2);
+      color: #f87171;
+      border: 1px solid #ef4444;
+    }
+    .login-overlay {
+      position: fixed;
+      inset: 0;
+      background: #0f172a;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      padding: 20px;
+    }
+    .login-box {
+      background: #1e293b;
+      padding: 24px;
+      border-radius: 16px;
+      width: 100%;
+      max-width: 340px;
+      text-align: center;
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+    .input-field {
+      width: 100%;
+      padding: 10px 12px;
+      background: #0f172a;
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 8px;
+      color: white;
+      font-size: 0.95rem;
+      margin: 8px 0 14px 0;
+      box-sizing: border-box;
+    }
+    .form-group {
+      margin-bottom: 10px;
+      text-align: left;
+    }
+    .form-group label {
+      display: block;
+      font-size: 0.75rem;
+      color: #94a3b8;
+      text-transform: uppercase;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+    /* Estilos del popup en el mapa del admin */
+    .admin-map-popup {
+      color: #0f172a;
+      font-family: inherit;
+    }
+    .admin-map-popup h4 {
+      margin: 0 0 4px 0;
+      font-size: 0.95rem;
+    }
+    .admin-map-popup p {
+      margin: 0 0 8px 0;
+      font-size: 0.8rem;
+      color: #475569;
+    }
+    .admin-map-popup button {
+      background: #10b981;
+      color: white;
+      border: none;
+      padding: 5px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 0.75rem;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Modal Login Admin -->
+  <div class="login-overlay" id="login-modal">
+    <div class="login-box">
+      <h2>🔐 Panel Admin</h2>
+      <p style="font-size:0.85rem; color:#94a3b8; margin: 8px 0 16px 0;">Ingresá el PIN maestro para administrar comisiones y mozos</p>
+      <input type="password" id="input-pin" class="input-field" placeholder="PIN (por defecto: 1234)" autofocus onkeydown="if(event.key==='Enter') adminLogin()">
+      <button class="btn-action" style="width:100%; padding:12px;" onclick="adminLogin()">Entrar al Panel</button>
+      <div id="login-error" style="color:#ef4444; font-size:0.8rem; margin-top:8px; display:none;">PIN incorrecto. Recordá que por defecto es 1234</div>
+    </div>
+  </div>
+
+  <!-- Dashboard Principal -->
+  <div class="admin-container" id="admin-panel" style="display:none;">
+    <header class="admin-header">
+      <div>
+        <h1 style="font-size:1.3rem;">⚙️ Administración BsAs Guide</h1>
+        <div style="font-size:0.8rem; color:#94a3b8;">Liquidaciones a mozos, QR de venta y mapa de comercios</div>
+      </div>
+      <button class="btn-action btn-secondary" onclick="adminLogout()">Salir</button>
+    </header>
+
+    <!-- Métricas Generales -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-val" id="stat-passes">0</div>
+        <div class="stat-lbl">Servicios Cobrados</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-val" id="stat-revenue">$0 USD</div>
+        <div class="stat-lbl">Recaudación Total</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-val" id="stat-pending" style="color:#f59e0b;">$0 USD</div>
+        <div class="stat-lbl">A Transferir a Mozos</div>
+      </div>
+    </div>
+
+    <!-- SECCIÓN: CONFIGURACIÓN DE MERCADO PAGO -->
+    <div class="admin-card">
+      <div class="section-title">
+        <span>💙 Link de Cobro de Mercado Pago</span>
+      </div>
+      <div style="display:flex; gap:10px; align-items:center;">
+        <input type="url" id="cfg-mp-link" class="input-field" style="margin:0; flex:1;" placeholder="Pegá tu link de pago de Mercado Pago (ej: https://mpago.la/...)">
+        <button class="btn-action" onclick="saveMpConfig()">Guardar</button>
+      </div>
+      <div style="font-size:0.75rem; color:#94a3b8; margin-top:6px;">
+        Cuando el turista toque "Pagar con Mercado Pago", se le abrirá este link directamente.
+      </div>
+    </div>
+
+    <!-- SECCIÓN: MOZOS, QR Y TRANSFERENCIAS POR ALIAS -->
+    <div class="admin-card">
+      <div class="section-title">
+        <span>👨‍🍳 Mozos, Códigos QR y Liquidaciones</span>
+        <button class="btn-action" onclick="openWaiterModal()">+ Nuevo Mozo</button>
+      </div>
+      <p style="font-size:0.8rem; color:#94a3b8; margin-bottom:14px;">
+        Generá el QR para que cada mozo lo imprima o muestre en la mesa, y transferile su parte por Alias.
+      </p>
+      <div id="waiters-container"></div>
+    </div>
+
+    <!-- SECCIÓN PRINCIPAL: MAPA INTERACTIVO DE LUGARES -->
+    <div class="admin-card">
+      <div class="section-title">
+        <span>🗺️ Mapa de Lugares & Edición en Vivo</span>
+        <button class="btn-action" onclick="openPlaceEditor()">+ Nuevo Lugar</button>
+      </div>
+      
+      <div style="background:rgba(56, 189, 248, 0.1); border:1px solid rgba(56, 189, 248, 0.3); border-radius:8px; padding:10px; margin-bottom:12px; font-size:0.82rem; color:#38bdf8;">
+        📍 <strong>Instrucciones:</strong> Hacé clic en cualquier calle del mapa para <strong>agregar un nuevo lugar</strong> en esa posición, o hacé clic en un <strong>pin existente</strong> para editarlo o cambiar sus datos.
+      </div>
+
+      <!-- MAPA DEL DASHBOARD -->
+      <div id="dashboard-admin-map" style="height:360px; width:100%; border-radius:12px; border:1px solid rgba(255,255,255,0.15); background:#1e293b; margin-bottom:16px;"></div>
+
+      <div class="section-title" style="margin-top:16px;">
+        <span style="font-size:0.95rem;">📋 Listado de Lugares Cargados</span>
+      </div>
+      <div class="places-list" id="places-container"></div>
+    </div>
+  </div>
+
+  <!-- Modal para Agregar Mozo con Alias -->
+  <div class="modal-overlay" id="waiter-modal">
+    <div class="bottom-sheet" style="max-width:440px;">
+      <div class="sheet-handle"></div>
+      <h2 style="font-size:1.2rem; margin-bottom:14px;">Registrar Mozo & Alias</h2>
+      <form onsubmit="saveWaiter(event)">
+        <div class="form-group">
+          <label>Nombre del Mozo *</label>
+          <input type="text" id="w-name" class="input-field" required placeholder="ej. Isaias">
+        </div>
+        <div class="form-group">
+          <label>Alias de Mercado Pago / CVU *</label>
+          <input type="text" id="w-alias" class="input-field" required placeholder="ej. isaias.mozo.mp">
+        </div>
+        <div class="form-group">
+          <label>PIN de Activación para Cobrar en Mesa (4 dígitos) *</label>
+          <input type="text" id="w-pin" class="input-field" value="1234" maxlength="6" required placeholder="1234">
+        </div>
+        <div class="form-group">
+          <label>Comisión por venta (USD)</label>
+          <input type="number" step="0.1" id="w-commission" class="input-field" value="1.5" required>
+        </div>
+        <div style="display:flex; gap:10px; margin-top:14px;">
+          <button type="submit" class="btn-action" style="flex:1; padding:12px;">Guardar Mozo</button>
+          <button type="button" class="btn-action btn-secondary" onclick="closeWaiterModal()">Cancelar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal para Ver / Descargar Código QR del Mozo -->
+  <div class="modal-overlay" id="qr-modal">
+    <div class="bottom-sheet" style="max-width:380px; text-align:center;">
+      <div class="sheet-handle"></div>
+      <h2 id="qr-modal-title" style="font-size:1.2rem; margin-bottom:4px;">Código QR del Mozo</h2>
+      <p style="font-size:0.8rem; color:#94a3b8; margin-bottom:14px;">
+        Mostrale este QR al turista o imprimilo para la mesa.
+      </p>
+
+      <div style="background:#fff; padding:16px; border-radius:16px; display:inline-block; margin-bottom:12px; box-shadow:0 8px 25px rgba(0,0,0,0.5);">
+        <img id="qr-modal-img" src="" alt="QR" style="width:220px; height:220px; display:block;">
+      </div>
+
+      <div id="qr-modal-url" style="font-family:monospace; font-size:0.75rem; color:#38bdf8; word-break:break-all; margin-bottom:14px; background:#0f172a; padding:8px; border-radius:8px;"></div>
+
+      <div style="display:flex; flex-direction:column; gap:8px;">
+        <a id="btn-download-qr" href="#" target="_blank" class="btn-action" style="padding:12px; text-decoration:none; text-align:center; font-weight:700;">
+          📥 Descargar Imagen QR
+        </a>
+        <button class="btn-action btn-secondary" onclick="closeQrModal()">Cerrar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal para Crear / Editar Lugar (CON AJUSTE DE PIN) -->
+  <div class="modal-overlay" id="editor-modal">
+    <div class="bottom-sheet" style="max-height:92vh;">
+      <div class="sheet-handle"></div>
+      <h2 id="editor-title" style="margin-bottom:12px; font-size:1.2rem;">Nuevo Lugar</h2>
+      
+      <form id="place-form" onsubmit="savePlace(event)">
+        <input type="hidden" id="form-id">
+
+        <div class="form-group">
+          <label>Nombre del Lugar *</label>
+          <input type="text" id="form-name" class="input-field" required placeholder="ej. Parrilla La Cabrera">
+        </div>
+
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+          <div class="form-group">
+            <label>Categoría *</label>
+            <select id="form-category" class="input-field" required style="padding:10px;">
+              <option value="food">🥩 Parrilla / Pastas</option>
+              <option value="tango">💃 Tango & Shows</option>
+              <option value="shopping">🛍️ Shopping / Paseos</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Barrio / Zona *</label>
+            <input type="text" id="form-neighborhood" class="input-field" required placeholder="ej. Palermo Soho">
+          </div>
+        </div>
+
+        <!-- Mini Mapa de Ajuste Fino -->
+        <div class="form-group">
+          <label>📍 Ajustar Ubicación (Arrastrá el pin o tocá el mapa)</label>
+          <div id="editor-mini-map" style="height:190px; width:100%; border-radius:10px; border:1px solid rgba(255,255,255,0.2); margin-bottom:6px; background:#1e293b;"></div>
+        </div>
+
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+          <div class="form-group">
+            <label>Latitud *</label>
+            <input type="number" step="any" id="form-lat" class="input-field" required placeholder="-34.5878">
+          </div>
+          <div class="form-group">
+            <label>Longitud *</label>
+            <input type="number" step="any" id="form-lng" class="input-field" required placeholder="-58.4239">
+          </div>
+        </div>
+
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+          <div class="form-group">
+            <label>Nivel de Precio</label>
+            <select id="form-price" class="input-field" style="padding:10px;">
+              <option value="$">$ (Económico)</option>
+              <option value="$$" selected>$$ (Normal)</option>
+              <option value="$$$">$$$ (Gourmet)</option>
+              <option value="$$$$">$$$$ (Lujo / Top)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Etiqueta / Destacado</label>
+            <input type="text" id="form-tag" class="input-field" placeholder="ej. Ojo de Bife Único">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>URL de Imagen</label>
+          <input type="url" id="form-image" class="input-field" placeholder="https://images.unsplash.com/...">
+        </div>
+
+        <div class="form-group">
+          <label>Tip de Mozo (Español) *</label>
+          <textarea id="form-tip-es" class="input-field" rows="2" required placeholder="Consejo honesto de mozo..."></textarea>
+        </div>
+
+        <div class="form-group">
+          <label>Tip (English)</label>
+          <textarea id="form-tip-en" class="input-field" rows="2" placeholder="Local advice in English..."></textarea>
+        </div>
+
+        <div class="form-group">
+          <label>Tip (Português)</label>
+          <textarea id="form-tip-pt" class="input-field" rows="2" placeholder="Dica local em Português..."></textarea>
+        </div>
+
+        <div style="display:flex; gap:10px; margin-top:14px;">
+          <button type="submit" class="btn-action" style="flex:1; padding:12px;">Guardar Lugar</button>
+          <button type="button" class="btn-action btn-secondary" onclick="closePlaceEditor()">Cancelar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <script>
+    let allPlaces = [];
+    let allWaiters = [];
+    let dashboardMap = null;
+    let dashboardMarkersLayer = null;
+    let editorMiniMap = null;
+    let editorMiniMarker = null;
+
+    document.addEventListener("DOMContentLoaded", () => {
+      if (sessionStorage.getItem("admin_auth") === "true") {
+        showDashboard();
+      }
+    });
+
+    async function adminLogin() {
+      const pin = document.getElementById("input-pin").value;
+      const res = await fetch("/api/admin/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ pin })
+      });
+      const data = await res.json();
+      if (data.success) {
+        sessionStorage.setItem("admin_auth", "true");
+        showDashboard();
+      } else {
+        document.getElementById("login-error").style.display = "block";
+      }
+    }
+
+    function adminLogout() {
+      sessionStorage.removeItem("admin_auth");
+      location.reload();
+    }
+
+    function showDashboard() {
+      document.getElementById("login-modal").style.display = "none";
+      document.getElementById("admin-panel").style.display = "block";
+      loadStats();
+      loadMpConfig();
+      loadWaiters();
+      initDashboardMap();
+      loadPlaces();
+    }
+
+    async function loadStats() {
+      const res = await fetch("/api/admin/stats");
+      const stats = await res.json();
+
+      document.getElementById("stat-passes").textContent = stats.totalPasses;
+      document.getElementById("stat-revenue").textContent = `$${stats.totalEarningsUsd} USD`;
+      document.getElementById("stat-pending").textContent = `$${stats.totalWaitersPayoutUsd} USD (~$${stats.totalWaitersPayoutArs.toLocaleString('es-AR')} ARS)`;
+    }
+
+    async function loadMpConfig() {
+      try {
+        const res = await fetch("/api/admin/config");
+        const data = await res.json();
+        document.getElementById("cfg-mp-link").value = data.mpLink || "";
+      } catch (e) {}
+    }
+
+    async function saveMpConfig() {
+      const mpLink = document.getElementById("cfg-mp-link").value.trim();
+      await fetch("/api/admin/config", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ mpLink })
+      });
+      alert("¡Link de Mercado Pago actualizado!");
+    }
+
+    async function loadWaiters() {
+      const res = await fetch("/api/admin/waiters");
+      allWaiters = await res.json();
+      const container = document.getElementById("waiters-container");
+
+      if (allWaiters.length === 0) {
+        container.innerHTML = '<div style="color:#94a3b8; font-size:0.85rem;">No hay mozos registrados.</div>';
+        return;
+      }
+
+      container.innerHTML = allWaiters.map(w => `
+        <div class="waiter-card">
+          <div class="waiter-top">
+            <div>
+              <strong style="font-size:1.05rem;">👨‍🍳 ${w.name}</strong> 
+              <span style="font-size:0.75rem; color:#94a3b8; margin-left:6px;">(?m=${w.id})</span>
+            </div>
+            <button class="btn-action btn-qr" onclick="openQrModal('${w.id}', '${w.name}')">
+              📱 Ver Código QR
+            </button>
+          </div>
+
+          <div class="waiter-alias-box">
+            <span>Alias: <strong>${w.alias}</strong></span>
+            <button class="btn-action btn-copy" onclick="copyAlias('${w.alias}')">📋 Copiar</button>
+          </div>
+
+          <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(245, 158, 11, 0.1); border:1px dashed rgba(245, 158, 11, 0.3); padding:8px 12px; border-radius:8px; font-size:0.85rem;">
+            <span>🔑 PIN para cobrar en mesa: <strong style="color:#f59e0b; font-size:1.1rem; letter-spacing:2px; font-family:monospace;">${w.pin || '1234'}</strong></span>
+            <span style="font-size:0.75rem; color:#94a3b8;">Dáselo al turista</span>
+          </div>
+
+          <div class="waiter-money">
+            <div>
+              <span style="color:#94a3b8;">Por transferir:</span> 
+              <strong style="color:#34d399; font-size:1.05rem;">$${w.pending_payout_usd} USD</strong>
+              <span style="color:#94a3b8; font-size:0.8rem;">(~$${w.pending_payout_ars.toLocaleString('es-AR')} ARS)</span>
+            </div>
+            ${w.pending_payout_usd > 0 ? `
+              <button class="btn-action btn-transfer" onclick="settlePayout('${w.id}', '${w.name}', '${w.pending_payout_ars}')">
+                💸 Marcar como Transferido
+              </button>
+            ` : `
+              <span style="color:#94a3b8; font-size:0.75rem;">✅ Al día (${w.total_sales} ventas)</span>
+            `}
+          </div>
+        </div>
+      `).join("");
+    }
+
+    function openQrModal(waiterId, waiterName) {
+      const host = window.location.hostname === "localhost" ? "192.168.100.11" : window.location.hostname;
+      const port = window.location.port ? `:${window.location.port}` : "";
+      const fullUrl = `http://${host}${port}/?m=${waiterId}`;
+
+      const qrImageUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(fullUrl)}`;
+
+      document.getElementById("qr-modal-title").textContent = `Código QR: ${waiterName}`;
+      document.getElementById("qr-modal-img").src = qrImageUrl;
+      document.getElementById("qr-modal-url").textContent = fullUrl;
+      document.getElementById("btn-download-qr").href = qrImageUrl;
+
+      document.getElementById("qr-modal").classList.add("active");
+    }
+
+    function closeQrModal() {
+      document.getElementById("qr-modal").classList.remove("active");
+    }
+
+    function copyAlias(alias) {
+      navigator.clipboard.writeText(alias);
+      alert(`Alias copiado: ${alias}\n¡Ya podés pegarlo en Mercado Pago para transferir!`);
+    }
+
+    async function settlePayout(waiterId, name, amountArs) {
+      if (!confirm(`¿Confirmás que ya le transferiste los ~$${parseInt(amountArs).toLocaleString('es-AR')} ARS a ${name}?`)) return;
+
+      const res = await fetch("/api/admin/waiters/payout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ waiterId })
+      });
+      const data = await res.json();
+      if (data.success) {
+        alert("¡Liquidación registrada con éxito!");
+        loadStats();
+        loadWaiters();
+      }
+    }
+
+    function openWaiterModal() {
+      document.getElementById("waiter-modal").classList.add("active");
+    }
+    function closeWaiterModal() {
+      document.getElementById("waiter-modal").classList.remove("active");
+    }
+
+    async function saveWaiter(e) {
+      e.preventDefault();
+      const payload = {
+        name: document.getElementById("w-name").value,
+        alias: document.getElementById("w-alias").value,
+        pin: document.getElementById("w-pin").value || "1234",
+        commissionUsd: document.getElementById("w-commission").value
+      };
+
+      await fetch("/api/admin/waiters", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+
+      closeWaiterModal();
+      loadWaiters();
+    }
+
+    // MAPA DEL DASHBOARD PRINCIPAL
+    function initDashboardMap() {
+      if (dashboardMap) return;
+
+      dashboardMap = L.map("dashboard-admin-map", { zoomControl: true }).setView([-34.6037, -58.3816], 13);
+      L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        attribution: '&copy; OpenStreetMap',
+        maxZoom: 19
+      }).addTo(dashboardMap);
+
+      dashboardMarkersLayer = L.layerGroup().addTo(dashboardMap);
+
+      // Clic en cualquier punto del mapa para agregar lugar allí
+      dashboardMap.on("click", function(e) {
+        const lat = e.latlng.lat;
+        const lng = e.latlng.lng;
+        openPlaceEditor(null, lat, lng);
+      });
+
+      setTimeout(() => {
+        if (dashboardMap) dashboardMap.invalidateSize();
+      }, 300);
+    }
+
+    function renderDashboardMapMarkers() {
+      if (!dashboardMarkersLayer) return;
+      dashboardMarkersLayer.clearLayers();
+
+      allPlaces.forEach(p => {
+        let iconEmoji = "🥩";
+        if (p.category === "tango") iconEmoji = "💃";
+        if (p.category === "shopping") iconEmoji = "🛍️";
+
+        const customIcon = L.divIcon({
+          className: "admin-map-pin",
+          html: `<div style="
+            background: ${p.active ? '#10b981' : '#64748b'};
+            color: white;
+            border: 2px solid white;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+            cursor: pointer;
+          ">${iconEmoji}</div>`,
+          iconSize: [36, 36],
+          iconAnchor: [18, 18]
+        });
+
+        const marker = L.marker([p.lat, p.lng], { icon: customIcon });
+
+        const popupContent = `
+          <div class="admin-map-popup">
+            <h4>${p.name}</h4>
+            <p>${p.neighborhood} • ${p.category.toUpperCase()} • ${p.price}</p>
+            <div style="display:flex; gap:6px;">
+              <button onclick="editPlace('${p.id}')">✏️ Editar</button>
+              <button onclick="togglePlace('${p.id}', ${!p.active})" style="background:${p.active ? '#f59e0b' : '#10b981'};">
+                ${p.active ? 'Pausar' : 'Activar'}
+              </button>
+              <button onclick="deletePlace('${p.id}')" style="background:#ef4444;">🗑️</button>
+            </div>
+          </div>
+        `;
+
+        marker.bindPopup(popupContent);
+        dashboardMarkersLayer.addLayer(marker);
+      });
+    }
+
+    async function loadPlaces() {
+      const res = await fetch("/api/admin/places");
+      allPlaces = await res.json();
+
+      // Renderizar pines en el mapa interactivo del dashboard
+      renderDashboardMapMarkers();
+
+      const container = document.getElementById("places-container");
+      container.innerHTML = allPlaces.map(p => `
+        <div class="place-row">
+          <div style="flex:1;">
+            <div style="font-weight:700; font-size:0.95rem;">${p.name}</div>
+            <div style="font-size:0.75rem; color:#94a3b8;">${p.neighborhood} • ${p.category.toUpperCase()} • ${p.price}</div>
+          </div>
+          <button class="toggle-active ${p.active ? 'on' : 'off'}" onclick="togglePlace('${p.id}', ${!p.active})">
+            ${p.active ? 'Activo' : 'Pausado'}
+          </button>
+          <button class="btn-action" style="padding:6px 10px;" onclick="editPlace('${p.id}')">✏️</button>
+          <button class="btn-action btn-danger" style="padding:6px 10px;" onclick="deletePlace('${p.id}')">🗑️</button>
+        </div>
+      `).join("");
+    }
+
+    async function togglePlace(id, newStatus) {
+      await fetch("/api/admin/places/toggle", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, active: newStatus })
+      });
+      loadPlaces();
+    }
+
+    async function deletePlace(id) {
+      if (!confirm("¿Seguro que querés borrar este lugar?")) return;
+      await fetch(`/api/admin/places/${id}`, { method: "DELETE" });
+      loadPlaces();
+    }
+
+    // MINI MAPA DENTRO DEL FORMULARIO DE EDICIÓN
+    function initOrUpdateMiniMap(lat, lng) {
+      if (!editorMiniMap) {
+        editorMiniMap = L.map("editor-mini-map", { zoomControl: true }).setView([lat, lng], 14);
+        L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+          attribution: '&copy; OpenStreetMap',
+          maxZoom: 19
+        }).addTo(editorMiniMap);
+
+        editorMiniMarker = L.marker([lat, lng], { draggable: true }).addTo(editorMiniMap);
+
+        editorMiniMarker.on("dragend", function(e) {
+          const pos = e.target.getLatLng();
+          document.getElementById("form-lat").value = pos.lat.toFixed(6);
+          document.getElementById("form-lng").value = pos.lng.toFixed(6);
+        });
+
+        editorMiniMap.on("click", function(e) {
+          editorMiniMarker.setLatLng(e.latlng);
+          document.getElementById("form-lat").value = e.latlng.lat.toFixed(6);
+          document.getElementById("form-lng").value = e.latlng.lng.toFixed(6);
+        });
+      } else {
+        editorMiniMap.setView([lat, lng], 14);
+        editorMiniMarker.setLatLng([lat, lng]);
+      }
+
+      setTimeout(() => {
+        if (editorMiniMap) editorMiniMap.invalidateSize();
+      }, 250);
+    }
+
+    function openPlaceEditor(id = null, presetLat = null, presetLng = null) {
+      document.getElementById("place-form").reset();
+      document.getElementById("form-id").value = "";
+      document.getElementById("editor-title").textContent = "Nuevo Lugar";
+
+      let initialLat = presetLat || -34.5878;
+      let initialLng = presetLng || -58.4239;
+
+      if (id) {
+        const p = allPlaces.find(x => x.id === id);
+        if (p) {
+          document.getElementById("editor-title").textContent = "Editar: " + p.name;
+          document.getElementById("form-id").value = p.id;
+          document.getElementById("form-name").value = p.name;
+          document.getElementById("form-category").value = p.category;
+          document.getElementById("form-neighborhood").value = p.neighborhood;
+          document.getElementById("form-price").value = p.price;
+          document.getElementById("form-tag").value = p.tag;
+          document.getElementById("form-lat").value = p.lat;
+          document.getElementById("form-lng").value = p.lng;
+          document.getElementById("form-image").value = p.image;
+          document.getElementById("form-tip-es").value = p.tip_es;
+          document.getElementById("form-tip-en").value = p.tip_en;
+          document.getElementById("form-tip-pt").value = p.tip_pt;
+
+          initialLat = parseFloat(p.lat);
+          initialLng = parseFloat(p.lng);
+        }
+      } else {
+        document.getElementById("form-lat").value = initialLat.toFixed ? initialLat.toFixed(6) : initialLat;
+        document.getElementById("form-lng").value = initialLng.toFixed ? initialLng.toFixed(6) : initialLng;
+      }
+
+      document.getElementById("editor-modal").classList.add("active");
+      initOrUpdateMiniMap(initialLat, initialLng);
+    }
+
+    function closePlaceEditor() {
+      document.getElementById("editor-modal").classList.remove("active");
+    }
+
+    function editPlace(id) {
+      openPlaceEditor(id);
+    }
+
+    async function savePlace(e) {
+      e.preventDefault();
+      const payload = {
+        id: document.getElementById("form-id").value || null,
+        name: document.getElementById("form-name").value,
+        category: document.getElementById("form-category").value,
+        neighborhood: document.getElementById("form-neighborhood").value,
+        price: document.getElementById("form-price").value,
+        tag: document.getElementById("form-tag").value || "Recomendado",
+        lat: document.getElementById("form-lat").value,
+        lng: document.getElementById("form-lng").value,
+        image: document.getElementById("form-image").value || "https://images.unsplash.com/photo-1544025162-d76694265947?w=600",
+        tip_es: document.getElementById("form-tip-es").value,
+        tip_en: document.getElementById("form-tip-en").value || document.getElementById("form-tip-es").value,
+        tip_pt: document.getElementById("form-tip-pt").value || document.getElementById("form-tip-es").value,
+        active: 1
+      };
+
+      await fetch("/api/admin/places", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+
+      closePlaceEditor();
+      loadPlaces();
+    }
+  </script>
+</body>
+</html>

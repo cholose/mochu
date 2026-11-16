@@ -1,0 +1,18 @@
+{
+  "name": "bsas-local-guide",
+  "version": "1.0.0",
+  "description": "Guía web interactiva para turistas en Buenos Aires con recomendaciones locales, mapa en vivo, cálculo de traslados, corte de 21 días y panel admin.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "keywords": [
+    "buenos-aires",
+    "turismo",
+    "tango",
+    "parrillas",
+    "mozos"
+  ],
+  "author": "Isaias",
+  "license": "ISC"
+}
