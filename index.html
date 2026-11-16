@@ -151,13 +151,24 @@
 
   <!-- TAB 1: MAP VIEW -->
   <main id="tab-map" class="tab-content active">
-    <!-- Category Filter Chips -->
-    <div class="map-filters">
-      <button class="filter-chip active" data-category="food" id="btn-filter-food">🥩 Parrillas</button>
-      <button class="filter-chip" data-category="tango" id="btn-filter-tango">💃 Tango</button>
-      <button class="filter-chip" data-category="shopping" id="btn-filter-shopping">🛍️ Shoppings</button>
-      <button class="filter-chip" data-category="all" id="btn-filter-all">🗺️ Todos</button>
+    <!-- Map Controls Top: Search & Category Chips -->
+    <div class="map-controls-top">
+      <div class="map-search-box">
+        <span>🔍</span>
+        <input type="text" id="map-search-input" placeholder="Buscar parrilla, tango, shopping..." oninput="handleMapSearch(this.value)">
+      </div>
+      <div class="map-filters">
+        <button class="filter-chip active" data-category="food" id="btn-filter-food">🥩 Parrillas</button>
+        <button class="filter-chip" data-category="tango" id="btn-filter-tango">💃 Tango</button>
+        <button class="filter-chip" data-category="shopping" id="btn-filter-shopping">🛍️ Shoppings</button>
+        <button class="filter-chip" data-category="all" id="btn-filter-all">🗺️ Todos</button>
+      </div>
     </div>
+
+    <!-- Toggle Zonas Seguras Semáforo -->
+    <button id="btn-toggle-safety" class="safety-toggle-btn" onclick="toggleSafetyLayer()">
+      <span>🛡️</span> <span id="lbl-safety-toggle">Zonas Seguras: ON</span>
+    </button>
 
     <div id="map"></div>
     <button id="btn-locate" class="locate-btn" title="Mi ubicación">📍</button>
@@ -183,7 +194,8 @@
           <h2 class="sheet-title" id="sheet-name">Nombre del Lugar</h2>
           <div class="sheet-meta">
             <span id="sheet-neighborhood">Palermo</span> • 
-            <span id="sheet-price">$$$</span>
+            <span id="sheet-price">$$$</span> • 
+            <span id="sheet-distance" class="distance-badge" style="display:none;"></span>
           </div>
         </div>
         <span class="sheet-badge" id="sheet-tag">Top Recomendado</span>

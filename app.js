@@ -5,9 +5,13 @@ const state = {
   waiterName: "Isaias",
   activeCategory: "food",
   activeTab: "tab-map",
+  searchQuery: "",
   map: null,
   markersLayer: null,
+  safetyLayerGroup: null,
+  safetyVisible: true,
   userLocationMarker: null,
+  userCoords: null,
   selectedPlace: null,
   places: [],
   pass: null,
@@ -315,6 +319,15 @@ function updateUITranslations() {
   document.getElementById("btn-filter-tango").textContent = t.filterTango;
   document.getElementById("btn-filter-shopping").textContent = t.filterShopping;
 
+  const searchInput = document.getElementById("map-search-input");
+  if (searchInput && t.searchPlaceholder) {
+    searchInput.placeholder = t.searchPlaceholder;
+  }
+  const safetyLbl = document.getElementById("lbl-safety-toggle");
+  if (safetyLbl) {
+    safetyLbl.textContent = state.safetyVisible ? (t.safetyBtnOn || "Zonas Seguras: ON") : (t.safetyBtnOff || "Zonas Seguras: OFF");
+  }
+
   document.getElementById("lbl-how-to-get").textContent = t.howToGetThere;
   document.getElementById("lbl-close").textContent = t.closeBtn;
 
@@ -344,18 +357,26 @@ function initTabs() {
   });
 }
 
-// 6. Mapa Leaflet (Arranca en ubicación del cliente)
+// 6. Mapa Leaflet Moderno (CartoDB Voyager + Zonas Seguras + Búsqueda)
 function initMap() {
   const defaultCoords = [-34.6037, -58.3816];
   state.map = L.map("map", { zoomControl: false }).setView(defaultCoords, 14);
 
-  L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
-    attribution: '&copy; OpenStreetMap contributors',
+  // CartoDB Voyager tiles (estilo moderno de alta legibilidad para turismo)
+  L.tileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png", {
+    attribution: '&copy; <a href="https://carto.com/">CARTO</a> &copy; OpenStreetMap',
+    subdomains: "abcd",
     maxZoom: 19
   }).addTo(state.map);
 
   L.control.zoom({ position: "topright" }).addTo(state.map);
+  
+  // Capas de mapa
+  state.safetyLayerGroup = L.layerGroup().addTo(state.map);
   state.markersLayer = L.layerGroup().addTo(state.map);
+
+  // Dibujar semáforo de seguridad (zonas verdes, amarillas y rojas)
+  renderSafetyZones();
 
   document.getElementById("btn-locate").addEventListener("click", () => locateUser(false));
 
@@ -363,8 +384,172 @@ function initMap() {
     if (state.map) state.map.invalidateSize();
   }, 300);
 
-  // Ubicación del cliente al inicio
+  // Centrar con GPS del cliente al inicio
   locateUser(true);
+}
+
+// Zonas de Seguridad Turística (Semáforo de Seguridad BsAs)
+function renderSafetyZones() {
+  if (!state.safetyLayerGroup) return;
+  state.safetyLayerGroup.clearLayers();
+
+  const zones = [
+    {
+      name: "Puerto Madero",
+      color: "#10b981", // Verde
+      coords: [
+        [-34.5980, -58.3685],
+        [-34.6000, -58.3605],
+        [-34.6225, -58.3570],
+        [-34.6250, -58.3665]
+      ],
+      desc: {
+        es: "🟢 <strong>Zona Verde: Puerto Madero</strong><br>La zona más segura y patrullada de la ciudad. Ideal para pasear a pie a cualquier hora y cenar junto al río.",
+        en: "🟢 <strong>Green Zone: Puerto Madero</strong><br>The safest area in the city, continuously patrolled. Perfect for walking day and night.",
+        pt: "🟢 <strong>Zona Verde: Puerto Madero</strong><br>A área mais segura da cidade. Perfeita para caminhar a qualquer hora e jantar ao ar livre."
+      }
+    },
+    {
+      name: "Recoleta",
+      color: "#10b981", // Verde
+      coords: [
+        [-34.5810, -58.3970],
+        [-34.5790, -58.3840],
+        [-34.5930, -58.3810],
+        [-34.5980, -58.3930]
+      ],
+      desc: {
+        es: "🟢 <strong>Zona Verde: Recoleta</strong><br>Barrio elegante, residencial y muy seguro. Excelente para pasear de día, visitar el Cementerio y disfrutar cafés.",
+        en: "🟢 <strong>Green Zone: Recoleta</strong><br>Chic, historic and very safe neighborhood. Great for day walks, cafes, and architecture.",
+        pt: "🟢 <strong>Zona Verde: Recoleta</strong><br>Bairro nobre, tranquilo e muito seguro. Ótimo para caminhar e conhecer cafés e museus."
+      }
+    },
+    {
+      name: "Palermo Soho & Hollywood",
+      color: "#10b981", // Verde
+      coords: [
+        [-34.5700, -58.4230],
+        [-34.5740, -58.4060],
+        [-34.5940, -58.4240],
+        [-34.5870, -58.4410]
+      ],
+      desc: {
+        es: "🟢 <strong>Zona Verde: Palermo</strong><br>Corazón gastronómico y vida nocturna. Muy seguro y transitado. Cuidar pertenencias en mesas de vereda.",
+        en: "🟢 <strong>Green Zone: Palermo</strong><br>Culinary & nightlife capital. Very safe and lively. Keep eye on bags at outdoor sidewalk tables.",
+        pt: "🟢 <strong>Zona Verde: Palermo</strong><br>Epicentro gastronômico e noturno. Muito movimentado e seguro. Atenção normal a bolsas na calçada."
+      }
+    },
+    {
+      name: "San Telmo",
+      color: "#f59e0b", // Amarillo
+      coords: [
+        [-34.6140, -58.3760],
+        [-34.6140, -58.3670],
+        [-34.6280, -58.3690],
+        [-34.6270, -58.3790]
+      ],
+      desc: {
+        es: "🟡 <strong>Zona Amarilla: San Telmo</strong><br>Muy turístico y pintoresco de día (Mercado, Feria). De noche circular por calles transitadas (Defensa) y guardar celular.",
+        en: "🟡 <strong>Yellow Zone: San Telmo</strong><br>Very historic by day. At night stay on busy streets like Defensa and keep your phone in your pocket.",
+        pt: "🟡 <strong>Zona Amarela: San Telmo</strong><br>Pitoresco de dia. À noite, prefira ruas iluminadas e movimentadas e evite usar o celular distraído."
+      }
+    },
+    {
+      name: "Terminal Retiro",
+      color: "#ef4444", // Rojo
+      coords: [
+        [-34.5900, -58.3780],
+        [-34.5880, -58.3720],
+        [-34.5960, -58.3720],
+        [-34.5950, -58.3785]
+      ],
+      desc: {
+        es: "🔴 <strong>Precaución: Estación Retiro</strong><br>Gran nudo de trasbordo. Mochila y bolso siempre adelante. Evitar caminar de noche; tomar Uber o DiDi en la puerta.",
+        en: "🔴 <strong>Caution Zone: Retiro Station</strong><br>Major transport hub. Keep backpacks on front. Avoid walking late at night; call an Uber or DiDi.",
+        pt: "🔴 <strong>Atenção: Estação Retiro</strong><br>Terminal movimentado. Mochila na frente. Evite caminhar à noite; chame Uber ou DiDi direto na porta."
+      }
+    },
+    {
+      name: "Terminal Constitución",
+      color: "#ef4444", // Rojo
+      coords: [
+        [-34.6240, -58.3840],
+        [-34.6240, -58.3770],
+        [-34.6320, -58.3780],
+        [-34.6310, -58.3850]
+      ],
+      desc: {
+        es: "🔴 <strong>Precaución: Estación Constitución</strong><br>Nudo de trenes y colectivos. No usar el celular en la vereda. Transitar acompañado o usar transporte de app.",
+        en: "🔴 <strong>Caution Zone: Constitución Station</strong><br>Transit hub. Keep personal items secure and avoid phone use on sidewalk.",
+        pt: "🔴 <strong>Atenção: Estação Constitución</strong><br>Terminal de trens. Não use o celular à mostra e prefira transporte por aplicativo."
+      }
+    }
+  ];
+
+  zones.forEach(z => {
+    const polygon = L.polygon(z.coords, {
+      color: z.color,
+      fillColor: z.color,
+      fillOpacity: 0.18,
+      weight: 2,
+      dashArray: z.color === "#ef4444" ? "4, 4" : null
+    });
+
+    const info = z.desc[state.currentLang] || z.desc.es;
+    polygon.bindPopup(`<div style="font-size:0.85rem; line-height:1.4;">${info}</div>`);
+    state.safetyLayerGroup.addLayer(polygon);
+  });
+}
+
+function toggleSafetyLayer() {
+  state.safetyVisible = !state.safetyVisible;
+  const btn = document.getElementById("btn-toggle-safety");
+  const lbl = document.getElementById("lbl-safety-toggle");
+  const t = APP_DATA.i18n[state.currentLang];
+
+  if (state.safetyVisible) {
+    if (state.safetyLayerGroup && !state.map.hasLayer(state.safetyLayerGroup)) {
+      state.map.addLayer(state.safetyLayerGroup);
+    }
+    if (btn) btn.classList.remove("off");
+    if (lbl) lbl.textContent = t.safetyBtnOn || "Zonas Seguras: ON";
+  } else {
+    if (state.safetyLayerGroup && state.map.hasLayer(state.safetyLayerGroup)) {
+      state.map.removeLayer(state.safetyLayerGroup);
+    }
+    if (btn) btn.classList.add("off");
+    if (lbl) lbl.textContent = t.safetyBtnOff || "Zonas Seguras: OFF";
+  }
+}
+
+// Búsqueda en tiempo real sobre el mapa
+function handleMapSearch(val) {
+  state.searchQuery = (val || "").trim().toLowerCase();
+  renderMarkers();
+
+  if (state.searchQuery.length >= 3) {
+    const placesToRender = (state.places && state.places.length > 0) ? state.places : APP_DATA.places;
+    const match = placesToRender.find(p => 
+      p.name.toLowerCase().includes(state.searchQuery) ||
+      (p.neighborhood && p.neighborhood.toLowerCase().includes(state.searchQuery))
+    );
+    if (match && state.map) {
+      state.map.flyTo([match.lat, match.lng], 16, { duration: 1.2 });
+    }
+  }
+}
+
+// Cálculo de distancia en km entre dos coordenadas (Haversine)
+function getDistanceFromLatLonInKm(lat1, lon1, lat2, lon2) {
+  const R = 6371;
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const a = 
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+    Math.sin(dLon / 2) * Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c;
 }
 
 function renderMarkers() {
@@ -373,35 +558,40 @@ function renderMarkers() {
 
   const placesToRender = (state.places && state.places.length > 0) ? state.places : APP_DATA.places;
 
-  // Filtrado por categoría seleccionada
+  // Filtrar por categoría activa y búsqueda
   const filteredPlaces = placesToRender.filter(place => {
-    if (state.activeCategory === "all") return true;
-    return place.category === state.activeCategory;
+    const matchCategory = (state.activeCategory === "all") || (place.category === state.activeCategory);
+    if (!matchCategory) return false;
+
+    if (!state.searchQuery) return true;
+    const query = state.searchQuery;
+    const nameMatch = place.name && place.name.toLowerCase().includes(query);
+    const barrioMatch = place.neighborhood && place.neighborhood.toLowerCase().includes(query);
+    const tagMatch = place.tag && place.tag.toLowerCase().includes(query);
+    return nameMatch || barrioMatch || tagMatch;
   });
 
   filteredPlaces.forEach(place => {
     let iconEmoji = "🥩";
-    if (place.category === "tango") iconEmoji = "💃";
-    if (place.category === "shopping") iconEmoji = "🛍️";
+    let catClass = "pin-food";
+    if (place.category === "tango") {
+      iconEmoji = "💃";
+      catClass = "pin-tango";
+    } else if (place.category === "shopping") {
+      iconEmoji = "🛍️";
+      catClass = "pin-shopping";
+    }
 
     const customIcon = L.divIcon({
-      className: "custom-map-pin",
-      html: `<div style="
-        background: #1e293b;
-        color: white;
-        border: 2px solid #10b981;
-        width: 38px;
-        height: 38px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 19px;
-        box-shadow: 0 4px 10px rgba(0,0,0,0.4);
-        cursor: pointer;
-      ">${iconEmoji}</div>`,
-      iconSize: [38, 38],
-      iconAnchor: [19, 19]
+      className: `modern-pin ${catClass}`,
+      html: `
+        <div class="modern-pin-bubble">
+          <span>${iconEmoji}</span>
+        </div>
+        <div class="modern-pin-label">${place.name}</div>
+      `,
+      iconSize: [40, 56],
+      iconAnchor: [20, 40]
     });
 
     const marker = L.marker([place.lat, place.lng], { icon: customIcon });
@@ -420,6 +610,7 @@ function locateUser(silent = false) {
     position => {
       const lat = position.coords.latitude;
       const lng = position.coords.longitude;
+      state.userCoords = { lat, lng };
 
       if (state.userLocationMarker) {
         state.map.removeLayer(state.userLocationMarker);
@@ -441,6 +632,11 @@ function locateUser(silent = false) {
 
       state.userLocationMarker = L.marker([lat, lng], { icon: userIcon }).addTo(state.map);
       state.map.setView([lat, lng], 15);
+
+      // Si el modal está abierto, refrescar la distancia en vivo
+      if (state.selectedPlace) {
+        updateModalContent(state.selectedPlace);
+      }
     },
     () => {
       if (!silent) alert("Activá el GPS para ver tu ubicación.");
@@ -485,6 +681,24 @@ function updateModalContent(place) {
   document.getElementById("sheet-price").textContent = place.price;
   document.getElementById("sheet-tag").textContent = place.tag;
   document.getElementById("sheet-image").src = place.image;
+
+  // Distancia y tiempo caminando en vivo según GPS
+  const distElem = document.getElementById("sheet-distance");
+  if (distElem) {
+    if (state.userCoords && place.lat && place.lng) {
+      const dKm = getDistanceFromLatLonInKm(state.userCoords.lat, state.userCoords.lng, place.lat, place.lng);
+      if (dKm < 1) {
+        const meters = Math.round(dKm * 1000);
+        const minsWalk = Math.max(1, Math.round(meters / 80));
+        distElem.textContent = `📍 a ${meters}m (~${minsWalk} min a pie)`;
+      } else {
+        distElem.textContent = `📍 a ${dKm.toFixed(1)} km`;
+      }
+      distElem.style.display = "inline-flex";
+    } else {
+      distElem.style.display = "none";
+    }
+  }
 
   const tipText = place.tips[state.currentLang] || place.tips.es;
   const tipWrapper = document.getElementById("sheet-tip-wrapper");

@@ -229,7 +229,10 @@ const APP_DATA = {
       bookTangoBtn: "Consultar Disponibilidad por WhatsApp",
       tangoBadge: "Comisión Verificada",
       yourLocation: "Estás acá",
-      closeBtn: "Cerrar"
+      closeBtn: "Cerrar",
+      searchPlaceholder: "Buscar parrilla, tango, shopping...",
+      safetyBtnOn: "🛡️ Zonas Seguras: ON",
+      safetyBtnOff: "🛡️ Zonas Seguras: OFF"
     },
     en: {
       appTitle: "BsAs Local Guide",
@@ -250,7 +253,10 @@ const APP_DATA = {
       bookTangoBtn: "Book / Inquire via WhatsApp",
       tangoBadge: "Verified Partner",
       yourLocation: "You are here",
-      closeBtn: "Close"
+      closeBtn: "Close",
+      searchPlaceholder: "Search steakhouse, tango, malls...",
+      safetyBtnOn: "🛡️ Safety Zones: ON",
+      safetyBtnOff: "🛡️ Safety Zones: OFF"
     },
     pt: {
       appTitle: "BsAs Local Guide",
@@ -271,7 +277,10 @@ const APP_DATA = {
       bookTangoBtn: "Consultar Vagas no WhatsApp",
       tangoBadge: "Parceiro Verificado",
       yourLocation: "Você está aqui",
-      closeBtn: "Fechar"
+      closeBtn: "Fechar",
+      searchPlaceholder: "Buscar churrascaria, tango, compras...",
+      safetyBtnOn: "🛡️ Zonas Seguras: ON",
+      safetyBtnOff: "🛡️ Zonas Seguras: OFF"
     }
   }
 };
