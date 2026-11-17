@@ -680,10 +680,22 @@ function syncPlacesToDataJs() {
     }));
     const dataJsPath = path.join(__dirname, "data.js");
     let content = fs.readFileSync(dataJsPath, "utf8");
+    try {
+      const fn = new Function(content + '; return (typeof APP_DATA !== "undefined" ? APP_DATA : null);');
+      const appData = fn();
+      if (appData) {
+        appData.places = formatted;
+        appData.version = "20261117_" + Date.now();
+        fs.writeFileSync(dataJsPath, '// Base de datos de lugares, traducciones y tips para Buenos Aires\nconst APP_DATA = ' + JSON.stringify(appData, null, 2) + ';\n', 'utf8');
+        console.log(`[Auto-Sync] data.js actualizado con ${formatted.length} lugares`);
+        return;
+      }
+    } catch(e) {}
+
     const jsonStr = JSON.stringify(formatted, null, 2);
-    const regex = /places:\s*\[[\s\S]*?\n\s*\],/;
+    const regex = /["']?places["']?:\s*\[[\s\S]*?\n\s*\],/;
     if (regex.test(content)) {
-      content = content.replace(regex, `places: ${jsonStr},`);
+      content = content.replace(regex, `"places": ${jsonStr},`);
       fs.writeFileSync(dataJsPath, content, "utf8");
       console.log(`[Auto-Sync] data.js actualizado con ${formatted.length} lugares`);
     }

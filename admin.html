@@ -8,9 +8,11 @@
   <meta http-equiv="Expires" content="0">
   <title>Admin - BsAs Local Guide</title>
   
-  <!-- Leaflet CSS para los mapas del admin -->
+  <!-- Leaflet CSS y JS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-  <link rel="stylesheet" href="style.css?v=20261117_5">
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="data.js?v=20261117_7"></script>
+  <link rel="stylesheet" href="style.css?v=20261117_7">
 
   <style>
     body {
@@ -603,10 +605,6 @@
     </div>
   </div>
 
-  <!-- Leaflet JS -->
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <script src="data.js?v=20261117_5"></script>
-
   <script>
     let allPlaces = [];
     let allWaiters = [];
@@ -645,16 +643,19 @@
           if (b) b.style.display = "block";
         }
       } catch (e) {
-        console.error(e);
+        console.warn("Error mostrando panel:", e);
       }
 
-      initDashboardMap();
-      await loadAdminCategories();
-      await loadPlaces();
-      await loadWaiters();
-      loadStats();
-      loadMpConfig();
-      loadAdminReviews();
+      // 1. Cargar categorías, lugares y mozos primero para que la interfaz se muestre de inmediato
+      try { await loadAdminCategories(); } catch(e) { console.warn("Error categorías:", e); }
+      try { await loadPlaces(); } catch(e) { console.warn("Error lugares:", e); }
+      try { await loadWaiters(); } catch(e) { console.warn("Error mozos:", e); }
+      try { loadStats(); } catch(e) {}
+      try { loadMpConfig(); } catch(e) {}
+      try { loadAdminReviews(); } catch(e) {}
+
+      // 2. Inicializar mapa
+      try { initDashboardMap(); } catch(e) { console.warn("Error mapa:", e); }
 
       setTimeout(() => {
         if (dashboardMap) {
@@ -944,6 +945,34 @@
       a.click();
     }
 
+    function base64ToUtf8(base64Str) {
+      try {
+        const binary = atob(base64Str.replace(/\s/g, ''));
+        const bytes = new Uint8Array(binary.length);
+        for (let i = 0; i < binary.length; i++) {
+          bytes[i] = binary.charCodeAt(i);
+        }
+        return new TextDecoder().decode(bytes);
+      } catch (e) {
+        return decodeURIComponent(escape(atob(base64Str.replace(/\s/g, ''))));
+      }
+    }
+
+    function utf8ToBase64(utf8Str) {
+      try {
+        const bytes = new TextEncoder().encode(utf8Str);
+        let binary = "";
+        const len = bytes.byteLength;
+        const chunkSize = 8192;
+        for (let i = 0; i < len; i += chunkSize) {
+          binary += String.fromCharCode.apply(null, bytes.subarray(i, i + chunkSize));
+        }
+        return btoa(binary);
+      } catch (e) {
+        return btoa(unescape(encodeURIComponent(utf8Str)));
+      }
+    }
+
     async function publishToGitHub(btnElement = null) {
       let btn = btnElement;
       if (!btn && window.event && window.event.target) btn = window.event.target;
@@ -973,7 +1002,7 @@
 
         const fileData = await getRes.json();
         const currentSha = fileData.sha;
-        const currentContent = decodeURIComponent(escape(atob(fileData.content.replace(/\s/g, ''))));
+        const currentContent = base64ToUtf8(fileData.content);
 
         // 2. Formatear la lista de lugares
         const placesToExport = (allPlaces && allPlaces.length > 0) ? allPlaces : (APP_DATA.places || []);
@@ -997,18 +1026,30 @@
           }
         }));
 
-        const placesJson = JSON.stringify(formatted, null, 2);
-        let updatedContent = currentContent;
-        const regex = /places:\s*\[[\s\S]*?\n\s*\],/;
-        if (regex.test(updatedContent)) {
-          updatedContent = updatedContent.replace(regex, `places: ${placesJson},`);
-        } else {
-          const clone = { ...APP_DATA, places: formatted };
-          updatedContent = `// Base de datos de lugares, traducciones y tips para Buenos Aires\nconst APP_DATA = ${JSON.stringify(clone, null, 2)};\n`;
+        let updatedContent = "";
+        try {
+          const fn = new Function(currentContent + '; return (typeof APP_DATA !== "undefined" ? APP_DATA : null);');
+          const appDataObj = fn();
+          if (appDataObj) {
+            appDataObj.places = formatted;
+            appDataObj.version = "20261117_" + Date.now();
+            updatedContent = '// Base de datos de lugares, traducciones y tips para Buenos Aires\nconst APP_DATA = ' + JSON.stringify(appDataObj, null, 2) + ';\n';
+          }
+        } catch(e) {}
+
+        if (!updatedContent) {
+          const placesJson = JSON.stringify(formatted, null, 2);
+          const regex = /["']?places["']?:\s*\[[\s\S]*?\n\s*\],/;
+          if (regex.test(currentContent)) {
+            updatedContent = currentContent.replace(regex, `"places": ${placesJson},`);
+          } else {
+            const clone = { ...APP_DATA, places: formatted, version: "20261117_" + Date.now() };
+            updatedContent = `// Base de datos de lugares, traducciones y tips para Buenos Aires\nconst APP_DATA = ${JSON.stringify(clone, null, 2)};\n`;
+          }
         }
 
-        // 3. Codificar a Base64 con soporte UTF-8
-        const base64Updated = btoa(unescape(encodeURIComponent(updatedContent)));
+        // 3. Codificar a Base64 con soporte UTF-8 seguro
+        const base64Updated = utf8ToBase64(updatedContent);
 
         // 4. PUT a la API de GitHub
         const putRes = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${filePath}`, {

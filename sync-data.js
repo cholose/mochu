@@ -41,15 +41,26 @@ try {
   const dataJsPath = path.join(__dirname, "data.js");
   let dataJsContent = fs.readFileSync(dataJsPath, "utf8");
 
-  // Reemplazar la sección places: [ ... ]
+  try {
+    const fn = new Function(dataJsContent + '; return (typeof APP_DATA !== "undefined" ? APP_DATA : null);');
+    const appData = fn();
+    if (appData) {
+      appData.places = formattedPlaces;
+      appData.version = "20261117_" + Date.now();
+      fs.writeFileSync(dataJsPath, '// Base de datos de lugares, traducciones y tips para Buenos Aires\nconst APP_DATA = ' + JSON.stringify(appData, null, 2) + ';\n', 'utf8');
+      console.log(`✅ ¡Éxito! Se sincronizaron ${formattedPlaces.length} lugares desde SQLite hacia data.js`);
+      process.exit(0);
+    }
+  } catch(e) {}
+
   const placesJson = JSON.stringify(formattedPlaces, null, 2);
-  const regex = /places:\s*\[[\s\S]*?\n\s*\],/;
+  const regex = /["']?places["']?:\s*\[[\s\S]*?\n\s*\],/;
   if (regex.test(dataJsContent)) {
-    dataJsContent = dataJsContent.replace(regex, `places: ${placesJson},`);
+    dataJsContent = dataJsContent.replace(regex, `"places": ${placesJson},`);
     fs.writeFileSync(dataJsPath, dataJsContent, "utf8");
     console.log(`✅ ¡Éxito! Se sincronizaron ${formattedPlaces.length} lugares desde SQLite hacia data.js`);
   } else {
-    console.warn("⚠️ No se encontró la propiedad places: [ ... ] en data.js");
+    console.warn("⚠️ No se pudo actualizar places en data.js");
   }
 } catch (err) {
   console.error("Error sincronizando data.js:", err.message);

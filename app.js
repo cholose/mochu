@@ -357,6 +357,57 @@ async function loadPlaces() {
 
   renderMarkers();
   renderTangoList();
+
+  // Refrescar en segundo plano desde la nube para saltar cualquier caché del celular
+  refreshPlacesFromCloud();
+}
+
+async function refreshPlacesFromCloud() {
+  try {
+    const res = await fetch(`data.js?_t=${Date.now()}`, { cache: "no-store" });
+    if (res.ok) {
+      const text = await res.text();
+      const fn = new Function("let window={}; " + text + "; return (typeof APP_DATA !== 'undefined' ? APP_DATA : window.APP_DATA);");
+      const freshData = fn();
+      if (freshData && freshData.places && freshData.places.length > 0) {
+        const formatted = freshData.places.map(p => ({
+          id: p.id,
+          category: p.category,
+          name: p.name,
+          address: p.address || "",
+          neighborhood: p.neighborhood || "",
+          lat: parseFloat(p.lat) || -34.6037,
+          lng: parseFloat(p.lng) || -58.3816,
+          price: p.price || "$$",
+          tag: p.tag || "Recomendado",
+          image: p.image || "https://images.unsplash.com/photo-1544025162-d76694265947?w=600",
+          menu_url: p.menu_url || "",
+          is_indoor: p.is_indoor !== undefined ? (p.is_indoor === 1 || p.is_indoor === true ? 1 : 0) : 1,
+          tips: p.tips ? p.tips : {
+            es: p.tip_es || "",
+            en: p.tip_en || p.tip_es || "",
+            pt: p.tip_pt || p.tip_es || ""
+          }
+        }));
+
+        const currentSig = state.places.map(p => p.id + ":" + (p.menu_url || "")).join("|");
+        const freshSig = formatted.map(p => p.id + ":" + (p.menu_url || "")).join("|");
+        if (currentSig !== freshSig) {
+          console.log("[Auto-Refresh] Nuevos lugares cargados desde la nube:", formatted.length);
+          state.places = formatted;
+          try {
+            localStorage.setItem("bsas_places", JSON.stringify(formatted));
+          } catch(e) {}
+          renderMarkers();
+          renderTangoList();
+          if (state.selectedPlace) {
+            const up = state.places.find(p => p.id === state.selectedPlace.id);
+            if (up) updateModalContent(up);
+          }
+        }
+      }
+    }
+  } catch(e) {}
 }
 
 // 4. Idiomas
@@ -386,6 +437,7 @@ function setLanguage(lang) {
   renderEventsList();
   if (state.selectedPlace) {
     updateModalContent(state.selectedPlace);
+    loadPlaceReviews(state.selectedPlace.id);
   }
 }
 
