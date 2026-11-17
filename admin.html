@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
@@ -17,6 +17,32 @@
       overflow-y: auto;
       background: #0f172a;
       padding: 16px;
+    }
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.65);
+      backdrop-filter: blur(4px);
+      z-index: 2000;
+      display: none;
+      align-items: flex-end;
+      justify-content: center;
+      padding-bottom: env(safe-area-inset-bottom, 0px);
+    }
+    .modal-overlay.active {
+      display: flex;
+    }
+    .bottom-sheet {
+      background: #1e293b;
+      width: 100%;
+      max-width: 500px;
+      border-radius: 24px 24px 0 0;
+      padding: 20px 20px calc(48px + env(safe-area-inset-bottom, 24px)) 20px;
+      max-height: 85vh;
+      max-height: 85dvh;
+      overflow-y: auto;
+      box-shadow: 0 -4px 25px rgba(0, 0, 0, 0.5);
+      -webkit-overflow-scrolling: touch;
     }
     .admin-container {
       max-width: 860px;
@@ -349,7 +375,7 @@
           <label>Comisión por venta (USD)</label>
           <input type="number" step="0.1" id="w-commission" class="input-field" value="1.5" required>
         </div>
-        <div style="display:flex; gap:10px; margin-top:14px;">
+        <div style="display:flex; gap:10px; margin-top:14px; margin-bottom:20px;">
           <button type="submit" class="btn-action" style="flex:1; padding:12px;">Guardar Mozo</button>
           <button type="button" class="btn-action btn-secondary" onclick="closeWaiterModal()">Cancelar</button>
         </div>
@@ -376,14 +402,14 @@
         <a id="btn-download-qr" href="#" target="_blank" class="btn-action" style="padding:12px; text-decoration:none; text-align:center; font-weight:700;">
           📥 Descargar Imagen QR
         </a>
-        <button class="btn-action btn-secondary" onclick="closeQrModal()">Cerrar</button>
+        <button class="btn-action btn-secondary" style="margin-bottom:20px;" onclick="closeQrModal()">Cerrar</button>
       </div>
     </div>
   </div>
 
   <!-- Modal para Crear / Editar Lugar (CON BÚSQUEDA DE DIRECCIÓN Y AJUSTE DE PIN) -->
   <div class="modal-overlay" id="editor-modal">
-    <div class="bottom-sheet" style="max-height:92vh;">
+    <div class="bottom-sheet" style="max-height:85dvh;">
       <div class="sheet-handle"></div>
       <h2 id="editor-title" style="margin-bottom:12px; font-size:1.2rem;">Nuevo Lugar</h2>
       
@@ -484,7 +510,7 @@
           </label>
         </div>
 
-        <div style="display:flex; gap:10px; margin-top:14px;">
+        <div style="display:flex; gap:10px; margin-top:14px; margin-bottom:24px;">
           <button type="submit" class="btn-action" style="flex:1; padding:12px;">Guardar Lugar</button>
           <button type="button" class="btn-action btn-secondary" onclick="closePlaceEditor()">Cancelar</button>
         </div>
@@ -494,7 +520,7 @@
 
   <!-- Modal para Gestionar y Agregar Categorías Personalizadas -->
   <div class="modal-overlay" id="category-modal">
-    <div class="bottom-sheet" style="max-width:480px; max-height:90vh;">
+    <div class="bottom-sheet" style="max-width:480px; max-height:85dvh;">
       <div class="sheet-handle"></div>
       <h2 style="font-size:1.2rem; margin-bottom:6px;">🏷️ Categorías de Lugares</h2>
       <p style="font-size:0.8rem; color:#94a3b8; margin-bottom:14px;">
@@ -547,7 +573,7 @@
         <!-- Se llena con loadAdminCategories() -->
       </div>
 
-      <button type="button" class="btn-action btn-secondary" style="width:100%; margin-top:14px;" onclick="closeCategoryModal()">Cerrar</button>
+      <button type="button" class="btn-action btn-secondary" style="width:100%; margin-top:14px; margin-bottom:24px;" onclick="closeCategoryModal()">Cerrar</button>
     </div>
   </div>
 
@@ -610,6 +636,17 @@
           renderDashboardMapMarkers();
         }
       }, 350);
+
+      setTimeout(() => {
+        if (dashboardMap) {
+          dashboardMap.invalidateSize();
+          renderDashboardMapMarkers();
+        }
+      }, 1000);
+
+      window.addEventListener("resize", () => {
+        if (dashboardMap) dashboardMap.invalidateSize();
+      });
     }
 
     async function loadStats() {
