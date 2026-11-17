@@ -18,6 +18,7 @@ const APP_DATA = {
       price: "$$$$",
       tag: "Top Mundial",
       image: "https://images.unsplash.com/photo-1544025162-d76694265947?w=600&auto=format&fit=crop&q=80",
+      menu_url: "https://www.parrilladonjulio.com",
       tips: {
         es: "Considerada una de las mejores del mundo. Ojo: reservar con semanas de anticipación o ir a las 11:30 hs a hacer fila para el almuerzo.",
         en: "Ranked among the world's best steakhouses. Tip: book weeks in advance or show up at 11:30 AM to wait for lunch walk-ins.",
@@ -34,6 +35,7 @@ const APP_DATA = {
       price: "$$",
       tag: "Bodegón Auténtico",
       image: "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=600&auto=format&fit=crop&q=80",
+      menu_url: "https://www.instagram.com/parrillapena",
       tips: {
         es: "Carne tierna y ambiente 100% porteño sin precios inflados para turistas. Te reciben con una empanada frita de cortesía.",
         en: "Tender meat, true local atmosphere without tourist-trap prices. They welcome you with a complimentary fried empanada.",
@@ -50,6 +52,7 @@ const APP_DATA = {
       price: "$$",
       tag: "Clásico Porteño",
       image: "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=600&auto=format&fit=crop&q=80",
+      menu_url: "https://pizzeriaguerrin.com",
       tips: {
         es: "La pizza al molde más famosa desde 1932. Pedí muzza al corte en el mostrador parado o sentate al fondo.",
         en: "The most famous thick-crust pizza in town since 1932. Eat a slice standing at the counter or take a table in the back.",
@@ -306,7 +309,8 @@ const APP_DATA = {
       safetyBtnOn: "🛡️ Zonas Seguras: ON",
       safetyBtnOff: "🛡️ Zonas Seguras: OFF",
       reviewsTitle: "📸 Experiencias & Fotos",
-      addReviewBtn: "Dejar opinión"
+      addReviewBtn: "Dejar opinión",
+      viewMenu: "📖 Ver Carta Digital / Menú Online"
     },
     en: {
       appTitle: "BsAs Local Guide",
@@ -335,7 +339,8 @@ const APP_DATA = {
       safetyBtnOn: "🛡️ Safety Zones: ON",
       safetyBtnOff: "🛡️ Safety Zones: OFF",
       reviewsTitle: "📸 Reviews & Photos",
-      addReviewBtn: "Leave a review"
+      addReviewBtn: "Leave a review",
+      viewMenu: "📖 View Digital Menu / Wine List"
     },
     pt: {
       appTitle: "BsAs Local Guide",
@@ -364,7 +369,8 @@ const APP_DATA = {
       safetyBtnOn: "🛡️ Zonas Seguras: ON",
       safetyBtnOff: "🛡️ Zonas Seguras: OFF",
       reviewsTitle: "📸 Experiências & Fotos",
-      addReviewBtn: "Deixar avaliação"
+      addReviewBtn: "Deixar avaliação",
+      viewMenu: "📖 Ver Cardápio Digital / Menu Online"
     }
   }
 };

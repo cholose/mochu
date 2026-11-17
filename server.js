@@ -174,6 +174,10 @@ try {
   db.exec("ALTER TABLE places ADD COLUMN is_indoor INTEGER DEFAULT 1");
 } catch (e) {}
 
+try {
+  db.exec("ALTER TABLE places ADD COLUMN menu_url TEXT DEFAULT ''");
+} catch (e) {}
+
 // Pre-cargar lugares icónicos (bajo techo y ferias fijas) si no existen
 const checkTortoni = db.prepare("SELECT id FROM places WHERE id = ?").get("c1");
 if (!checkTortoni) {
@@ -658,24 +662,25 @@ const server = http.createServer(async (req, res) => {
 
       const existing = db.prepare("SELECT id FROM places WHERE id = ?").get(id);
       const address = (p.address || "").trim();
+      const menuUrl = (p.menu_url || "").trim();
       const isIndoor = p.is_indoor === 0 || p.is_indoor === "0" ? 0 : 1;
       if (existing) {
         db.prepare(`
           UPDATE places SET 
             category = ?, name = ?, address = ?, neighborhood = ?, lat = ?, lng = ?, 
-            price = ?, tag = ?, image = ?, tip_es = ?, tip_en = ?, tip_pt = ?, active = ?, is_indoor = ?
+            price = ?, tag = ?, image = ?, menu_url = ?, tip_es = ?, tip_en = ?, tip_pt = ?, active = ?, is_indoor = ?
           WHERE id = ?
         `).run(
           p.category, p.name, address, p.neighborhood, parseFloat(p.lat), parseFloat(p.lng),
-          p.price, p.tag, p.image, p.tip_es, p.tip_en, p.tip_pt, p.active ? 1 : 0, isIndoor, id
+          p.price, p.tag, p.image, menuUrl, p.tip_es, p.tip_en, p.tip_pt, p.active ? 1 : 0, isIndoor, id
         );
       } else {
         db.prepare(`
-          INSERT INTO places (id, category, name, address, neighborhood, lat, lng, price, tag, image, tip_es, tip_en, tip_pt, active, created_at, is_indoor)
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+          INSERT INTO places (id, category, name, address, neighborhood, lat, lng, price, tag, image, menu_url, tip_es, tip_en, tip_pt, active, created_at, is_indoor)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `).run(
           id, p.category, p.name, address, p.neighborhood, parseFloat(p.lat), parseFloat(p.lng),
-          p.price, p.tag, p.image, p.tip_es, p.tip_en, p.tip_pt, 1, Date.now(), isIndoor
+          p.price, p.tag, p.image, menuUrl, p.tip_es, p.tip_en, p.tip_pt, 1, Date.now(), isIndoor
         );
       }
       return sendJSON(res, 200, { success: true, id });

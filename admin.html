@@ -462,6 +462,14 @@
         </div>
 
         <div class="form-group">
+          <label>📖 Link de Carta Digital / Menú Online (Opcional)</label>
+          <input type="url" id="form-menu-url" class="input-field" placeholder="https://... (ej. link a PDF, Instagram Menú, web o foto de la carta)">
+          <div style="font-size:0.75rem; color:#94a3b8; margin-top:2px;">
+            💡 Si pegás el link acá, al turista le aparecerá un botón directo verde <strong>"📖 Ver Carta Digital"</strong> al tocar este lugar.
+          </div>
+        </div>
+
+        <div class="form-group">
           <label>Tip de Mozo (Español) *</label>
           <textarea id="form-tip-es" class="input-field" rows="2" required placeholder="Consejo honesto de mozo..."></textarea>
         </div>
@@ -918,6 +926,7 @@
             <div class="admin-map-popup">
               <h4>${p.name}</h4>
               <p>${p.neighborhood || ''} • ${(p.category || '').toUpperCase()} • ${p.price || ''}</p>
+              ${p.menu_url ? '<p style="margin:2px 0 6px 0;"><a href="' + p.menu_url + '" target="_blank" style="color:#10b981; font-weight:700; text-decoration:none; font-size:0.75rem;">📖 Ver Carta Digital ↗</a></p>' : ''}
               <div style="display:flex; gap:6px;">
                 <button onclick="editPlace('${p.id}')">✏️ Editar</button>
                 <button onclick="togglePlace('${p.id}', ${!isAct})" style="background:${isAct ? '#f59e0b' : '#10b981'};">
@@ -975,6 +984,7 @@
             price: p.price,
             tag: p.tag,
             image: p.image,
+            menu_url: p.menu_url || "",
             tip_es: p.tips ? p.tips.es : "",
             tip_en: p.tips ? p.tips.en : "",
             tip_pt: p.tips ? p.tips.pt : "",
@@ -999,7 +1009,10 @@
         return `
         <div class="place-row">
           <div style="flex:1;">
-            <div style="font-weight:700; font-size:0.95rem;">${p.name}</div>
+            <div style="font-weight:700; font-size:0.95rem;">
+              ${p.name}
+              ${p.menu_url ? '<a href="' + p.menu_url + '" target="_blank" style="color:#10b981; font-size:0.75rem; text-decoration:none; margin-left:8px; background:rgba(16,185,129,0.15); padding:2px 8px; border-radius:4px; border:1px solid rgba(16,185,129,0.3);">📖 Carta Online ↗</a>' : ''}
+            </div>
             <div style="font-size:0.75rem; color:#94a3b8;">
               ${p.address ? '<span style="color:#38bdf8;">' + p.address + '</span> • ' : ''}
               ${p.neighborhood} • <strong>${(p.category || '').toUpperCase()}</strong> • ${p.price}
@@ -1326,6 +1339,7 @@
           document.getElementById("form-lat").value = p.lat;
           document.getElementById("form-lng").value = p.lng;
           document.getElementById("form-image").value = p.image;
+          document.getElementById("form-menu-url").value = p.menu_url || "";
           document.getElementById("form-tip-es").value = p.tip_es;
           document.getElementById("form-tip-en").value = p.tip_en;
           document.getElementById("form-tip-pt").value = p.tip_pt;
@@ -1336,6 +1350,7 @@
         }
       } else {
         document.getElementById("form-indoor").checked = true;
+        document.getElementById("form-menu-url").value = "";
         document.getElementById("form-lat").value = initialLat.toFixed ? initialLat.toFixed(6) : initialLat;
         document.getElementById("form-lng").value = initialLng.toFixed ? initialLng.toFixed(6) : initialLng;
 
@@ -1370,6 +1385,7 @@
         lat: parseFloat(document.getElementById("form-lat").value),
         lng: parseFloat(document.getElementById("form-lng").value),
         image: document.getElementById("form-image").value || "https://images.unsplash.com/photo-1544025162-d76694265947?w=600",
+        menu_url: document.getElementById("form-menu-url").value.trim(),
         tip_es: document.getElementById("form-tip-es").value,
         tip_en: document.getElementById("form-tip-en").value || document.getElementById("form-tip-es").value,
         tip_pt: document.getElementById("form-tip-pt").value || document.getElementById("form-tip-es").value,

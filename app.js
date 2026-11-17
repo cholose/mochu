@@ -298,6 +298,7 @@ async function loadPlaces() {
         price: p.price,
         tag: p.tag,
         image: p.image,
+        menu_url: p.menu_url || "",
         is_indoor: p.is_indoor ?? 1,
         tips: {
           es: p.tip_es,
@@ -325,6 +326,7 @@ async function loadPlaces() {
           price: p.price,
           tag: p.tag,
           image: p.image,
+          menu_url: p.menu_url || "",
           is_indoor: p.is_indoor ?? 1,
           tips: p.tips ? p.tips : {
             es: p.tip_es || "",
@@ -819,6 +821,22 @@ function updateModalContent(place) {
   document.getElementById("sheet-price").textContent = place.price;
   document.getElementById("sheet-tag").textContent = place.tag;
   document.getElementById("sheet-image").src = place.image;
+
+  // Acceso directo a Carta Digital / Menú Online
+  const menuBtn = document.getElementById("btn-digital-menu");
+  if (menuBtn) {
+    if (place.menu_url && place.menu_url.trim()) {
+      menuBtn.href = place.menu_url.trim();
+      menuBtn.style.display = "flex";
+      const t = APP_DATA.i18n[state.currentLang];
+      const lblMenu = document.getElementById("lbl-digital-menu");
+      if (lblMenu && t && t.viewMenu) {
+        lblMenu.textContent = t.viewMenu;
+      }
+    } else {
+      menuBtn.style.display = "none";
+    }
+  }
 
   // Distancia y tiempo caminando en vivo según GPS
   const distElem = document.getElementById("sheet-distance");
