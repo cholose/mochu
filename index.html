@@ -76,42 +76,42 @@
   <div class="activation-overlay" id="unlock-modal" style="display:none;">
     <div class="activation-card">
       <div style="font-size:1.8rem; margin-bottom:4px;">🔑</div>
-      <h2 style="font-size:1.25rem; margin-bottom:4px;">Desbloqueo VIP</h2>
+      <h2 style="font-size:1.25rem; margin-bottom:4px;" id="lbl-unlock-title">Desbloqueo VIP</h2>
       
       <div class="service-banner">
-        <div style="font-size:0.75rem; color:#94a3b8;">ATENDIDO POR TU MOZO:</div>
+        <div style="font-size:0.75rem; color:#94a3b8;" id="lbl-unlock-hosted">ATENDIDO POR TU MOZO:</div>
         <div style="font-size:1.1rem; font-weight:700; color:#f59e0b;" id="activation-waiter-banner">👨‍🍳 Isaias</div>
       </div>
 
       <ul class="service-benefits">
-        <li>✅ <strong>Tips Secretos del Mozo</strong> en todas las parrillas y paseos.</li>
-        <li>✅ <strong>Acceso directo a Uber y DiDi</strong> con destinos listos.</li>
-        <li>✅ <strong>Descuentos exclusivos</strong> en cenas shows de Tango.</li>
+        <li id="lbl-unlock-b1">✅ <strong>Tips Secretos del Mozo</strong> en todas las parrillas y paseos.</li>
+        <li id="lbl-unlock-b2">✅ <strong>Acceso directo a Uber y DiDi</strong> con destinos listos.</li>
+        <li id="lbl-unlock-b3">✅ <strong>Descuentos exclusivos</strong> en cenas shows de Tango.</li>
       </ul>
 
       <!-- Opción 1: Ingreso con PIN -->
       <div style="background:#0f172a; border:1px solid rgba(245,158,11,0.3); border-radius:12px; padding:14px; margin-bottom:12px;">
-        <div style="font-size:0.8rem; color:#f59e0b; font-weight:700; margin-bottom:8px;">
+        <div style="font-size:0.8rem; color:#f59e0b; font-weight:700; margin-bottom:8px;" id="lbl-unlock-question">
           ¿Le pagaste a tu mozo en efectivo o propina?
         </div>
         <input type="text" id="input-pin-name" class="input-pass" placeholder="Tu Nombre (ej. Sarah o John)">
         <input type="password" id="input-pin-code" class="input-pass" placeholder="Ingresá el PIN de 4 dígitos" maxlength="6" style="text-align:center; font-size:1.25rem; letter-spacing:4px; font-weight:bold;">
-        <button type="button" onclick="submitTouristPin()" class="btn-transport" style="background:#f59e0b; color:#0f172a; font-weight:800; width:100%; padding:12px; border:none; cursor:pointer;">
+        <button type="button" onclick="submitTouristPin()" class="btn-transport" id="btn-unlock-pin-submit" style="background:#f59e0b; color:#0f172a; font-weight:800; width:100%; padding:12px; border:none; cursor:pointer;">
           🔓 Desbloquear con PIN
         </button>
       </div>
 
       <!-- Opción 2: Mercado Pago -->
-      <button type="button" onclick="payWithMercadoPago()" class="btn-transport" style="background:#009ee3; width:100%; padding:11px; font-size:0.9rem; cursor:pointer; border:none; margin-bottom:8px; font-weight:700;">
-        💙 Pagar $4.000 con Mercado Pago
+      <button type="button" onclick="payWithMercadoPago()" class="btn-transport" id="btn-unlock-mp" style="background:#009ee3; width:100%; padding:11px; font-size:0.9rem; cursor:pointer; border:none; margin-bottom:8px; font-weight:700;">
+        💙 Pagar con Mercado Pago
       </button>
 
       <!-- Opción 3: Modo Prueba -->
-      <button type="button" onclick="activateTestMode()" class="btn-transport" style="background:#334155; width:100%; padding:8px; font-size:0.75rem; border:1px dashed #64748b; color:#cbd5e1; cursor:pointer; margin-bottom:8px;">
+      <button type="button" onclick="activateTestMode()" class="btn-transport" id="btn-unlock-test" style="background:#334155; width:100%; padding:8px; font-size:0.75rem; border:1px dashed #64748b; color:#cbd5e1; cursor:pointer; margin-bottom:8px;">
         🧪 Modo Prueba (Activar gratis para testear)
       </button>
 
-      <button type="button" onclick="closeUnlockModal()" class="btn-transport" style="background:transparent; color:#94a3b8; border:none; font-size:0.8rem; cursor:pointer; text-decoration:underline;">
+      <button type="button" onclick="closeUnlockModal()" class="btn-transport" id="btn-unlock-close" style="background:transparent; color:#94a3b8; border:none; font-size:0.8rem; cursor:pointer; text-decoration:underline;">
         Cerrar y seguir en modo básico
       </button>
     </div>
@@ -141,13 +141,13 @@
         </label>
         <div style="display:flex; gap:6px;">
           <button type="button" class="tip-percent-btn active" data-tip="10" onclick="setTipPercent(10)">
-            10% <span style="font-size:0.7rem; font-weight:normal; display:block;">(Habitual BsAs)</span>
+            10% <span style="font-size:0.7rem; font-weight:normal; display:block;" id="lbl-tip-10-sub">(Habitual BsAs)</span>
           </button>
           <button type="button" class="tip-percent-btn" data-tip="15" onclick="setTipPercent(15)">
-            15% <span style="font-size:0.7rem; font-weight:normal; display:block;">(Excelente)</span>
+            15% <span style="font-size:0.7rem; font-weight:normal; display:block;" id="lbl-tip-15-sub">(Excelente)</span>
           </button>
           <button type="button" class="tip-percent-btn" data-tip="0" onclick="setTipPercent(0)">
-            0% <span style="font-size:0.7rem; font-weight:normal; display:block;">(Sin propina)</span>
+            0% <span style="font-size:0.7rem; font-weight:normal; display:block;" id="lbl-tip-0-sub">(Sin propina)</span>
           </button>
         </div>
       </div>
@@ -366,7 +366,7 @@
           </div>
           
           <div class="rating-stars-input">
-            <span class="star-rating-label">Puntuación:</span>
+            <span class="star-rating-label" id="lbl-form-rating">Puntuación:</span>
             <div class="stars-row" id="stars-row">
               <span class="star-btn active" data-val="1">★</span>
               <span class="star-btn active" data-val="2">★</span>
@@ -409,10 +409,10 @@
 
           <div style="display:flex; gap:8px; margin-top:10px;">
             <button type="button" class="btn-transport" style="background:#10b981; flex:1; padding:10px; font-weight:700; border:none; cursor:pointer;" onclick="submitReview()">
-              Publicar opinión
+              <span id="lbl-form-submit">Publicar opinión</span>
             </button>
             <button type="button" class="btn-transport" style="background:#334155; flex:none; padding:10px 14px; border:none; cursor:pointer;" onclick="toggleReviewForm()">
-              Cancelar
+              <span id="lbl-form-cancel">Cancelar</span>
             </button>
           </div>
         </div>

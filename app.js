@@ -378,24 +378,38 @@ function setLanguage(lang) {
 
 function updateUITranslations() {
   const t = APP_DATA.i18n[state.currentLang];
-  document.getElementById("lbl-title").textContent = `📍 ${t.appTitle}`;
-  document.getElementById("lbl-subtitle").textContent = t.subtitle;
-  document.getElementById("nav-map").textContent = t.tabMap;
+  if (!t) return;
+
+  // Header & Nav
+  const elTitle = document.getElementById("lbl-title");
+  if (elTitle) elTitle.textContent = `📍 ${t.appTitle}`;
+  const elSubtitle = document.getElementById("lbl-subtitle");
+  if (elSubtitle) elSubtitle.textContent = t.subtitle;
+  const navMap = document.getElementById("nav-map");
+  if (navMap) navMap.textContent = t.tabMap;
   const navEvents = document.getElementById("nav-events");
   if (navEvents && t.tabEvents) navEvents.textContent = t.tabEvents;
-  document.getElementById("nav-tango").textContent = t.tabTango;
-  document.getElementById("nav-guide").textContent = t.tabGuide;
+  const navTango = document.getElementById("nav-tango");
+  if (navTango) navTango.textContent = t.tabTango;
+  const navGuide = document.getElementById("nav-guide");
+  if (navGuide) navGuide.textContent = t.tabGuide;
 
+  // Header buttons
   const btnCalc = document.getElementById("lbl-btn-calc");
   if (btnCalc && t.btnCalc) btnCalc.textContent = t.btnCalc;
 
   const rainyLbl = document.getElementById("lbl-rainy-toggle");
   if (rainyLbl && t.rainyFilter) rainyLbl.textContent = t.rainyFilter;
 
-  document.getElementById("btn-filter-all").textContent = t.filterAll;
-  document.getElementById("btn-filter-food").textContent = t.filterFood;
-  document.getElementById("btn-filter-tango").textContent = t.filterTango;
-  document.getElementById("btn-filter-shopping").textContent = t.filterShopping;
+  // Filters
+  const fAll = document.getElementById("btn-filter-all");
+  if (fAll) fAll.textContent = t.filterAll;
+  const fFood = document.getElementById("btn-filter-food");
+  if (fFood) fFood.textContent = t.filterFood;
+  const fTango = document.getElementById("btn-filter-tango");
+  if (fTango) fTango.textContent = t.filterTango;
+  const fShop = document.getElementById("btn-filter-shopping");
+  if (fShop) fShop.textContent = t.filterShopping;
 
   const searchInput = document.getElementById("map-search-input");
   if (searchInput && t.searchPlaceholder) {
@@ -406,21 +420,99 @@ function updateUITranslations() {
     safetyLbl.textContent = state.safetyVisible ? (t.safetyBtnOn || "Zonas Seguras: ON") : (t.safetyBtnOff || "Zonas Seguras: OFF");
   }
 
-  document.getElementById("lbl-how-to-get").textContent = t.howToGetThere;
-  document.getElementById("lbl-close").textContent = t.closeBtn;
+  // Modal Place details
+  const lblHow = document.getElementById("lbl-how-to-get");
+  if (lblHow) lblHow.textContent = t.howToGetThere;
+  const lblClose = document.getElementById("lbl-close");
+  if (lblClose) lblClose.textContent = t.closeBtn;
+
+  const lblRouteWalk = document.getElementById("lbl-route-walk");
+  if (lblRouteWalk) lblRouteWalk.textContent = t.btnRouteWalk || "Trazar camino a pie en el mapa";
+  const lblRouteDrive = document.getElementById("lbl-route-drive");
+  if (lblRouteDrive) lblRouteDrive.textContent = t.btnRouteDrive || "Trazar camino en auto en el mapa";
+
+  const uberText = t.btnUber || "Pedir con Uber";
+  const didiText = t.btnDidi || "Pedir con DiDi";
+  const lblUber = document.getElementById("lbl-uber");
+  if (lblUber) lblUber.textContent = state.isVip ? uberText : `🔒 ${uberText} (VIP)`;
+  const lblDidi = document.getElementById("lbl-didi");
+  if (lblDidi) lblDidi.textContent = state.isVip ? didiText : `🔒 ${didiText} (VIP)`;
+  const lblGmaps = document.getElementById("lbl-gmaps");
+  if (lblGmaps) lblGmaps.textContent = t.btnGoogleMaps || "Abrir en Google Maps (Gratis)";
+  const lblMenu = document.getElementById("lbl-digital-menu");
+  if (lblMenu) lblMenu.textContent = t.viewMenu || "Ver Carta Digital / Menú Online";
 
   if (state.waiterName) {
-    document.getElementById("waiter-tag").textContent = `${t.recommendedBy}: ${state.waiterName}`;
+    const waiterTag = document.getElementById("waiter-tag");
+    if (waiterTag) waiterTag.textContent = `${t.recommendedBy}: ${state.waiterName}`;
   }
 
+  // Reviews section
   const reviewsTitleEl = document.getElementById("lbl-reviews-title");
-  if (reviewsTitleEl && t.reviewsTitle) {
-    reviewsTitleEl.textContent = t.reviewsTitle;
-  }
+  if (reviewsTitleEl && t.reviewsTitle) reviewsTitleEl.textContent = t.reviewsTitle;
   const addReviewBtnEl = document.getElementById("lbl-btn-add-review");
-  if (addReviewBtnEl && t.addReviewBtn) {
-    addReviewBtnEl.textContent = t.addReviewBtn;
-  }
+  if (addReviewBtnEl && t.addReviewBtn) addReviewBtnEl.textContent = t.addReviewBtn;
+
+  const formTitleEl = document.getElementById("lbl-form-title");
+  if (formTitleEl && t.formReviewTitle) formTitleEl.textContent = t.formReviewTitle;
+  const formRatingEl = document.getElementById("lbl-form-rating");
+  if (formRatingEl && t.formRatingLabel) formRatingEl.textContent = t.formRatingLabel;
+  const authorNameEl = document.getElementById("review-author-name");
+  if (authorNameEl && t.formNamePlaceholder) authorNameEl.placeholder = t.formNamePlaceholder;
+  const commentTextEl = document.getElementById("review-comment-text");
+  if (commentTextEl && t.formCommentPlaceholder) commentTextEl.placeholder = t.formCommentPlaceholder;
+  const photoPickerEl = document.getElementById("lbl-photo-picker");
+  if (photoPickerEl && t.formPhotoPicker) photoPickerEl.textContent = t.formPhotoPicker;
+  const submitReviewEl = document.getElementById("lbl-form-submit");
+  if (submitReviewEl && t.formSubmitBtn) submitReviewEl.textContent = t.formSubmitBtn;
+  const cancelReviewEl = document.getElementById("lbl-form-cancel");
+  if (cancelReviewEl && t.formCancelBtn) cancelReviewEl.textContent = t.formCancelBtn;
+
+  // Route floating panel
+  const routeToEl = document.getElementById("route-to-label");
+  if (routeToEl && t.routeToLabel) routeToEl.textContent = t.routeToLabel;
+
+  // Tip Calculator Modal
+  const calcTitle = document.getElementById("calc-modal-title");
+  if (calcTitle && t.calcModalTitle) calcTitle.textContent = t.calcModalTitle;
+  const calcBill = document.getElementById("lbl-calc-bill");
+  if (calcBill && t.calcBillLabel) calcBill.textContent = t.calcBillLabel;
+  const calcTipChoice = document.getElementById("lbl-calc-tip-choice");
+  if (calcTipChoice && t.calcTipChoiceLabel) calcTipChoice.textContent = t.calcTipChoiceLabel;
+  const tip10Sub = document.getElementById("lbl-tip-10-sub");
+  if (tip10Sub && t.calcTip10Note) tip10Sub.textContent = t.calcTip10Note;
+  const tip15Sub = document.getElementById("lbl-tip-15-sub");
+  if (tip15Sub && t.calcTip15Note) tip15Sub.textContent = t.calcTip15Note;
+  const tip0Sub = document.getElementById("lbl-tip-0-sub");
+  if (tip0Sub && t.calcTip0Note) tip0Sub.textContent = t.calcTip0Note;
+  const calcNote = document.getElementById("calc-cultural-note");
+  if (calcNote && t.calcCulturalNote) calcNote.innerHTML = t.calcCulturalNote;
+  const resSubtotal = document.getElementById("lbl-res-subtotal");
+  if (resSubtotal && t.calcSubtotal) resSubtotal.textContent = t.calcSubtotal;
+  const resTotal = document.getElementById("lbl-res-total");
+  if (resTotal && t.calcTotal) resTotal.textContent = t.calcTotal;
+  const fxApprox = document.getElementById("lbl-fx-approx");
+  if (fxApprox && t.calcFxApprox) fxApprox.textContent = t.calcFxApprox;
+
+  // VIP Unlock Modal
+  const unlockTitle = document.getElementById("lbl-unlock-title");
+  if (unlockTitle && t.unlockTitle) unlockTitle.textContent = t.unlockTitle;
+  const unlockHosted = document.getElementById("lbl-unlock-hosted");
+  if (unlockHosted && t.unlockHostedBy) unlockHosted.textContent = t.unlockHostedBy;
+  const unlockQ = document.getElementById("lbl-unlock-question");
+  if (unlockQ && t.unlockPinQuestion) unlockQ.textContent = t.unlockPinQuestion;
+  const pinName = document.getElementById("input-pin-name");
+  if (pinName && t.unlockNamePlaceholder) pinName.placeholder = t.unlockNamePlaceholder;
+  const pinCode = document.getElementById("input-pin-code");
+  if (pinCode && t.unlockPinPlaceholder) pinCode.placeholder = t.unlockPinPlaceholder;
+  const btnPinSubmit = document.getElementById("btn-unlock-pin-submit");
+  if (btnPinSubmit && t.unlockPinBtn) btnPinSubmit.textContent = t.unlockPinBtn;
+  const btnMp = document.getElementById("btn-unlock-mp");
+  if (btnMp && t.unlockMpBtn) btnMp.textContent = t.unlockMpBtn;
+  const btnTest = document.getElementById("btn-unlock-test");
+  if (btnTest && t.unlockTestBtn) btnTest.textContent = t.unlockTestBtn;
+  const btnCloseUnlock = document.getElementById("btn-unlock-close");
+  if (btnCloseUnlock && t.unlockCloseBtn) btnCloseUnlock.textContent = t.unlockCloseBtn;
 }
 
 // 5. Pestañas
@@ -856,36 +948,75 @@ function updateModalContent(place) {
     }
   }
 
-  const tipText = place.tips[state.currentLang] || place.tips.es;
+  const t = APP_DATA.i18n[state.currentLang] || APP_DATA.i18n.es;
+
+  // Determinar texto del tip y si requiere link de traducción
+  let tipText = "";
+  let isOriginalSpanishOnly = false;
+  if (place.tips && place.tips[state.currentLang]) {
+    tipText = place.tips[state.currentLang];
+  } else if (place.tips && place.tips.es) {
+    tipText = place.tips.es;
+    if (state.currentLang !== "es") isOriginalSpanishOnly = true;
+  } else if (place.tip_es) {
+    tipText = place.tip_es;
+    if (state.currentLang !== "es") isOriginalSpanishOnly = true;
+  }
+
   const tipWrapper = document.getElementById("sheet-tip-wrapper");
+  const tipTitle = t.waiterTipTitle || "💡 Tip Local de Mozo:";
+  const lockedTitle = t.waiterTipLocked || "💡 Tip Secreto del Mozo";
+  const unlockBtnText = t.btnUnlockTip || "🔑 Ingresar PIN para desbloquear este tip";
+  const translateLink = isOriginalSpanishOnly ? `
+    <div style="margin-top:6px;">
+      <a href="https://translate.google.com/?sl=es&tl=${state.currentLang}&text=${encodeURIComponent(tipText)}" target="_blank" style="font-size:0.75rem; color:#38bdf8; text-decoration:none; display:inline-flex; align-items:center; gap:4px; font-weight:600;">
+        ${t.translateTipGoogle || "🌐 Traducir con Google"} ↗
+      </a>
+    </div>
+  ` : "";
 
   if (state.isVip) {
     // Modo VIP: Tip completo y visible
     tipWrapper.innerHTML = `
       <div class="tip-box">
-        <strong>💡 Tip Local de Mozo:</strong>
-        <p>${tipText}</p>
+        <strong>${tipTitle}</strong>
+        <p style="margin:4px 0 0 0;">${tipText}</p>
+        ${translateLink}
       </div>
     `;
-    document.getElementById("lbl-uber").textContent = "Pedir con Uber";
-    document.getElementById("lbl-didi").textContent = "Pedir con DiDi";
   } else {
     // Modo Freemium: Tip borroso con candado
     tipWrapper.innerHTML = `
       <div class="tip-box locked-tip">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
-          <strong style="color:#f59e0b;">💡 Tip Secreto del Mozo</strong>
+          <strong style="color:#f59e0b;">${lockedTitle}</strong>
           <span style="font-size:0.7rem; background:#f59e0b; color:#0f172a; font-weight:700; padding:2px 6px; border-radius:4px;">🔒 VIP</span>
         </div>
         <p class="blur-text">${tipText}</p>
         <button class="btn-unlock-inline" onclick="openUnlockModal()">
-          🔑 Ingresar PIN para desbloquear este tip
+          ${unlockBtnText}
         </button>
       </div>
     `;
-    document.getElementById("lbl-uber").textContent = "🔒 Pedir con Uber (VIP)";
-    document.getElementById("lbl-didi").textContent = "🔒 Pedir con DiDi (VIP)";
   }
+
+  const uberText = t.btnUber || "Pedir con Uber";
+  const didiText = t.btnDidi || "Pedir con DiDi";
+  const gmapsText = t.btnGoogleMaps || "Abrir en Google Maps (Gratis)";
+  const routeWalkText = t.btnRouteWalk || "Trazar camino a pie en el mapa";
+  const routeDriveText = t.btnRouteDrive || "Trazar camino en auto en el mapa";
+
+  const lblUber = document.getElementById("lbl-uber");
+  const lblDidi = document.getElementById("lbl-didi");
+  const lblGmaps = document.getElementById("lbl-gmaps");
+  const lblRouteWalk = document.getElementById("lbl-route-walk");
+  const lblRouteDrive = document.getElementById("lbl-route-drive");
+
+  if (lblUber) lblUber.textContent = state.isVip ? uberText : `🔒 ${uberText} (VIP)`;
+  if (lblDidi) lblDidi.textContent = state.isVip ? didiText : `🔒 ${didiText} (VIP)`;
+  if (lblGmaps) lblGmaps.textContent = gmapsText;
+  if (lblRouteWalk) lblRouteWalk.textContent = routeWalkText;
+  if (lblRouteDrive) lblRouteDrive.textContent = routeDriveText;
 
   // Uber
   const uberUrl = `https://m.uber.com/ul/?action=setPickup&pickup=my_location&dropoff[latitude]=${place.lat}&dropoff[longitude]=${place.lng}&dropoff[nickname]=${encodeURIComponent(place.name)}`;
@@ -1160,7 +1291,8 @@ async function loadPlaceReviews(placeId) {
   const avgRatingEl = document.getElementById("reviews-avg-rating");
   if (!container) return;
 
-  container.innerHTML = '<div style="font-size:0.8rem; color:#94a3b8; text-align:center; padding:10px 0;">Cargando opiniones...</div>';
+  const t = APP_DATA.i18n[state.currentLang] || APP_DATA.i18n.es;
+  container.innerHTML = `<div style="font-size:0.8rem; color:#94a3b8; text-align:center; padding:10px 0;">...</div>`;
 
   let reviews = [];
   try {
@@ -1177,16 +1309,17 @@ async function loadPlaceReviews(placeId) {
   state.currentPlaceReviews = reviews;
 
   if (!reviews || reviews.length === 0) {
-    container.innerHTML = '<div style="font-size:0.82rem; color:#94a3b8; text-align:center; padding:12px; background:rgba(255,255,255,0.02); border-radius:8px;">Aún no hay opiniones de este lugar. ¡Sé el primero en compartir la tuya!</div>';
-    if (avgRatingEl) avgRatingEl.textContent = "Sé el primero en opinar";
+    container.innerHTML = `<div style="font-size:0.82rem; color:#94a3b8; text-align:center; padding:12px; background:rgba(255,255,255,0.02); border-radius:8px;">${t.noReviewsYet || "Aún no hay opiniones de este lugar. ¡Sé el primero en compartir la tuya!"}</div>`;
+    if (avgRatingEl) avgRatingEl.textContent = t.beFirstReview || "Sé el primero en opinar";
     return;
   }
 
   // Calcular promedio
   const sum = reviews.reduce((acc, r) => acc + (r.rating || 5), 0);
   const avg = (sum / reviews.length).toFixed(1);
+  const word = reviews.length === 1 ? (t.reviewWord || "opinión") : (t.reviewsWord || "opiniones");
   if (avgRatingEl) {
-    avgRatingEl.textContent = `★ ${avg} / 5 (${reviews.length} ${reviews.length === 1 ? 'opinión' : 'opiniones'})`;
+    avgRatingEl.textContent = `★ ${avg} / 5 (${reviews.length} ${word})`;
   }
 
   container.innerHTML = reviews.map(r => {
@@ -1314,7 +1447,8 @@ async function calculateAndDrawRoute(start, dest, place, mode, isSimulated) {
   if (modeIcon) modeIcon.textContent = mode === "walking" ? "🚶‍♂️" : "🚗";
   if (btnWalk) btnWalk.classList.toggle("active", mode === "walking");
   if (btnDrive) btnDrive.classList.toggle("active", mode === "driving");
-  if (summaryStats) summaryStats.textContent = "Calculando la mejor ruta por calles...";
+  const t = APP_DATA.i18n[state.currentLang] || APP_DATA.i18n.es;
+  if (summaryStats) summaryStats.textContent = t.routeCalculating || "Calculando la mejor ruta por calles...";
 
   let routeCoords = [];
   let distanceMeters = 0;
@@ -1398,7 +1532,7 @@ async function calculateAndDrawRoute(start, dest, place, mode, isSimulated) {
     timeStr = `~${mins} min`;
   }
 
-  const originNote = isSimulated ? " (desde Obelisco)" : "";
+  const originNote = isSimulated ? ` ${t.routeFromObelisco || '(desde Obelisco)'}` : (state.userCoords ? ` ${t.routeFromGps || ''}` : "");
   if (summaryStats) {
     summaryStats.textContent = `📍 ${distStr} • ⏱️ ${timeStr}${originNote}`;
   }
@@ -1447,8 +1581,10 @@ function updateTipCalculation() {
   const resTipLbl = document.getElementById("calc-res-tip-lbl");
   const resTotal = document.getElementById("calc-res-total");
 
+  const t = APP_DATA.i18n[state.currentLang] || APP_DATA.i18n.es;
+  const tipLabel = t && t.calcTipLabel ? t.calcTipLabel : "Propina";
   if (resSubtotal) resSubtotal.textContent = `$${subtotal.toLocaleString("es-AR")} ARS`;
-  if (resTipLbl) resTipLbl.textContent = `Propina recomendada (${percent}%):`;
+  if (resTipLbl) resTipLbl.textContent = `${tipLabel} (${percent}%):`;
   if (resTip) resTip.textContent = `+$${tipAmount.toLocaleString("es-AR")} ARS`;
   if (resTotal) resTotal.textContent = `$${totalAmount.toLocaleString("es-AR")} ARS`;
 

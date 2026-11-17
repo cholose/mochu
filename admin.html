@@ -470,18 +470,11 @@
         </div>
 
         <div class="form-group">
-          <label>Tip de Mozo (Español) *</label>
-          <textarea id="form-tip-es" class="input-field" rows="2" required placeholder="Consejo honesto de mozo..."></textarea>
-        </div>
-
-        <div class="form-group">
-          <label>Tip (English)</label>
-          <textarea id="form-tip-en" class="input-field" rows="2" placeholder="Local advice in English..."></textarea>
-        </div>
-
-        <div class="form-group">
-          <label>Tip (Português)</label>
-          <textarea id="form-tip-pt" class="input-field" rows="2" placeholder="Dica do garçom em português..."></textarea>
+          <label>💡 Tip de Mozo (Consejo local para el turista) *</label>
+          <textarea id="form-tip-es" class="input-field" rows="3" required placeholder="Consejo honesto de mozo (ej: pedir el ojo de bife a punto, llegar temprano para no hacer fila)..."></textarea>
+          <div style="font-size:0.75rem; color:#94a3b8; margin-top:3px;">
+            ✍️ Escribilo acá en español. La app se encarga de traducirlo automáticamente cuando el turista cambia de idioma.
+          </div>
         </div>
 
         <div class="form-group" style="margin-top:4px;">
@@ -1340,9 +1333,7 @@
           document.getElementById("form-lng").value = p.lng;
           document.getElementById("form-image").value = p.image;
           document.getElementById("form-menu-url").value = p.menu_url || "";
-          document.getElementById("form-tip-es").value = p.tip_es;
-          document.getElementById("form-tip-en").value = p.tip_en;
-          document.getElementById("form-tip-pt").value = p.tip_pt;
+          document.getElementById("form-tip-es").value = p.tip_es || (p.tips ? p.tips.es : "") || "";
           document.getElementById("form-indoor").checked = (p.is_indoor !== 0 && p.is_indoor !== "0");
 
           initialLat = parseFloat(p.lat);
@@ -1386,9 +1377,9 @@
         lng: parseFloat(document.getElementById("form-lng").value),
         image: document.getElementById("form-image").value || "https://images.unsplash.com/photo-1544025162-d76694265947?w=600",
         menu_url: document.getElementById("form-menu-url").value.trim(),
-        tip_es: document.getElementById("form-tip-es").value,
-        tip_en: document.getElementById("form-tip-en").value || document.getElementById("form-tip-es").value,
-        tip_pt: document.getElementById("form-tip-pt").value || document.getElementById("form-tip-es").value,
+        tip_es: document.getElementById("form-tip-es").value.trim(),
+        tip_en: document.getElementById("form-tip-es").value.trim(),
+        tip_pt: document.getElementById("form-tip-es").value.trim(),
         is_indoor: document.getElementById("form-indoor").checked ? 1 : 0,
         active: 1
       };
