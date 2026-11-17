@@ -232,7 +232,9 @@ const APP_DATA = {
       closeBtn: "Cerrar",
       searchPlaceholder: "Buscar parrilla, tango, shopping...",
       safetyBtnOn: "🛡️ Zonas Seguras: ON",
-      safetyBtnOff: "🛡️ Zonas Seguras: OFF"
+      safetyBtnOff: "🛡️ Zonas Seguras: OFF",
+      reviewsTitle: "📸 Experiencias & Fotos",
+      addReviewBtn: "Dejar opinión"
     },
     en: {
       appTitle: "BsAs Local Guide",
@@ -256,7 +258,9 @@ const APP_DATA = {
       closeBtn: "Close",
       searchPlaceholder: "Search steakhouse, tango, malls...",
       safetyBtnOn: "🛡️ Safety Zones: ON",
-      safetyBtnOff: "🛡️ Safety Zones: OFF"
+      safetyBtnOff: "🛡️ Safety Zones: OFF",
+      reviewsTitle: "📸 Reviews & Photos",
+      addReviewBtn: "Leave a review"
     },
     pt: {
       appTitle: "BsAs Local Guide",
@@ -280,7 +284,9 @@ const APP_DATA = {
       closeBtn: "Fechar",
       searchPlaceholder: "Buscar churrascaria, tango, compras...",
       safetyBtnOn: "🛡️ Zonas Seguras: ON",
-      safetyBtnOff: "🛡️ Zonas Seguras: OFF"
+      safetyBtnOff: "🛡️ Zonas Seguras: OFF",
+      reviewsTitle: "📸 Experiências & Fotos",
+      addReviewBtn: "Deixar avaliação"
     }
   }
 };

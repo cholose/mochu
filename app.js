@@ -15,7 +15,10 @@ const state = {
   selectedPlace: null,
   places: [],
   pass: null,
-  isVip: false
+  isVip: false,
+  newReviewRating: 5,
+  newReviewPhotoBase64: null,
+  currentPlaceReviews: []
 };
 
 // Inicialización
@@ -333,6 +336,15 @@ function updateUITranslations() {
 
   if (state.waiterName) {
     document.getElementById("waiter-tag").textContent = `${t.recommendedBy}: ${state.waiterName}`;
+  }
+
+  const reviewsTitleEl = document.getElementById("lbl-reviews-title");
+  if (reviewsTitleEl && t.reviewsTitle) {
+    reviewsTitleEl.textContent = t.reviewsTitle;
+  }
+  const addReviewBtnEl = document.getElementById("lbl-btn-add-review");
+  if (addReviewBtnEl && t.addReviewBtn) {
+    addReviewBtnEl.textContent = t.addReviewBtn;
   }
 }
 
@@ -666,11 +678,15 @@ function initModalEvents() {
   modal.addEventListener("click", e => {
     if (e.target === modal) modal.classList.remove("active");
   });
+
+  initRatingStars();
 }
 
 function openPlaceModal(place) {
   state.selectedPlace = place;
   updateModalContent(place);
+  closeReviewForm();
+  loadPlaceReviews(place.id);
   document.getElementById("place-modal").classList.add("active");
 }
 
@@ -831,4 +847,204 @@ function trackClick(actionType, placeId = "") {
 function capitalize(str) {
   if (!str) return "";
   return str.charAt(0).toUpperCase() + str.slice(1);
+}
+
+// ==================== RESEÑAS Y FOTOS DE TURISTAS ====================
+function initRatingStars() {
+  const starBtns = document.querySelectorAll(".star-btn");
+  starBtns.forEach(btn => {
+    btn.addEventListener("click", () => {
+      const val = parseInt(btn.dataset.val, 10);
+      setRating(val);
+    });
+  });
+}
+
+function setRating(val) {
+  state.newReviewRating = val;
+  const starBtns = document.querySelectorAll(".star-btn");
+  starBtns.forEach(btn => {
+    const btnVal = parseInt(btn.dataset.val, 10);
+    btn.classList.toggle("active", btnVal <= val);
+  });
+}
+
+function toggleReviewForm() {
+  const formBox = document.getElementById("review-form-container");
+  if (!formBox) return;
+  const isHidden = formBox.style.display === "none";
+  if (isHidden) {
+    formBox.style.display = "block";
+    const nameInput = document.getElementById("review-author-name");
+    const savedName = localStorage.getItem("bsas_tourist_name");
+    if (nameInput && savedName) {
+      nameInput.value = savedName;
+    }
+    const commentInput = document.getElementById("review-comment-text");
+    if (commentInput) setTimeout(() => commentInput.focus(), 100);
+  } else {
+    closeReviewForm();
+  }
+}
+
+function closeReviewForm() {
+  const formBox = document.getElementById("review-form-container");
+  if (formBox) formBox.style.display = "none";
+  const commentInput = document.getElementById("review-comment-text");
+  if (commentInput) commentInput.value = "";
+  clearReviewPhoto();
+  setRating(5);
+}
+
+function onReviewPhotoSelected(event) {
+  const file = event.target.files && event.target.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const img = new Image();
+    img.onload = function() {
+      // Redimensionar para optimizar peso (máx 800px)
+      const maxDim = 800;
+      let width = img.width;
+      let height = img.height;
+
+      if (width > maxDim || height > maxDim) {
+        if (width > height) {
+          height = Math.round((height * maxDim) / width);
+          width = maxDim;
+        } else {
+          width = Math.round((width * maxDim) / height);
+          height = maxDim;
+        }
+      }
+
+      const canvas = document.createElement("canvas");
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext("2d");
+      ctx.drawImage(img, 0, 0, width, height);
+
+      // Comprimir a JPEG con calidad 0.75 (~80KB - 120KB)
+      state.newReviewPhotoBase64 = canvas.toDataURL("image/jpeg", 0.75);
+
+      const previewWrap = document.getElementById("review-photo-preview-wrap");
+      const previewImg = document.getElementById("review-photo-preview-img");
+      if (previewWrap && previewImg) {
+        previewImg.src = state.newReviewPhotoBase64;
+        previewWrap.style.display = "block";
+      }
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+function clearReviewPhoto() {
+  state.newReviewPhotoBase64 = null;
+  const fileInput = document.getElementById("review-photo-file");
+  if (fileInput) fileInput.value = "";
+  const previewWrap = document.getElementById("review-photo-preview-wrap");
+  if (previewWrap) previewWrap.style.display = "none";
+}
+
+async function submitReview() {
+  if (!state.selectedPlace) return;
+
+  const nameInput = document.getElementById("review-author-name");
+  const countryInput = document.getElementById("review-author-country");
+  const commentInput = document.getElementById("review-comment-text");
+
+  const userName = (nameInput ? nameInput.value : "").trim() || "Turista Amigo";
+  const userCountry = countryInput ? countryInput.value : "🌍 Turista";
+  const comment = (commentInput ? commentInput.value : "").trim();
+
+  if (!comment) {
+    alert("Por favor escribí un breve comentario sobre tu experiencia.");
+    return;
+  }
+
+  localStorage.setItem("bsas_tourist_name", userName);
+
+  try {
+    const res = await fetch("/api/reviews", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        placeId: state.selectedPlace.id,
+        userName,
+        userCountry,
+        rating: state.newReviewRating || 5,
+        comment,
+        photoData: state.newReviewPhotoBase64,
+        waiterId: state.waiterId || "isaias"
+      })
+    });
+
+    const data = await res.json();
+    if (data.success) {
+      alert("🎉 ¡Muchas gracias por compartir tu experiencia y foto!");
+      closeReviewForm();
+      await loadPlaceReviews(state.selectedPlace.id);
+    } else {
+      alert(data.error || "No se pudo publicar la opinión.");
+    }
+  } catch (err) {
+    alert("Error de conexión al enviar tu opinión.");
+  }
+}
+
+async function loadPlaceReviews(placeId) {
+  const container = document.getElementById("reviews-list-container");
+  const avgRatingEl = document.getElementById("reviews-avg-rating");
+  if (!container) return;
+
+  container.innerHTML = '<div style="font-size:0.8rem; color:#94a3b8; text-align:center; padding:10px 0;">Cargando opiniones...</div>';
+
+  try {
+    const res = await fetch(`/api/reviews?placeId=${encodeURIComponent(placeId)}`);
+    const reviews = await res.json();
+    state.currentPlaceReviews = reviews;
+
+    if (!reviews || reviews.length === 0) {
+      container.innerHTML = '<div style="font-size:0.82rem; color:#94a3b8; text-align:center; padding:12px; background:rgba(255,255,255,0.02); border-radius:8px;">Aún no hay opiniones de este lugar. ¡Sé el primero en compartir la tuya!</div>';
+      if (avgRatingEl) avgRatingEl.textContent = "Sé el primero en opinar";
+      return;
+    }
+
+    // Calcular promedio
+    const sum = reviews.reduce((acc, r) => acc + (r.rating || 5), 0);
+    const avg = (sum / reviews.length).toFixed(1);
+    if (avgRatingEl) {
+      avgRatingEl.textContent = `★ ${avg} / 5 (${reviews.length} ${reviews.length === 1 ? 'opinión' : 'opiniones'})`;
+    }
+
+    container.innerHTML = reviews.map(r => {
+      const dateStr = new Date(r.created_at).toLocaleDateString("es-AR", { day: "2-digit", month: "2-digit", year: "numeric" });
+      const stars = "★".repeat(r.rating) + "☆".repeat(5 - r.rating);
+      return `
+        <div class="review-item-card">
+          <div class="review-item-header">
+            <div class="review-author">
+              <span>👤 ${r.user_name}</span>
+              <span style="font-size:0.75rem; color:#94a3b8; font-weight:normal;">(${r.user_country})</span>
+            </div>
+            <div class="review-stars">${stars}</div>
+          </div>
+          <div class="review-date" style="margin-bottom:6px;">${dateStr}</div>
+          <p class="review-comment">${r.comment}</p>
+          ${r.photo_data ? `
+            <img src="${r.photo_data}" class="review-photo-thumb" alt="Foto de ${r.user_name}" onclick="window.open(this.src, '_blank')">
+          ` : ''}
+          ${r.waiter_id ? `
+            <div>
+              <span class="review-waiter-tag">👨‍🍳 Recomendado por mozo ${capitalize(r.waiter_id)}</span>
+            </div>
+          ` : ''}
+        </div>
+      `;
+    }).join("");
+  } catch (err) {
+    container.innerHTML = '<div style="font-size:0.8rem; color:#ef4444; text-align:center; padding:10px 0;">Error al cargar opiniones.</div>';
+  }
 }

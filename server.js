@@ -79,6 +79,19 @@ db.exec(`
     key TEXT PRIMARY KEY,
     value TEXT NOT NULL
   );
+
+  CREATE TABLE IF NOT EXISTS reviews (
+    id TEXT PRIMARY KEY,
+    place_id TEXT NOT NULL,
+    user_name TEXT NOT NULL,
+    user_country TEXT DEFAULT 'Turista',
+    rating INTEGER DEFAULT 5,
+    comment TEXT NOT NULL,
+    photo_data TEXT,
+    waiter_id TEXT,
+    created_at INTEGER NOT NULL,
+    approved INTEGER DEFAULT 1
+  );
 `);
 
 // Pre-cargar mozo por defecto 'isaias' si no existe
@@ -95,6 +108,52 @@ if (!checkWaiter) {
 const checkMp = db.prepare("SELECT value FROM settings WHERE key = ?").get("mp_link");
 if (!checkMp) {
   db.prepare("INSERT INTO settings (key, value) VALUES (?, ?)").run("mp_link", "https://link.mercadopago.com.ar");
+}
+
+// Pre-cargar opiniones y fotos de prueba si no existen
+const checkReviews = db.prepare("SELECT COUNT(*) as count FROM reviews").get();
+if (checkReviews.count === 0) {
+  const seedReviews = [
+    {
+      id: "rev_seed_1",
+      place_id: "p1",
+      user_name: "Sarah & David",
+      user_country: "🇺🇸 USA",
+      rating: 5,
+      comment: "Incredible bife de chorizo! Waiter Isaias recommended arriving early at 11:30 AM and we got a table without the huge queue. Best steak in South America!",
+      photo_data: "https://images.unsplash.com/photo-1544025162-d76694265947?w=600&auto=format&fit=crop&q=80",
+      waiter_id: "isaias",
+      created_at: Date.now() - 86400000 * 2
+    },
+    {
+      id: "rev_seed_2",
+      place_id: "p3",
+      user_name: "Thiago & Luana",
+      user_country: "🇧🇷 Brasil",
+      rating: 5,
+      comment: "A melhor pizza de Buenos Aires! A dica do garçom para pedir a fugazzeta recheada e comer no balcão em pé foi perfeita. Experiência 100% autêntica e barata!",
+      photo_data: "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=600&auto=format&fit=crop&q=80",
+      waiter_id: "isaias",
+      created_at: Date.now() - 86400000 * 4
+    },
+    {
+      id: "rev_seed_3",
+      place_id: "t1",
+      user_name: "Gonzalo y Claudia",
+      user_country: "🇨🇱 Chile",
+      rating: 5,
+      comment: "El show de tango en Puerto Madero superó todas las expectativas. La vista a los diques de noche y los bailarines son de primer nivel. Excelente recomendación!",
+      photo_data: "https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?w=600&auto=format&fit=crop&q=80",
+      waiter_id: "isaias",
+      created_at: Date.now() - 86400000 * 6
+    }
+  ];
+
+  const insertSeed = db.prepare(`
+    INSERT INTO reviews (id, place_id, user_name, user_country, rating, comment, photo_data, waiter_id, created_at, approved)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 1)
+  `);
+  seedReviews.forEach(r => insertSeed.run(r.id, r.place_id, r.user_name, r.user_country, r.rating, r.comment, r.photo_data, r.waiter_id, r.created_at));
 }
 
 // Helpers HTTP
@@ -160,6 +219,64 @@ const server = http.createServer(async (req, res) => {
   if (pathname === "/api/places" && method === "GET") {
     const places = db.prepare("SELECT * FROM places WHERE active = 1 ORDER BY created_at DESC").all();
     return sendJSON(res, 200, places);
+  }
+
+  // Obtener reseñas y fotos de un lugar
+  if (pathname === "/api/reviews" && method === "GET") {
+    const placeId = parsedUrl.searchParams.get("placeId");
+    if (!placeId) {
+      return sendJSON(res, 400, { error: "placeId requerido" });
+    }
+    const reviews = db.prepare(`
+      SELECT id, place_id, user_name, user_country, rating, comment, photo_data, waiter_id, created_at
+      FROM reviews
+      WHERE place_id = ? AND approved = 1
+      ORDER BY created_at DESC
+    `).all(placeId);
+    return sendJSON(res, 200, reviews);
+  }
+
+  // Publicar nueva reseña y foto de turista
+  if (pathname === "/api/reviews" && method === "POST") {
+    try {
+      const data = await parseBody(req);
+      const placeId = (data.placeId || "").trim();
+      const userName = (data.userName || "Turista").trim();
+      const userCountry = (data.userCountry || "🌍 Turista").trim();
+      const rating = Math.min(5, Math.max(1, parseInt(data.rating, 10) || 5));
+      const comment = (data.comment || "").trim();
+      const photoData = data.photoData || null;
+      const waiterId = (data.waiterId || "isaias").trim().toLowerCase();
+
+      if (!placeId || !comment) {
+        return sendJSON(res, 400, { error: "El lugar y el comentario son requeridos." });
+      }
+
+      const id = "rev_" + crypto.randomBytes(6).toString("hex");
+      const now = Date.now();
+
+      db.prepare(`
+        INSERT INTO reviews (id, place_id, user_name, user_country, rating, comment, photo_data, waiter_id, created_at, approved)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 1)
+      `).run(id, placeId, userName, userCountry, rating, comment, photoData, waiterId, now);
+
+      return sendJSON(res, 201, {
+        success: true,
+        review: {
+          id,
+          place_id: placeId,
+          user_name: userName,
+          user_country: userCountry,
+          rating,
+          comment,
+          photo_data: photoData,
+          waiter_id: waiterId,
+          created_at: now
+        }
+      });
+    } catch (e) {
+      return sendJSON(res, 400, { error: e.message });
+    }
   }
 
   // Pago / Activación del Servicio del Mozo (Soporta Mercado Pago y Modo Prueba)
@@ -479,6 +596,30 @@ const server = http.createServer(async (req, res) => {
     const id = pathname.split("/").pop();
     db.prepare("DELETE FROM places WHERE id = ?").run(id);
     return sendJSON(res, 200, { success: true });
+  }
+
+  // Listar todas las reseñas en Admin
+  if (pathname === "/api/admin/reviews" && method === "GET") {
+    const reviews = db.prepare(`
+      SELECT r.*, p.name as place_name, w.name as waiter_name
+      FROM reviews r
+      LEFT JOIN places p ON r.place_id = p.id
+      LEFT JOIN waiters w ON r.waiter_id = w.id
+      ORDER BY r.created_at DESC
+    `).all();
+    return sendJSON(res, 200, reviews);
+  }
+
+  // Eliminar reseña desde Admin
+  if (pathname === "/api/admin/reviews/delete" && method === "POST") {
+    try {
+      const data = await parseBody(req);
+      if (!data.id) return sendJSON(res, 400, { error: "ID requerido" });
+      db.prepare("DELETE FROM reviews WHERE id = ?").run(data.id);
+      return sendJSON(res, 200, { success: true });
+    } catch (e) {
+      return sendJSON(res, 400, { error: e.message });
+    }
   }
 
   // Estadísticas generales

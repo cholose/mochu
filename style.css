@@ -626,3 +626,181 @@ body {
   gap: 8px;
 }
 
+/* Sección de Comentarios y Fotos de Turistas */
+.reviews-section {
+  margin-top: 20px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  padding-top: 16px;
+}
+
+.reviews-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.reviews-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #fff;
+}
+
+.btn-add-review {
+  background: rgba(16, 185, 129, 0.15);
+  color: #34d399;
+  border: 1px solid rgba(16, 185, 129, 0.35);
+  padding: 5px 12px;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  transition: all 0.2s;
+}
+.btn-add-review:hover {
+  background: rgba(16, 185, 129, 0.25);
+}
+
+.review-form-box {
+  background: #0f172a;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 12px;
+  padding: 14px;
+  margin-bottom: 16px;
+}
+
+.review-input {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 8px;
+  padding: 8px 10px;
+  color: #fff;
+  font-size: 0.85rem;
+  margin-bottom: 8px;
+  outline: none;
+  font-family: inherit;
+  box-sizing: border-box;
+}
+.review-input:focus {
+  border-color: #10b981;
+}
+
+.rating-stars-input {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.star-rating-label {
+  font-size: 0.8rem;
+  color: #94a3b8;
+}
+.stars-row {
+  display: flex;
+  gap: 4px;
+}
+.star-btn {
+  font-size: 1.3rem;
+  color: #475569;
+  cursor: pointer;
+  user-select: none;
+  transition: transform 0.1s, color 0.1s;
+}
+.star-btn:hover {
+  transform: scale(1.2);
+}
+.star-btn.active {
+  color: #f59e0b;
+}
+
+.photo-picker-box {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px dashed rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  padding: 10px;
+  text-align: center;
+  margin-top: 4px;
+}
+.photo-picker-label {
+  font-size: 0.8rem;
+  color: #38bdf8;
+  cursor: pointer;
+  display: inline-block;
+  font-weight: 600;
+}
+
+.reviews-list-container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.review-item-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 12px;
+  padding: 12px;
+}
+
+.review-item-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+.review-author {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.review-stars {
+  color: #f59e0b;
+  font-size: 0.85rem;
+  letter-spacing: 1px;
+}
+.review-date {
+  font-size: 0.7rem;
+  color: #64748b;
+}
+
+.review-comment {
+  font-size: 0.82rem;
+  color: #cbd5e1;
+  line-height: 1.4;
+  margin-bottom: 8px;
+}
+
+.review-photo-thumb {
+  width: 100%;
+  max-height: 180px;
+  object-fit: cover;
+  border-radius: 8px;
+  margin-top: 6px;
+  cursor: pointer;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: opacity 0.2s;
+}
+.review-photo-thumb:hover {
+  opacity: 0.95;
+}
+
+.review-waiter-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(245, 158, 11, 0.1);
+  color: #f59e0b;
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 4px;
+  margin-top: 6px;
+}
+

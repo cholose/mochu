@@ -314,6 +314,18 @@
       </div>
       <div class="places-list" id="places-container"></div>
     </div>
+
+    <!-- SECCIÓN: COMENTARIOS Y FOTOS DE TURISTAS -->
+    <div class="admin-card">
+      <div class="section-title">
+        <span>💬 Reseñas y Fotos de Turistas</span>
+        <button class="btn-action btn-secondary" onclick="loadAdminReviews()">🔄 Actualizar</button>
+      </div>
+      <p style="font-size:0.8rem; color:#94a3b8; margin-bottom:14px;">
+        Revisá las fotos y comentarios que dejan los turistas en los restaurantes y shows. Podés eliminar cualquier comentario inadecuado o spam con un solo clic.
+      </p>
+      <div id="admin-reviews-container"></div>
+    </div>
   </div>
 
   <!-- Modal para Agregar Mozo con Alias -->
@@ -506,6 +518,7 @@
       loadWaiters();
       initDashboardMap();
       loadPlaces();
+      loadAdminReviews();
     }
 
     async function loadStats() {
@@ -866,6 +879,79 @@
 
       closePlaceEditor();
       loadPlaces();
+    }
+
+    async function loadAdminReviews() {
+      const container = document.getElementById("admin-reviews-container");
+      if (!container) return;
+      container.innerHTML = '<div style="color:#94a3b8; font-size:0.85rem;">Cargando opiniones...</div>';
+
+      try {
+        const res = await fetch("/api/admin/reviews");
+        const reviews = await res.json();
+
+        if (!reviews || reviews.length === 0) {
+          container.innerHTML = '<div style="color:#94a3b8; font-size:0.85rem;">Aún no hay comentarios subidos por turistas.</div>';
+          return;
+        }
+
+        container.innerHTML = reviews.map(r => {
+          const dateStr = new Date(r.created_at).toLocaleDateString("es-AR", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" });
+          const stars = "★".repeat(r.rating) + "☆".repeat(5 - r.rating);
+          return `
+            <div style="background:#0f172a; border:1px solid rgba(255,255,255,0.08); border-radius:12px; padding:14px; margin-bottom:12px; display:flex; flex-direction:column; gap:8px;">
+              <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                <div>
+                  <div style="font-weight:700; color:#fff; font-size:0.95rem;">
+                    ${r.user_name} <span style="font-size:0.8rem; color:#94a3b8; font-weight:normal;">(${r.user_country})</span>
+                  </div>
+                  <div style="font-size:0.8rem; color:#38bdf8; margin-top:2px;">
+                    📍 Lugar: <strong>${r.place_name || r.place_id}</strong>
+                    ${r.waiter_name ? ` • 👨‍🍳 Mozo: <strong>${r.waiter_name}</strong>` : ''}
+                  </div>
+                </div>
+                <button class="btn-action btn-danger" style="padding:4px 10px; font-size:0.75rem;" onclick="deleteAdminReview('${r.id}')">
+                  🗑️ Borrar
+                </button>
+              </div>
+
+              <div style="display:flex; align-items:center; gap:8px;">
+                <span style="color:#f59e0b; font-size:0.9rem; letter-spacing:1px;">${stars}</span>
+                <span style="font-size:0.75rem; color:#64748b;">${dateStr}</span>
+              </div>
+
+              <p style="font-size:0.85rem; color:#cbd5e1; margin:0; line-height:1.4;">${r.comment}</p>
+
+              ${r.photo_data ? `
+                <div style="margin-top:6px;">
+                  <img src="${r.photo_data}" style="max-height:140px; border-radius:8px; object-fit:cover; border:1px solid rgba(255,255,255,0.15);" alt="Foto turista">
+                </div>
+              ` : ''}
+            </div>
+          `;
+        }).join("");
+      } catch (e) {
+        container.innerHTML = '<div style="color:#ef4444; font-size:0.85rem;">Error al cargar opiniones.</div>';
+      }
+    }
+
+    async function deleteAdminReview(id) {
+      if (!confirm("¿Seguro que deseas eliminar este comentario?")) return;
+      try {
+        const res = await fetch("/api/admin/reviews/delete", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id })
+        });
+        const data = await res.json();
+        if (data.success) {
+          loadAdminReviews();
+        } else {
+          alert("Error al eliminar comentario.");
+        }
+      } catch (e) {
+        alert("Error de conexión.");
+      }
     }
   </script>
 </body>

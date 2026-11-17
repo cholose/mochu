@@ -219,6 +219,82 @@
         </a>
       </div>
 
+      <!-- SECCIÓN: EXPERIENCIAS, RESEÑAS Y FOTOS DE TURISTAS -->
+      <div class="reviews-section">
+        <div class="reviews-header">
+          <div>
+            <h3 class="reviews-title" id="lbl-reviews-title">📸 Experiencias & Fotos</h3>
+            <div id="reviews-avg-rating" style="font-size:0.75rem; color:#f59e0b; margin-top:2px;"></div>
+          </div>
+          <button type="button" class="btn-add-review" id="btn-toggle-review-form" onclick="toggleReviewForm()">
+            ✍️ <span id="lbl-btn-add-review">Dejar opinión</span>
+          </button>
+        </div>
+
+        <!-- Formulario para agregar opinión y foto -->
+        <div id="review-form-container" class="review-form-box" style="display:none;">
+          <div style="font-size:0.85rem; font-weight:700; color:#fff; margin-bottom:8px;" id="lbl-form-title">
+            Compartí tu experiencia y foto
+          </div>
+          
+          <div class="rating-stars-input">
+            <span class="star-rating-label">Puntuación:</span>
+            <div class="stars-row" id="stars-row">
+              <span class="star-btn active" data-val="1">★</span>
+              <span class="star-btn active" data-val="2">★</span>
+              <span class="star-btn active" data-val="3">★</span>
+              <span class="star-btn active" data-val="4">★</span>
+              <span class="star-btn active" data-val="5">★</span>
+            </div>
+          </div>
+
+          <div style="display:flex; gap:8px; margin-bottom:8px;">
+            <input type="text" id="review-author-name" class="review-input" placeholder="Tu Nombre (ej. Sarah o Lucas)" style="flex:1;">
+            <select id="review-author-country" class="review-input" style="flex:1; max-width:140px;">
+              <option value="🇧🇷 Brasil">🇧🇷 Brasil</option>
+              <option value="🇺🇸 USA">🇺🇸 USA</option>
+              <option value="🇦🇷 Argentina">🇦🇷 Argentina</option>
+              <option value="🇨🇱 Chile">🇨🇱 Chile</option>
+              <option value="🇺🇾 Uruguay">🇺🇾 Uruguay</option>
+              <option value="🇪🇸 España">🇪🇸 España</option>
+              <option value="🇫🇷 France">🇫🇷 France</option>
+              <option value="🇩🇪 Deutschland">🇩🇪 Deutschland</option>
+              <option value="🇮🇹 Italia">🇮🇹 Italia</option>
+              <option value="🇬🇧 UK">🇬🇧 UK</option>
+              <option value="🌍 Turista">🌍 Otro</option>
+            </select>
+          </div>
+
+          <textarea id="review-comment-text" class="review-input" rows="3" placeholder="¿Qué tal la comida, el show o la atención? ¿Recomendás algún plato o tip?"></textarea>
+
+          <div class="photo-picker-box">
+            <label for="review-photo-file" class="photo-picker-label">
+              📷 <span id="lbl-photo-picker">Sacar foto o subir desde la galería</span>
+            </label>
+            <input type="file" id="review-photo-file" accept="image/*" style="display:none;" onchange="onReviewPhotoSelected(event)">
+            
+            <div id="review-photo-preview-wrap" style="display:none; position:relative; margin-top:8px;">
+              <img id="review-photo-preview-img" style="width:100%; max-height:160px; object-fit:cover; border-radius:8px; border:1px solid rgba(255,255,255,0.2);">
+              <button type="button" onclick="clearReviewPhoto()" style="position:absolute; top:6px; right:6px; background:rgba(15,23,42,0.85); color:#ef4444; border:none; border-radius:50%; width:26px; height:26px; cursor:pointer; font-weight:bold; font-size:14px;">✕</button>
+            </div>
+          </div>
+
+          <div style="display:flex; gap:8px; margin-top:10px;">
+            <button type="button" class="btn-transport" style="background:#10b981; flex:1; padding:10px; font-weight:700; border:none; cursor:pointer;" onclick="submitReview()">
+              Publicar opinión
+            </button>
+            <button type="button" class="btn-transport" style="background:#334155; flex:none; padding:10px 14px; border:none; cursor:pointer;" onclick="toggleReviewForm()">
+              Cancelar
+            </button>
+          </div>
+        </div>
+
+        <!-- Lista de Comentarios y Fotos -->
+        <div id="reviews-list-container" class="reviews-list-container">
+          <div style="font-size:0.8rem; color:#94a3b8; text-align:center; padding:10px 0;">Cargando opiniones...</div>
+        </div>
+      </div>
+
       <button id="btn-close-modal" class="btn-transport" style="background:#475569; margin-top:12px; width:100%;">
         <span id="lbl-close">Cerrar</span>
       </button>
