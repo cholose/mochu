@@ -14,6 +14,7 @@ const state = {
   userCoords: null,
   selectedPlace: null,
   places: [],
+  categories: [],
   pass: null,
   isVip: false,
   newReviewRating: 5,
@@ -27,6 +28,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   initLanguage();
   initTabs();
   initMap();
+  await loadCategories();
   initFilters();
   initModalEvents();
   renderGuideList();
@@ -257,6 +259,7 @@ async function loadPlaces() {
         id: p.id,
         category: p.category,
         name: p.name,
+        address: p.address || "",
         neighborhood: p.neighborhood,
         lat: p.lat,
         lng: p.lng,
@@ -583,20 +586,14 @@ function renderMarkers() {
   });
 
   filteredPlaces.forEach(place => {
-    let iconEmoji = "🥩";
-    let catClass = "pin-food";
-    if (place.category === "tango") {
-      iconEmoji = "💃";
-      catClass = "pin-tango";
-    } else if (place.category === "shopping") {
-      iconEmoji = "🛍️";
-      catClass = "pin-shopping";
-    }
+    const cat = state.categories.find(c => c.id === place.category);
+    const iconEmoji = cat ? cat.icon : (place.category === 'tango' ? '💃' : (place.category === 'shopping' ? '🛍️' : '🥩'));
+    const pinColor = cat ? cat.color : '#ef4444';
 
     const customIcon = L.divIcon({
-      className: `modern-pin ${catClass}`,
+      className: "modern-pin",
       html: `
-        <div class="modern-pin-bubble">
+        <div class="modern-pin-bubble" style="background: linear-gradient(135deg, ${pinColor}, #0f172a);">
           <span>${iconEmoji}</span>
         </div>
         <div class="modern-pin-label">${place.name}</div>
@@ -656,7 +653,42 @@ function locateUser(silent = false) {
   );
 }
 
-// 7. Filtros
+// 7. Filtros y Categorías Dinámicas
+async function loadCategories() {
+  try {
+    const res = await fetch("/api/categories");
+    if (res.ok) {
+      state.categories = await res.json();
+    }
+  } catch (e) {
+    state.categories = [
+      { id: "food", name: "Parrillas & Carnes", icon: "🥩", color: "#ef4444" },
+      { id: "tango", name: "Tango & Shows", icon: "💃", color: "#a855f7" },
+      { id: "shopping", name: "Shoppings & Paseos", icon: "🛍️", color: "#06b6d4" }
+    ];
+  }
+
+  renderFilterChips();
+}
+
+function renderFilterChips() {
+  const container = document.querySelector(".map-filters");
+  if (!container || !state.categories || state.categories.length === 0) return;
+
+  const chipsHtml = state.categories.map(c => `
+    <button class="filter-chip ${state.activeCategory === c.id ? 'active' : ''}" data-category="${c.id}" id="btn-filter-${c.id}">
+      ${c.icon} ${c.name}
+    </button>
+  `).join("") + `
+    <button class="filter-chip ${state.activeCategory === 'all' ? 'active' : ''}" data-category="all" id="btn-filter-all">
+      🗺️ Todos
+    </button>
+  `;
+
+  container.innerHTML = chipsHtml;
+  initFilters();
+}
+
 function initFilters() {
   const chips = document.querySelectorAll(".filter-chip");
   chips.forEach(chip => {
@@ -692,7 +724,8 @@ function openPlaceModal(place) {
 
 function updateModalContent(place) {
   document.getElementById("sheet-name").textContent = place.name;
-  document.getElementById("sheet-neighborhood").textContent = place.neighborhood;
+  const locationText = place.address ? `${place.address} (${place.neighborhood})` : place.neighborhood;
+  document.getElementById("sheet-neighborhood").textContent = locationText;
   document.getElementById("sheet-price").textContent = place.price;
   document.getElementById("sheet-tag").textContent = place.tag;
   document.getElementById("sheet-image").src = place.image;

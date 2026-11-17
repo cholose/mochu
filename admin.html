@@ -299,7 +299,10 @@
     <div class="admin-card">
       <div class="section-title">
         <span>🗺️ Mapa de Lugares & Edición en Vivo</span>
-        <button class="btn-action" onclick="openPlaceEditor()">+ Nuevo Lugar</button>
+        <div style="display:flex; gap:8px;">
+          <button class="btn-action btn-secondary" onclick="openCategoryModal()">🏷️ Gestionar Categorías</button>
+          <button class="btn-action" onclick="openPlaceEditor()">+ Nuevo Lugar</button>
+        </div>
       </div>
       
       <div style="background:rgba(56, 189, 248, 0.1); border:1px solid rgba(56, 189, 248, 0.3); border-radius:8px; padding:10px; margin-bottom:12px; font-size:0.82rem; color:#38bdf8;">
@@ -382,7 +385,7 @@
     </div>
   </div>
 
-  <!-- Modal para Crear / Editar Lugar (CON AJUSTE DE PIN) -->
+  <!-- Modal para Crear / Editar Lugar (CON BÚSQUEDA DE DIRECCIÓN Y AJUSTE DE PIN) -->
   <div class="modal-overlay" id="editor-modal">
     <div class="bottom-sheet" style="max-height:92vh;">
       <div class="sheet-handle"></div>
@@ -390,41 +393,54 @@
       
       <form id="place-form" onsubmit="savePlace(event)">
         <input type="hidden" id="form-id">
+        <!-- Coordenadas calculadas automáticamente (ocultas para no confundir con números de lat/lng) -->
+        <input type="hidden" id="form-lat" value="-34.5878">
+        <input type="hidden" id="form-lng" value="-58.4239">
 
         <div class="form-group">
           <label>Nombre del Lugar *</label>
-          <input type="text" id="form-name" class="input-field" required placeholder="ej. Parrilla La Cabrera">
+          <input type="text" id="form-name" class="input-field" required placeholder="ej. Parrilla Don Julio o Pizzería Güerrin">
+        </div>
+
+        <!-- Dirección en lugar de Latitud / Longitud -->
+        <div class="form-group">
+          <label>Dirección del Lugar (Calle y número) *</label>
+          <div style="display:flex; gap:8px;">
+            <input type="text" id="form-address" class="input-field" placeholder="ej. Guatemala 4699, Palermo o Av. Corrientes 1368" style="margin:0; flex:1;" onkeydown="if(event.key==='Enter'){event.preventDefault(); geocodeAddress();}">
+            <button type="button" class="btn-action" style="white-space:nowrap; padding:0 14px; font-size:0.85rem;" onclick="geocodeAddress()">
+              🔍 Buscar en Mapa
+            </button>
+          </div>
+          <div id="geocode-msg" style="font-size:0.75rem; color:#38bdf8; margin-top:4px;"></div>
         </div>
 
         <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
           <div class="form-group">
-            <label>Categoría *</label>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+              <label style="margin:0;">Categoría *</label>
+              <button type="button" onclick="openCategoryModal()" style="background:none; border:none; color:#10b981; font-size:0.75rem; font-weight:700; cursor:pointer; padding:0;">
+                + Crear
+              </button>
+            </div>
             <select id="form-category" class="input-field" required style="padding:10px;">
-              <option value="food">🥩 Parrilla / Pastas</option>
-              <option value="tango">💃 Tango & Shows</option>
-              <option value="shopping">🛍️ Shopping / Paseos</option>
+              <!-- Se carga dinámicamente con las categorías -->
             </select>
           </div>
           <div class="form-group">
             <label>Barrio / Zona *</label>
-            <input type="text" id="form-neighborhood" class="input-field" required placeholder="ej. Palermo Soho">
+            <input type="text" id="form-neighborhood" class="input-field" required placeholder="ej. Palermo, San Telmo, Centro">
           </div>
         </div>
 
-        <!-- Mini Mapa de Ajuste Fino -->
+        <!-- Mini Mapa de Ajuste Fino del Pin -->
         <div class="form-group">
-          <label>📍 Ajustar Ubicación (Arrastrá el pin o tocá el mapa)</label>
-          <div id="editor-mini-map" style="height:190px; width:100%; border-radius:10px; border:1px solid rgba(255,255,255,0.2); margin-bottom:6px; background:#1e293b;"></div>
-        </div>
-
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
-          <div class="form-group">
-            <label>Latitud *</label>
-            <input type="number" step="any" id="form-lat" class="input-field" required placeholder="-34.5878">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+            <label style="margin:0;">📍 Ubicación en el Mapa (Arrastrá el pin para corregir la posición)</label>
+            <span id="pin-coords-badge" style="font-size:0.7rem; color:#94a3b8; background:rgba(255,255,255,0.05); padding:2px 6px; border-radius:4px;"></span>
           </div>
-          <div class="form-group">
-            <label>Longitud *</label>
-            <input type="number" step="any" id="form-lng" class="input-field" required placeholder="-58.4239">
+          <div id="editor-mini-map" style="height:210px; width:100%; border-radius:10px; border:1px solid rgba(255,255,255,0.2); margin-bottom:4px; background:#1e293b;"></div>
+          <div style="font-size:0.72rem; color:#94a3b8;">
+            💡 Si la dirección no quedó en el lugar exacto, podés mover el pin rojo con el mouse o hacer clic directamente en la calle.
           </div>
         </div>
 
@@ -461,6 +477,78 @@
 
         <div class="form-group">
           <label>Tip (Português)</label>
+          <textarea id="form-tip-pt" class="input-field" rows="2" placeholder="Dica do garçom em português..."></textarea>
+        </div>
+
+        <div style="display:flex; gap:10px; margin-top:14px;">
+          <button type="submit" class="btn-action" style="flex:1; padding:12px;">Guardar Lugar</button>
+          <button type="button" class="btn-action btn-secondary" onclick="closePlaceEditor()">Cancelar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal para Gestionar y Agregar Categorías Personalizadas -->
+  <div class="modal-overlay" id="category-modal">
+    <div class="bottom-sheet" style="max-width:480px; max-height:90vh;">
+      <div class="sheet-handle"></div>
+      <h2 style="font-size:1.2rem; margin-bottom:6px;">🏷️ Categorías de Lugares</h2>
+      <p style="font-size:0.8rem; color:#94a3b8; margin-bottom:14px;">
+        Agregá las categorías que necesites (ej: Bares, Heladerías, Cafés, Teatros). Aparecerán en los filtros del mapa del turista.
+      </p>
+
+      <!-- Formulario para agregar nueva categoría -->
+      <form onsubmit="saveCategory(event)" style="background:#0f172a; border:1px solid rgba(255,255,255,0.1); border-radius:12px; padding:12px; margin-bottom:14px;">
+        <div style="font-size:0.85rem; font-weight:700; color:#fff; margin-bottom:8px;">+ Crear Nueva Categoría</div>
+        
+        <div class="form-group" style="margin-bottom:8px;">
+          <label style="font-size:0.75rem;">Nombre de la Categoría *</label>
+          <input type="text" id="cat-name" class="input-field" required placeholder="ej. Heladerías Artesanales o Pizzerías">
+        </div>
+
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:8px;">
+          <div class="form-group" style="margin-bottom:0;">
+            <label style="font-size:0.75rem;">Emoji / Ícono *</label>
+            <input type="text" id="cat-icon" class="input-field" required value="📍" maxlength="4" style="text-align:center; font-size:1.2rem;">
+          </div>
+          <div class="form-group" style="margin-bottom:0;">
+            <label style="font-size:0.75rem;">Color del Pin *</label>
+            <input type="color" id="cat-color" class="input-field" value="#10b981" style="height:42px; padding:2px; cursor:pointer;">
+          </div>
+        </div>
+
+        <!-- Emojis Rápidos para elegir -->
+        <div style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:10px;">
+          <span style="font-size:0.75rem; color:#94a3b8; width:100%;">Emojis sugeridos (tocá uno para seleccionarlo):</span>
+          <button type="button" onclick="selectCatEmoji('🥩')" style="background:#1e293b; border:1px solid rgba(255,255,255,0.1); border-radius:6px; padding:4px 8px; cursor:pointer; font-size:1rem;">🥩</button>
+          <button type="button" onclick="selectCatEmoji('💃')" style="background:#1e293b; border:1px solid rgba(255,255,255,0.1); border-radius:6px; padding:4px 8px; cursor:pointer; font-size:1rem;">💃</button>
+          <button type="button" onclick="selectCatEmoji('🛍️')" style="background:#1e293b; border:1px solid rgba(255,255,255,0.1); border-radius:6px; padding:4px 8px; cursor:pointer; font-size:1rem;">🛍️</button>
+          <button type="button" onclick="selectCatEmoji('🍸')" style="background:#1e293b; border:1px solid rgba(255,255,255,0.1); border-radius:6px; padding:4px 8px; cursor:pointer; font-size:1rem;">🍸</button>
+          <button type="button" onclick="selectCatEmoji('☕')" style="background:#1e293b; border:1px solid rgba(255,255,255,0.1); border-radius:6px; padding:4px 8px; cursor:pointer; font-size:1rem;">☕</button>
+          <button type="button" onclick="selectCatEmoji('🍕')" style="background:#1e293b; border:1px solid rgba(255,255,255,0.1); border-radius:6px; padding:4px 8px; cursor:pointer; font-size:1rem;">🍕</button>
+          <button type="button" onclick="selectCatEmoji('🍦')" style="background:#1e293b; border:1px solid rgba(255,255,255,0.1); border-radius:6px; padding:4px 8px; cursor:pointer; font-size:1rem;">🍦</button>
+          <button type="button" onclick="selectCatEmoji('🏛️')" style="background:#1e293b; border:1px solid rgba(255,255,255,0.1); border-radius:6px; padding:4px 8px; cursor:pointer; font-size:1rem;">🏛️</button>
+          <button type="button" onclick="selectCatEmoji('⚽')" style="background:#1e293b; border:1px solid rgba(255,255,255,0.1); border-radius:6px; padding:4px 8px; cursor:pointer; font-size:1rem;">⚽</button>
+          <button type="button" onclick="selectCatEmoji('🎭')" style="background:#1e293b; border:1px solid rgba(255,255,255,0.1); border-radius:6px; padding:4px 8px; cursor:pointer; font-size:1rem;">🎭</button>
+          <button type="button" onclick="selectCatEmoji('🍔')" style="background:#1e293b; border:1px solid rgba(255,255,255,0.1); border-radius:6px; padding:4px 8px; cursor:pointer; font-size:1rem;">🍔</button>
+          <button type="button" onclick="selectCatEmoji('🍷')" style="background:#1e293b; border:1px solid rgba(255,255,255,0.1); border-radius:6px; padding:4px 8px; cursor:pointer; font-size:1rem;">🍷</button>
+        </div>
+
+        <button type="submit" class="btn-action" style="width:100%; padding:10px;">Guardar Categoría</button>
+      </form>
+
+      <!-- Listado de Categorías actuales -->
+      <div style="font-size:0.85rem; font-weight:700; color:#fff; margin-bottom:8px;">Categorías Actuales</div>
+      <div id="categories-list-container" style="display:flex; flex-direction:column; gap:8px; max-height:220px; overflow-y:auto;">
+        <!-- Se llena con loadAdminCategories() -->
+      </div>
+
+      <button type="button" class="btn-action btn-secondary" style="width:100%; margin-top:14px;" onclick="closeCategoryModal()">Cerrar</button>
+    </div>
+  </div>
+
+        <div class="form-group">
+          <label>Tip (Português)</label>
           <textarea id="form-tip-pt" class="input-field" rows="2" placeholder="Dica local em Português..."></textarea>
         </div>
 
@@ -482,6 +570,7 @@
     let dashboardMarkersLayer = null;
     let editorMiniMap = null;
     let editorMiniMarker = null;
+    let allCategories = [];
 
     document.addEventListener("DOMContentLoaded", () => {
       if (sessionStorage.getItem("admin_auth") === "true") {
@@ -516,6 +605,7 @@
       loadStats();
       loadMpConfig();
       loadWaiters();
+      loadAdminCategories();
       initDashboardMap();
       loadPlaces();
       loadAdminReviews();
@@ -693,14 +783,13 @@
       dashboardMarkersLayer.clearLayers();
 
       allPlaces.forEach(p => {
-        let iconEmoji = "🥩";
-        if (p.category === "tango") iconEmoji = "💃";
-        if (p.category === "shopping") iconEmoji = "🛍️";
+        const cat = allCategories.find(c => c.id === p.category);
+        const iconEmoji = cat ? cat.icon : "🥩";
 
         const customIcon = L.divIcon({
           className: "admin-map-pin",
           html: `<div style="
-            background: ${p.active ? '#10b981' : '#64748b'};
+            background: ${p.active ? (cat ? cat.color : '#10b981') : '#64748b'};
             color: white;
             border: 2px solid white;
             width: 36px;
@@ -750,7 +839,10 @@
         <div class="place-row">
           <div style="flex:1;">
             <div style="font-weight:700; font-size:0.95rem;">${p.name}</div>
-            <div style="font-size:0.75rem; color:#94a3b8;">${p.neighborhood} • ${p.category.toUpperCase()} • ${p.price}</div>
+            <div style="font-size:0.75rem; color:#94a3b8;">
+              ${p.address ? '<span style="color:#38bdf8;">' + p.address + '</span> • ' : ''}
+              ${p.neighborhood} • <strong>${(p.category || '').toUpperCase()}</strong> • ${p.price}
+            </div>
           </div>
           <button class="toggle-active ${p.active ? 'on' : 'off'}" onclick="togglePlace('${p.id}', ${!p.active})">
             ${p.active ? 'Activo' : 'Pausado'}
@@ -776,10 +868,193 @@
       loadPlaces();
     }
 
-    // MINI MAPA DENTRO DEL FORMULARIO DE EDICIÓN
+    // ==================== GESTIÓN DE CATEGORÍAS ====================
+    async function loadAdminCategories() {
+      try {
+        const res = await fetch("/api/categories");
+        allCategories = await res.json();
+
+        // 1. Llenar el selector en el formulario de edición de lugares
+        const selectEl = document.getElementById("form-category");
+        if (selectEl) {
+          const currentVal = selectEl.value;
+          selectEl.innerHTML = allCategories.map(c => `
+            <option value="${c.id}">${c.icon} ${c.name}</option>
+          `).join("");
+          if (currentVal) selectEl.value = currentVal;
+        }
+
+        // 2. Llenar la lista dentro del modal de gestión de categorías
+        const listEl = document.getElementById("categories-list-container");
+        if (listEl) {
+          listEl.innerHTML = allCategories.map(c => `
+            <div style="display:flex; justify-content:space-between; align-items:center; background:#1e293b; padding:8px 12px; border-radius:8px; border:1px solid rgba(255,255,255,0.08);">
+              <div style="display:flex; align-items:center; gap:8px;">
+                <span style="font-size:1.3rem;">${c.icon}</span>
+                <div>
+                  <strong style="color:#fff; font-size:0.9rem;">${c.name}</strong>
+                  <span style="font-size:0.7rem; color:#94a3b8; margin-left:6px;">(código: ${c.id})</span>
+                </div>
+              </div>
+              <div style="display:flex; align-items:center; gap:8px;">
+                <span style="display:inline-block; width:14px; height:14px; border-radius:50%; background:${c.color}; border:1px solid #fff;"></span>
+                <button type="button" class="btn-action btn-danger" style="padding:4px 8px; font-size:0.75rem;" onclick="deleteCategory('${c.id}')">
+                  🗑️
+                </button>
+              </div>
+            </div>
+          `).join("");
+        }
+      } catch (e) {
+        console.error("Error al cargar categorías:", e);
+      }
+    }
+
+    function openCategoryModal() {
+      document.getElementById("category-modal").classList.add("active");
+      loadAdminCategories();
+    }
+
+    function closeCategoryModal() {
+      document.getElementById("category-modal").classList.remove("active");
+    }
+
+    function selectCatEmoji(emoji) {
+      const iconInput = document.getElementById("cat-icon");
+      if (iconInput) iconInput.value = emoji;
+    }
+
+    async function saveCategory(e) {
+      e.preventDefault();
+      const name = document.getElementById("cat-name").value.trim();
+      const icon = document.getElementById("cat-icon").value.trim() || "📍";
+      const color = document.getElementById("cat-color").value || "#10b981";
+
+      if (!name) return;
+
+      try {
+        const res = await fetch("/api/admin/categories", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name, icon, color })
+        });
+        const data = await res.json();
+        if (data.success) {
+          document.getElementById("cat-name").value = "";
+          alert("🎉 ¡Categoría guardada exitosamente!");
+          await loadAdminCategories();
+        } else {
+          alert(data.error || "No se pudo guardar la categoría.");
+        }
+      } catch (err) {
+        alert("Error de conexión al guardar categoría.");
+      }
+    }
+
+    async function deleteCategory(id) {
+      if (!confirm(`¿Eliminar la categoría "${id}"?`)) return;
+      try {
+        const res = await fetch("/api/admin/categories/delete", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id })
+        });
+        const data = await res.json();
+        if (data.success) {
+          loadAdminCategories();
+        } else {
+          alert(data.error || "Error al eliminar categoría.");
+        }
+      } catch (err) {
+        alert("Error de conexión.");
+      }
+    }
+
+    // ==================== BÚSQUEDA DE DIRECCIÓN & GEOCODIFICACIÓN ====================
+    async function geocodeAddress() {
+      const addressInput = document.getElementById("form-address");
+      const msgEl = document.getElementById("geocode-msg");
+      const query = addressInput.value.trim();
+
+      if (!query) {
+        msgEl.textContent = "⚠️ Ingresá una calle y número para buscar.";
+        msgEl.style.color = "#ef4444";
+        return;
+      }
+
+      msgEl.textContent = "🔍 Buscando en el mapa de Buenos Aires...";
+      msgEl.style.color = "#38bdf8";
+
+      try {
+        let searchQuery = query;
+        if (!searchQuery.toLowerCase().includes("buenos aires") && !searchQuery.toLowerCase().includes("caba")) {
+          searchQuery += ", Buenos Aires, Argentina";
+        }
+
+        const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchQuery)}&viewbox=-58.55,-34.50,-58.30,-34.70&limit=1`;
+        const res = await fetch(url);
+        const data = await res.json();
+
+        if (data && data.length > 0) {
+          const lat = parseFloat(data[0].lat);
+          const lng = parseFloat(data[0].lon);
+
+          document.getElementById("form-lat").value = lat.toFixed(6);
+          document.getElementById("form-lng").value = lng.toFixed(6);
+
+          initOrUpdateMiniMap(lat, lng);
+
+          // Intentar auto-completar barrio si está vacío
+          const neighborhoodInput = document.getElementById("form-neighborhood");
+          if (!neighborhoodInput.value.trim() && data[0].display_name) {
+            const parts = data[0].display_name.split(",");
+            if (parts.length > 2) {
+              neighborhoodInput.value = parts[1].trim();
+            }
+          }
+
+          msgEl.textContent = "✅ ¡Ubicado! Podés arrastrar el pin rojo si querés corregir la puerta exacta.";
+          msgEl.style.color = "#10b981";
+        } else {
+          msgEl.textContent = "⚠️ No encontramos esa altura exacta. Hacé clic directo en la calle del mapa.";
+          msgEl.style.color = "#f59e0b";
+        }
+      } catch (e) {
+        msgEl.textContent = "Hacé clic en el mapa para marcar la ubicación del lugar.";
+        msgEl.style.color = "#94a3b8";
+      }
+    }
+
+    async function reverseGeocode(lat, lng) {
+      try {
+        const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`);
+        const data = await res.json();
+        if (data && data.address) {
+          const road = data.address.road || data.address.pedestrian || "";
+          const houseNumber = data.address.house_number || "";
+          const suburb = data.address.suburb || data.address.neighbourhood || data.address.city_district || "";
+          
+          const addrInput = document.getElementById("form-address");
+          if (!addrInput.value.trim() && road) {
+            addrInput.value = houseNumber ? `${road} ${houseNumber}` : road;
+          }
+          const neighInput = document.getElementById("form-neighborhood");
+          if (!neighInput.value.trim() && suburb) {
+            neighInput.value = suburb;
+          }
+        }
+      } catch (e) {}
+    }
+
+    // ==================== MINI MAPA DENTRO DEL FORMULARIO DE EDICIÓN ====================
     function initOrUpdateMiniMap(lat, lng) {
+      const badge = document.getElementById("pin-coords-badge");
+      if (badge) {
+        badge.textContent = `📍 Ubicado`;
+      }
+
       if (!editorMiniMap) {
-        editorMiniMap = L.map("editor-mini-map", { zoomControl: true }).setView([lat, lng], 14);
+        editorMiniMap = L.map("editor-mini-map", { zoomControl: true }).setView([lat, lng], 15);
         L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
           attribution: '&copy; OpenStreetMap',
           maxZoom: 19
@@ -791,15 +1066,25 @@
           const pos = e.target.getLatLng();
           document.getElementById("form-lat").value = pos.lat.toFixed(6);
           document.getElementById("form-lng").value = pos.lng.toFixed(6);
+          const msgEl = document.getElementById("geocode-msg");
+          if (msgEl) {
+            msgEl.textContent = "📍 Pin ajustado manualmente.";
+            msgEl.style.color = "#38bdf8";
+          }
         });
 
         editorMiniMap.on("click", function(e) {
           editorMiniMarker.setLatLng(e.latlng);
           document.getElementById("form-lat").value = e.latlng.lat.toFixed(6);
           document.getElementById("form-lng").value = e.latlng.lng.toFixed(6);
+          const msgEl = document.getElementById("geocode-msg");
+          if (msgEl) {
+            msgEl.textContent = "📍 Pin ubicado donde hiciste clic.";
+            msgEl.style.color = "#38bdf8";
+          }
         });
       } else {
-        editorMiniMap.setView([lat, lng], 14);
+        editorMiniMap.setView([lat, lng], 15);
         editorMiniMarker.setLatLng([lat, lng]);
       }
 
@@ -812,6 +1097,7 @@
       document.getElementById("place-form").reset();
       document.getElementById("form-id").value = "";
       document.getElementById("editor-title").textContent = "Nuevo Lugar";
+      document.getElementById("geocode-msg").textContent = "";
 
       let initialLat = presetLat || -34.5878;
       let initialLng = presetLng || -58.4239;
@@ -822,6 +1108,7 @@
           document.getElementById("editor-title").textContent = "Editar: " + p.name;
           document.getElementById("form-id").value = p.id;
           document.getElementById("form-name").value = p.name;
+          document.getElementById("form-address").value = p.address || "";
           document.getElementById("form-category").value = p.category;
           document.getElementById("form-neighborhood").value = p.neighborhood;
           document.getElementById("form-price").value = p.price;
@@ -839,6 +1126,11 @@
       } else {
         document.getElementById("form-lat").value = initialLat.toFixed ? initialLat.toFixed(6) : initialLat;
         document.getElementById("form-lng").value = initialLng.toFixed ? initialLng.toFixed(6) : initialLng;
+
+        // Si se hizo clic en el mapa del dashboard, intentar auto-completar dirección
+        if (presetLat && presetLng) {
+          reverseGeocode(presetLat, presetLng);
+        }
       }
 
       document.getElementById("editor-modal").classList.add("active");
@@ -858,6 +1150,7 @@
       const payload = {
         id: document.getElementById("form-id").value || null,
         name: document.getElementById("form-name").value,
+        address: document.getElementById("form-address").value,
         category: document.getElementById("form-category").value,
         neighborhood: document.getElementById("form-neighborhood").value,
         price: document.getElementById("form-price").value,

@@ -21,6 +21,7 @@ db.exec(`
     id TEXT PRIMARY KEY,
     category TEXT NOT NULL,
     name TEXT NOT NULL,
+    address TEXT DEFAULT '',
     neighborhood TEXT NOT NULL,
     lat REAL NOT NULL,
     lng REAL NOT NULL,
@@ -31,6 +32,14 @@ db.exec(`
     tip_en TEXT NOT NULL,
     tip_pt TEXT NOT NULL,
     active INTEGER DEFAULT 1,
+    created_at INTEGER NOT NULL
+  );
+
+  CREATE TABLE IF NOT EXISTS categories (
+    id TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
+    icon TEXT NOT NULL,
+    color TEXT DEFAULT '#10b981',
     created_at INTEGER NOT NULL
   );
 
@@ -156,6 +165,26 @@ if (checkReviews.count === 0) {
   seedReviews.forEach(r => insertSeed.run(r.id, r.place_id, r.user_name, r.user_country, r.rating, r.comment, r.photo_data, r.waiter_id, r.created_at));
 }
 
+// Migración de esquema: agregar columna address a places si no existe
+try {
+  db.exec("ALTER TABLE places ADD COLUMN address TEXT DEFAULT ''");
+} catch (e) {}
+
+// Pre-cargar categorías por defecto si no existen
+const checkCats = db.prepare("SELECT COUNT(*) as count FROM categories").get();
+if (checkCats.count === 0) {
+  const defaultCats = [
+    { id: "food", name: "Parrillas & Carnes", icon: "🥩", color: "#ef4444" },
+    { id: "tango", name: "Tango & Shows", icon: "💃", color: "#a855f7" },
+    { id: "shopping", name: "Shoppings & Paseos", icon: "🛍️", color: "#06b6d4" },
+    { id: "bars", name: "Bares & Coctelería", icon: "🍸", color: "#f59e0b" },
+    { id: "cafes", name: "Cafés Notables", icon: "☕", color: "#d97706" },
+    { id: "culture", name: "Museos & Cultura", icon: "🏛️", color: "#3b82f6" }
+  ];
+  const insCat = db.prepare("INSERT INTO categories (id, name, icon, color, created_at) VALUES (?, ?, ?, ?, ?)");
+  defaultCats.forEach(c => insCat.run(c.id, c.name, c.icon, c.color, Date.now()));
+}
+
 // Helpers HTTP
 function sendJSON(res, status, data) {
   res.writeHead(status, {
@@ -219,6 +248,12 @@ const server = http.createServer(async (req, res) => {
   if (pathname === "/api/places" && method === "GET") {
     const places = db.prepare("SELECT * FROM places WHERE active = 1 ORDER BY created_at DESC").all();
     return sendJSON(res, 200, places);
+  }
+
+  // Obtener categorías disponibles
+  if (pathname === "/api/categories" && method === "GET") {
+    const cats = db.prepare("SELECT * FROM categories ORDER BY created_at ASC").all();
+    return sendJSON(res, 200, cats);
   }
 
   // Obtener reseñas y fotos de un lugar
@@ -557,26 +592,63 @@ const server = http.createServer(async (req, res) => {
       const id = p.id || "place_" + crypto.randomBytes(4).toString("hex");
 
       const existing = db.prepare("SELECT id FROM places WHERE id = ?").get(id);
+      const address = (p.address || "").trim();
       if (existing) {
         db.prepare(`
           UPDATE places SET 
-            category = ?, name = ?, neighborhood = ?, lat = ?, lng = ?, 
+            category = ?, name = ?, address = ?, neighborhood = ?, lat = ?, lng = ?, 
             price = ?, tag = ?, image = ?, tip_es = ?, tip_en = ?, tip_pt = ?, active = ?
           WHERE id = ?
         `).run(
-          p.category, p.name, p.neighborhood, parseFloat(p.lat), parseFloat(p.lng),
+          p.category, p.name, address, p.neighborhood, parseFloat(p.lat), parseFloat(p.lng),
           p.price, p.tag, p.image, p.tip_es, p.tip_en, p.tip_pt, p.active ? 1 : 0, id
         );
       } else {
         db.prepare(`
-          INSERT INTO places (id, category, name, neighborhood, lat, lng, price, tag, image, tip_es, tip_en, tip_pt, active, created_at)
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+          INSERT INTO places (id, category, name, address, neighborhood, lat, lng, price, tag, image, tip_es, tip_en, tip_pt, active, created_at)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `).run(
-          id, p.category, p.name, p.neighborhood, parseFloat(p.lat), parseFloat(p.lng),
+          id, p.category, p.name, address, p.neighborhood, parseFloat(p.lat), parseFloat(p.lng),
           p.price, p.tag, p.image, p.tip_es, p.tip_en, p.tip_pt, 1, Date.now()
         );
       }
       return sendJSON(res, 200, { success: true, id });
+    } catch (e) {
+      return sendJSON(res, 400, { error: e.message });
+    }
+  }
+
+  // Crear o editar categoría desde Admin
+  if (pathname === "/api/admin/categories" && method === "POST") {
+    try {
+      const data = await parseBody(req);
+      const name = (data.name || "").trim();
+      const icon = (data.icon || "📍").trim();
+      const color = (data.color || "#10b981").trim();
+      const id = (data.id || name.toLowerCase().replace(/[^a-z0-9]/g, "_")).trim();
+
+      if (!name) return sendJSON(res, 400, { error: "El nombre es obligatorio" });
+
+      const existing = db.prepare("SELECT id FROM categories WHERE id = ?").get(id);
+      if (existing) {
+        db.prepare("UPDATE categories SET name = ?, icon = ?, color = ? WHERE id = ?").run(name, icon, color, id);
+      } else {
+        db.prepare("INSERT INTO categories (id, name, icon, color, created_at) VALUES (?, ?, ?, ?, ?)")
+          .run(id, name, icon, color, Date.now());
+      }
+      return sendJSON(res, 200, { success: true, id, name, icon, color });
+    } catch (e) {
+      return sendJSON(res, 400, { error: e.message });
+    }
+  }
+
+  // Eliminar categoría desde Admin
+  if (pathname === "/api/admin/categories/delete" && method === "POST") {
+    try {
+      const data = await parseBody(req);
+      if (!data.id) return sendJSON(res, 400, { error: "ID requerido" });
+      db.prepare("DELETE FROM categories WHERE id = ?").run(data.id);
+      return sendJSON(res, 200, { success: true });
     } catch (e) {
       return sendJSON(res, 400, { error: e.message });
     }
