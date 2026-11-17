@@ -1429,18 +1429,18 @@ function renderEventsList() {
       <!-- Turismo BA -->
       <div class="official-link-card">
         <div>
-          <div style="font-size:1.05rem; margin-bottom:6px; color:#fff;">🌆 <strong>Turismo Buenos Aires</strong></div>
+          <div style="font-size:1.05rem; margin-bottom:6px; color:#fff;">🌆 <strong>Turismo BA Planner</strong></div>
           <p style="font-size:0.78rem; color:#cbd5e1; line-height:1.4; margin:0;">
             ${isEn 
-              ? "The City's official tourism board. Filter activities for 'Today', 'This Weekend', free walking tours, and seasonal festivals." 
+              ? "Official Buenos Aires City interactive trip planner. Customize your daily itinerary, discover landmarks, and schedule activities." 
               : (isPt 
-                ? "Portal oficial da Secretaria de Turismo. Filtre por 'Hoje', 'Fim de Semana', circuitos guiados a pé e passeios temáticos." 
-                : "Portal del Ente de Turismo de la Ciudad. Qué hacer hoy, este fin de semana, circuitos guiados a pie y monumentos históricos.")
+                ? "Planejador oficial interativo de viagens da cidade. Monte seu roteiro personalizado, descubra atrações e planeje seus dias." 
+                : "Planificador interactivo oficial de la Ciudad. Armá tu itinerario día por día, descubrí paseos y organizá tus actividades.")
             }
           </p>
         </div>
-        <a href="https://turismo.buenosaires.gob.ar/es/agenda" target="_blank" class="btn-event-link">
-          🔗 ${isEn ? "View Tourism Agenda" : (isPt ? "Ver Agenda de Turismo" : "Ver Qué Hacer en Turismo BA")}
+        <a href="https://turismo.buenosaires.gob.ar/es/basic-page/planner" target="_blank" class="btn-event-link">
+          🔗 ${isEn ? "Open BA Trip Planner" : (isPt ? "Abrir Planejador Turismo BA" : "Abrir Planificador Turismo BA")}
         </a>
       </div>
 
