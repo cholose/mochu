@@ -19,7 +19,11 @@ const state = {
   isVip: false,
   newReviewRating: 5,
   newReviewPhotoBase64: null,
-  currentPlaceReviews: []
+  currentPlaceReviews: [],
+  currentRouteLayer: null,
+  routeGlowLayer: null,
+  currentRouteTarget: null,
+  currentRouteMode: 'walking'
 };
 
 // Inicialización
@@ -352,23 +356,22 @@ function updateUITranslations() {
 }
 
 // 5. Pestañas
+function activateTab(tabId) {
+  state.activeTab = tabId;
+  const tabButtons = document.querySelectorAll(".tab-btn");
+  tabButtons.forEach(b => b.classList.toggle("active", b.dataset.tab === tabId));
+
+  document.querySelectorAll(".tab-content").forEach(c => c.classList.toggle("active", c.id === tabId));
+
+  if (tabId === "tab-map" && state.map) {
+    setTimeout(() => state.map.invalidateSize(), 150);
+  }
+}
+
 function initTabs() {
   const tabButtons = document.querySelectorAll(".tab-btn");
   tabButtons.forEach(btn => {
-    btn.addEventListener("click", () => {
-      const targetId = btn.dataset.tab;
-      state.activeTab = targetId;
-
-      tabButtons.forEach(b => b.classList.remove("active"));
-      btn.classList.add("active");
-
-      document.querySelectorAll(".tab-content").forEach(c => c.classList.remove("active"));
-      document.getElementById(targetId).classList.add("active");
-
-      if (targetId === "tab-map" && state.map) {
-        setTimeout(() => state.map.invalidateSize(), 150);
-      }
-    });
+    btn.addEventListener("click", () => activateTab(btn.dataset.tab));
   });
 }
 
@@ -1079,5 +1082,193 @@ async function loadPlaceReviews(placeId) {
     }).join("");
   } catch (err) {
     container.innerHTML = '<div style="font-size:0.8rem; color:#ef4444; text-align:center; padding:10px 0;">Error al cargar opiniones.</div>';
+  }
+}
+
+// 12. Navegación y Trazado de Rutas en el Mapa (OSRM)
+function clearCurrentRouteLayersOnly() {
+  if (state.currentRouteLayer && state.map) {
+    state.map.removeLayer(state.currentRouteLayer);
+    state.currentRouteLayer = null;
+  }
+  if (state.routeGlowLayer && state.map) {
+    state.map.removeLayer(state.routeGlowLayer);
+    state.routeGlowLayer = null;
+  }
+}
+
+function clearCurrentRoute() {
+  clearCurrentRouteLayersOnly();
+  state.currentRouteTarget = null;
+  const panel = document.getElementById("route-panel");
+  if (panel) panel.style.display = "none";
+}
+
+function switchRouteMode(mode) {
+  state.currentRouteMode = mode;
+  const btnWalk = document.getElementById("btn-toggle-walk");
+  const btnDrive = document.getElementById("btn-toggle-drive");
+  if (btnWalk) btnWalk.classList.toggle("active", mode === "walking");
+  if (btnDrive) btnDrive.classList.toggle("active", mode === "driving");
+
+  if (state.currentRouteTarget) {
+    startRoutingFlow(state.currentRouteTarget, mode);
+  }
+}
+
+async function drawRouteToSelectedPlace(mode = "walking") {
+  if (!state.selectedPlace) return;
+  const place = state.selectedPlace;
+
+  // Cerrar modal de detalles y pasar al mapa
+  const modal = document.getElementById("place-modal");
+  if (modal) modal.classList.remove("active");
+  activateTab("tab-map");
+
+  state.currentRouteTarget = place;
+  state.currentRouteMode = mode;
+
+  await startRoutingFlow(place, mode);
+}
+
+async function startRoutingFlow(place, mode) {
+  let start = state.userCoords;
+  let isSimulated = false;
+
+  if (!start) {
+    if (navigator.geolocation) {
+      try {
+        const pos = await new Promise((resolve, reject) => {
+          navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 3500, enableHighAccuracy: true });
+        });
+        start = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+        state.userCoords = start;
+        if (!state.userLocationMarker && state.map) {
+          const userIcon = L.divIcon({
+            className: "user-gps-pin",
+            html: `<div style="background:#3b82f6; width:20px; height:20px; border-radius:50%; border:3px solid #ffffff; box-shadow:0 0 0 8px rgba(59,130,246,0.4);"></div>`,
+            iconSize: [20, 20],
+            iconAnchor: [10, 10]
+          });
+          state.userLocationMarker = L.marker([start.lat, start.lng], { icon: userIcon }).addTo(state.map);
+        }
+      } catch (e) {
+        // Denegado o timeout
+      }
+    }
+  }
+
+  if (!start || getDistanceFromLatLonInKm(start.lat, start.lng, -34.6037, -58.3816) > 80) {
+    // Si no tiene GPS o está en otra ciudad, usamos el Obelisco como punto neurálgico
+    start = { lat: -34.6037, lng: -58.3816 };
+    isSimulated = true;
+  }
+
+  const dest = { lat: place.lat, lng: place.lng };
+  await calculateAndDrawRoute(start, dest, place, mode, isSimulated);
+}
+
+async function calculateAndDrawRoute(start, dest, place, mode, isSimulated) {
+  clearCurrentRouteLayersOnly();
+
+  const panel = document.getElementById("route-panel");
+  const destTitle = document.getElementById("route-dest-title");
+  const modeIcon = document.getElementById("route-mode-icon");
+  const summaryStats = document.getElementById("route-summary-stats");
+  const btnWalk = document.getElementById("btn-toggle-walk");
+  const btnDrive = document.getElementById("btn-toggle-drive");
+
+  if (panel) panel.style.display = "block";
+  if (destTitle) destTitle.textContent = place.name;
+  if (modeIcon) modeIcon.textContent = mode === "walking" ? "🚶‍♂️" : "🚗";
+  if (btnWalk) btnWalk.classList.toggle("active", mode === "walking");
+  if (btnDrive) btnDrive.classList.toggle("active", mode === "driving");
+  if (summaryStats) summaryStats.textContent = "Calculando la mejor ruta por calles...";
+
+  let routeCoords = [];
+  let distanceMeters = 0;
+  let durationSeconds = 0;
+  let usedFallback = false;
+
+  const osrmProfile = mode === "walking" ? "walking" : "driving";
+  const osrmUrl = `https://router.project-osrm.org/route/v1/${osrmProfile}/${start.lng},${start.lat};${dest.lng},${dest.lat}?overview=full&geometries=geojson`;
+
+  try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 4500);
+
+    const res = await fetch(osrmUrl, { signal: controller.signal });
+    clearTimeout(timeoutId);
+
+    if (res.ok) {
+      const data = await res.json();
+      if (data && data.routes && data.routes.length > 0) {
+        const r = data.routes[0];
+        routeCoords = r.geometry.coordinates.map(c => [c[1], c[0]]);
+        distanceMeters = r.distance;
+        durationSeconds = r.duration;
+      }
+    }
+  } catch (err) {
+    usedFallback = true;
+  }
+
+  if (!routeCoords || routeCoords.length === 0) {
+    usedFallback = true;
+    routeCoords = [
+      [start.lat, start.lng],
+      [dest.lat, dest.lng]
+    ];
+    const dKm = getDistanceFromLatLonInKm(start.lat, start.lng, dest.lat, dest.lng);
+    distanceMeters = Math.round(dKm * 1000);
+    const speedKmh = mode === "walking" ? 5 : 25;
+    durationSeconds = Math.round((dKm / speedKmh) * 3600);
+  }
+
+  const glowColor = mode === "walking" ? "#38bdf8" : "#60a5fa";
+  const lineColor = mode === "walking" ? "#0284c7" : "#2563eb";
+
+  state.routeGlowLayer = L.polyline(routeCoords, {
+    color: glowColor,
+    weight: 9,
+    opacity: 0.4,
+    lineCap: "round",
+    lineJoin: "round"
+  }).addTo(state.map);
+
+  state.currentRouteLayer = L.polyline(routeCoords, {
+    color: lineColor,
+    weight: 5,
+    opacity: 0.95,
+    dashArray: mode === "walking" ? "8, 10" : null,
+    lineCap: "round",
+    lineJoin: "round"
+  }).addTo(state.map);
+
+  state.map.fitBounds(state.currentRouteLayer.getBounds(), {
+    padding: [70, 70],
+    maxZoom: 16
+  });
+
+  let distStr = "";
+  if (distanceMeters < 1000) {
+    distStr = `${Math.round(distanceMeters)} m`;
+  } else {
+    distStr = `${(distanceMeters / 1000).toFixed(1)} km`;
+  }
+
+  const mins = Math.max(1, Math.round(durationSeconds / 60));
+  let timeStr = "";
+  if (mins >= 60) {
+    const hours = Math.floor(mins / 60);
+    const restMins = mins % 60;
+    timeStr = `~${hours} h ${restMins} min`;
+  } else {
+    timeStr = `~${mins} min`;
+  }
+
+  const originNote = isSimulated ? " (desde Obelisco)" : "";
+  if (summaryStats) {
+    summaryStats.textContent = `📍 ${distStr} • ⏱️ ${timeStr}${originNote}`;
   }
 }

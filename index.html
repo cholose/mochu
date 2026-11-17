@@ -170,6 +170,25 @@
       <span>🛡️</span> <span id="lbl-safety-toggle">Zonas Seguras: ON</span>
     </button>
 
+    <!-- Panel flotante de navegación cuando hay una ruta activa -->
+    <div id="route-panel" class="route-floating-panel" style="display:none;">
+      <div class="route-panel-main">
+        <div style="font-size:1.4rem; margin-right:10px;" id="route-mode-icon">🚶‍♂️</div>
+        <div style="flex:1;">
+          <div style="font-size:0.75rem; color:#94a3b8;" id="route-to-label">Ruta trazada hacia:</div>
+          <div style="font-weight:700; color:#fff; font-size:0.95rem;" id="route-dest-title">Lugar</div>
+          <div style="font-size:0.82rem; color:#38bdf8; font-weight:700; margin-top:2px;" id="route-summary-stats">a 850m • ~11 min</div>
+        </div>
+        <div style="display:flex; flex-direction:column; gap:4px; align-items:flex-end;">
+          <button type="button" class="btn-route-close" onclick="clearCurrentRoute()" title="Quitar camino">✕</button>
+          <div style="display:flex; gap:4px; margin-top:2px;">
+            <button type="button" class="btn-mode-toggle active" id="btn-toggle-walk" onclick="switchRouteMode('walking')">🚶</button>
+            <button type="button" class="btn-mode-toggle" id="btn-toggle-drive" onclick="switchRouteMode('driving')">🚗</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <div id="map"></div>
     <button id="btn-locate" class="locate-btn" title="Mi ubicación">📍</button>
   </main>
@@ -208,6 +227,12 @@
 
       <div class="transport-title" id="lbl-how-to-get">Cómo llegar:</div>
       <div class="transport-buttons">
+        <button type="button" class="btn-transport btn-route" onclick="drawRouteToSelectedPlace('walking')">
+          <span>🚶‍♂️</span> <span id="lbl-route-walk">Trazar camino a pie en el mapa</span>
+        </button>
+        <button type="button" class="btn-transport btn-route-car" onclick="drawRouteToSelectedPlace('driving')">
+          <span>🚗</span> <span id="lbl-route-drive">Trazar camino en auto en el mapa</span>
+        </button>
         <a id="btn-uber" href="#" class="btn-transport btn-uber" onclick="handleTransportClick(event, 'uber')">
           <span>🚗</span> <span id="lbl-uber">Pedir con Uber</span>
         </a>
