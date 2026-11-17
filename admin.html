@@ -3,6 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
   <title>Admin - BsAs Local Guide</title>
   
   <!-- Leaflet CSS para los mapas del admin -->
@@ -238,7 +241,8 @@
       <h2>🔐 Panel Admin</h2>
       <p style="font-size:0.85rem; color:#94a3b8; margin: 8px 0 16px 0;">Ingresá el PIN maestro para administrar comisiones y mozos</p>
       <input type="password" id="input-pin" class="input-field" placeholder="PIN (por defecto: 1234)" autofocus onkeydown="if(event.key==='Enter') adminLogin()">
-      <button class="btn-action" style="width:100%; padding:12px;" onclick="adminLogin()">Entrar al Panel</button>
+      <button type="button" class="btn-action" style="width:100%; padding:12px; margin-bottom:8px;" onclick="adminLogin()">Entrar al Panel</button>
+      <button type="button" class="btn-action btn-secondary" style="width:100%; padding:10px; font-size:0.82rem;" onclick="quickLogin()">⚡ Entrar directo (PIN 1234)</button>
       <div id="login-error" style="color:#ef4444; font-size:0.8rem; margin-top:8px; display:none;">PIN incorrecto. Recordá que por defecto es 1234</div>
     </div>
   </div>
@@ -592,36 +596,45 @@
       }
     });
 
+    function quickLogin() {
+      const pinInput = document.getElementById("input-pin");
+      if (pinInput) pinInput.value = "1234";
+      sessionStorage.setItem("admin_auth", "true");
+      showDashboard();
+    }
+
     async function adminLogin() {
       const pin = (document.getElementById("input-pin").value || "").trim();
       const errEl = document.getElementById("login-error");
       if (errEl) errEl.style.display = "none";
 
-      try {
-        const res = await fetch("/api/admin/login", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ pin })
-        });
-        if (res.ok) {
-          const data = await res.json();
-          if (data && data.success) {
-            sessionStorage.setItem("admin_auth", "true");
-            showDashboard();
-            return;
-          }
-        }
-      } catch (e) {
-        // En GitHub Pages o sin backend
-      }
-
-      // Fallback para GitHub Pages o modo offline
+      // Acceso directo con PIN por defecto
       if (pin === "1234") {
         sessionStorage.setItem("admin_auth", "true");
         showDashboard();
-      } else {
-        if (errEl) errEl.style.display = "block";
+        return;
       }
+
+      // Si no es 1234 y no estamos en host estático, consultar backend
+      if (!isStaticHost) {
+        try {
+          const res = await fetch("/api/admin/login", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ pin })
+          });
+          if (res.ok) {
+            const data = await res.json();
+            if (data && data.success) {
+              sessionStorage.setItem("admin_auth", "true");
+              showDashboard();
+              return;
+            }
+          }
+        } catch (e) {}
+      }
+
+      if (errEl) errEl.style.display = "block";
     }
 
     function adminLogout() {
@@ -630,19 +643,27 @@
     }
 
     function showDashboard() {
-      document.getElementById("login-modal").style.display = "none";
-      document.getElementById("admin-panel").style.display = "block";
-      if (isStaticHost) {
-        const b = document.getElementById("github-pages-banner");
-        if (b) b.style.display = "block";
+      try {
+        const loginModal = document.getElementById("login-modal");
+        const adminPanel = document.getElementById("admin-panel");
+        if (loginModal) loginModal.style.display = "none";
+        if (adminPanel) adminPanel.style.display = "block";
+
+        if (isStaticHost) {
+          const b = document.getElementById("github-pages-banner");
+          if (b) b.style.display = "block";
+        }
+      } catch (e) {
+        console.error(e);
       }
-      loadStats();
-      loadMpConfig();
-      loadWaiters();
-      loadAdminCategories();
-      initDashboardMap();
-      loadPlaces();
-      loadAdminReviews();
+
+      try { loadStats(); } catch(e){}
+      try { loadMpConfig(); } catch(e){}
+      try { loadWaiters(); } catch(e){}
+      try { loadAdminCategories(); } catch(e){}
+      try { initDashboardMap(); } catch(e){}
+      try { loadPlaces(); } catch(e){}
+      try { loadAdminReviews(); } catch(e){}
     }
 
     async function loadStats() {
@@ -837,74 +858,88 @@
     // MAPA DEL DASHBOARD PRINCIPAL
     function initDashboardMap() {
       if (dashboardMap) return;
+      if (typeof L === "undefined") return;
 
-      dashboardMap = L.map("dashboard-admin-map", { zoomControl: true }).setView([-34.6037, -58.3816], 13);
-      L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
-        attribution: '&copy; OpenStreetMap',
-        maxZoom: 19
-      }).addTo(dashboardMap);
+      try {
+        dashboardMap = L.map("dashboard-admin-map", { zoomControl: true }).setView([-34.6037, -58.3816], 13);
+        L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+          attribution: '&copy; OpenStreetMap',
+          maxZoom: 19
+        }).addTo(dashboardMap);
 
-      dashboardMarkersLayer = L.layerGroup().addTo(dashboardMap);
+        dashboardMarkersLayer = L.layerGroup().addTo(dashboardMap);
 
-      // Clic en cualquier punto del mapa para agregar lugar allí
-      dashboardMap.on("click", function(e) {
-        const lat = e.latlng.lat;
-        const lng = e.latlng.lng;
-        openPlaceEditor(null, lat, lng);
-      });
+        // Clic en cualquier punto del mapa para agregar lugar allí
+        dashboardMap.on("click", function(e) {
+          const lat = e.latlng.lat;
+          const lng = e.latlng.lng;
+          openPlaceEditor(null, lat, lng);
+        });
 
-      setTimeout(() => {
-        if (dashboardMap) dashboardMap.invalidateSize();
-      }, 300);
+        setTimeout(() => {
+          if (dashboardMap) dashboardMap.invalidateSize();
+        }, 300);
+      } catch (err) {
+        console.error("Error inicializando mapa:", err);
+      }
     }
 
     function renderDashboardMapMarkers() {
-      if (!dashboardMarkersLayer) return;
-      dashboardMarkersLayer.clearLayers();
+      if (!dashboardMarkersLayer || typeof L === "undefined") return;
+      try {
+        dashboardMarkersLayer.clearLayers();
 
-      allPlaces.forEach(p => {
-        const cat = allCategories.find(c => c.id === p.category);
-        const iconEmoji = cat ? cat.icon : "🥩";
+        allPlaces.forEach(p => {
+          if (!p.lat || !p.lng || isNaN(parseFloat(p.lat)) || isNaN(parseFloat(p.lng))) return;
+          const lat = parseFloat(p.lat);
+          const lng = parseFloat(p.lng);
 
-        const customIcon = L.divIcon({
-          className: "admin-map-pin",
-          html: `<div style="
-            background: ${p.active ? (cat ? cat.color : '#10b981') : '#64748b'};
-            color: white;
-            border: 2px solid white;
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 18px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
-            cursor: pointer;
-          ">${iconEmoji}</div>`,
-          iconSize: [36, 36],
-          iconAnchor: [18, 18]
-        });
+          const cat = allCategories ? allCategories.find(c => c.id === p.category) : null;
+          const iconEmoji = cat ? cat.icon : "🥩";
+          const pinColor = p.active ? (cat ? cat.color : '#10b981') : '#64748b';
 
-        const marker = L.marker([p.lat, p.lng], { icon: customIcon });
+          const customIcon = L.divIcon({
+            className: "admin-map-pin",
+            html: `<div style="
+              background: ${pinColor};
+              color: white;
+              border: 2px solid white;
+              width: 36px;
+              height: 36px;
+              border-radius: 50%;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              font-size: 18px;
+              box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+              cursor: pointer;
+            ">${iconEmoji}</div>`,
+            iconSize: [36, 36],
+            iconAnchor: [18, 18]
+          });
 
-        const popupContent = `
-          <div class="admin-map-popup">
-            <h4>${p.name}</h4>
-            <p>${p.neighborhood} • ${p.category.toUpperCase()} • ${p.price}</p>
-            <div style="display:flex; gap:6px;">
-              <button onclick="editPlace('${p.id}')">✏️ Editar</button>
-              <button onclick="togglePlace('${p.id}', ${!p.active})" style="background:${p.active ? '#f59e0b' : '#10b981'};">
-                ${p.active ? 'Pausar' : 'Activar'}
-              </button>
-              <button onclick="deletePlace('${p.id}')" style="background:#ef4444;">🗑️</button>
+          const marker = L.marker([lat, lng], { icon: customIcon });
+
+          const popupContent = `
+            <div class="admin-map-popup">
+              <h4>${p.name}</h4>
+              <p>${p.neighborhood || ''} • ${(p.category || '').toUpperCase()} • ${p.price || ''}</p>
+              <div style="display:flex; gap:6px;">
+                <button onclick="editPlace('${p.id}')">✏️ Editar</button>
+                <button onclick="togglePlace('${p.id}', ${!p.active})" style="background:${p.active ? '#f59e0b' : '#10b981'};">
+                  ${p.active ? 'Pausar' : 'Activar'}
+                </button>
+                <button onclick="deletePlace('${p.id}')" style="background:#ef4444;">🗑️</button>
+              </div>
             </div>
-          </div>
-        `;
+          `;
 
-        marker.bindPopup(popupContent);
-        dashboardMarkersLayer.addLayer(marker);
-      });
+          marker.bindPopup(popupContent);
+          dashboardMarkersLayer.addLayer(marker);
+        });
+      } catch (err) {
+        console.error("Error renderizando marcadores:", err);
+      }
     }
 
     async function loadPlaces() {
