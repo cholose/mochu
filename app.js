@@ -169,23 +169,47 @@ async function submitTouristPin() {
         deviceToken
       })
     });
-    const data = await res.json();
-
-    if (data.success) {
-      localStorage.setItem("bsas_pass_id", data.passId);
-      state.pass = data;
-      state.isVip = true;
-      closeUnlockModal();
-      updateVipUI();
-      if (state.selectedPlace) {
-        updateModalContent(state.selectedPlace);
+    if (res.ok) {
+      const data = await res.json();
+      if (data.success) {
+        localStorage.setItem("bsas_pass_id", data.passId);
+        state.pass = data;
+        state.isVip = true;
+        closeUnlockModal();
+        updateVipUI();
+        if (state.selectedPlace) {
+          updateModalContent(state.selectedPlace);
+        }
+        alert(`🎉 ¡Excelente ${name}! Tu acceso VIP ha sido desbloqueado por 21 días.`);
+        return;
+      } else {
+        alert(data.error || "PIN incorrecto. Pedile el PIN a tu mozo.");
+        return;
       }
-      alert(`🎉 ¡Excelente ${name}! Tu acceso VIP ha sido desbloqueado por 21 días.`);
-    } else {
-      alert(data.error || "PIN incorrecto. Pedile el PIN a tu mozo.");
     }
   } catch (e) {
-    alert("Error de conexión con el servidor.");
+    // Si estamos en GitHub Pages o modo offline
+  }
+
+  // Fallback para GitHub Pages (PIN 1234)
+  if (pin === "1234") {
+    const fakePass = {
+      passId: "pass_ghp_" + Date.now(),
+      waiterId: state.waiterId || "isaias",
+      touristName: name,
+      daysLeft: 21
+    };
+    localStorage.setItem("bsas_pass_id", fakePass.passId);
+    state.pass = fakePass;
+    state.isVip = true;
+    closeUnlockModal();
+    updateVipUI();
+    if (state.selectedPlace) {
+      updateModalContent(state.selectedPlace);
+    }
+    alert(`🎉 ¡Excelente ${name}! Tu acceso VIP ha sido desbloqueado por 21 días.`);
+  } else {
+    alert("PIN incorrecto. Recordá que por defecto es 1234.");
   }
 }
 
@@ -274,17 +298,46 @@ async function loadPlaces() {
         price: p.price,
         tag: p.tag,
         image: p.image,
+        is_indoor: p.is_indoor ?? 1,
         tips: {
           es: p.tip_es,
           en: p.tip_en,
           pt: p.tip_pt
         }
       }));
+      localStorage.setItem("bsas_places", JSON.stringify(state.places));
+    } else {
+      throw new Error("No backend");
+    }
+  } catch (err) {
+    const saved = localStorage.getItem("bsas_places");
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        state.places = parsed.map(p => ({
+          id: p.id,
+          category: p.category,
+          name: p.name,
+          address: p.address || "",
+          neighborhood: p.neighborhood,
+          lat: p.lat,
+          lng: p.lng,
+          price: p.price,
+          tag: p.tag,
+          image: p.image,
+          is_indoor: p.is_indoor ?? 1,
+          tips: p.tips ? p.tips : {
+            es: p.tip_es || "",
+            en: p.tip_en || "",
+            pt: p.tip_pt || ""
+          }
+        }));
+      } catch(e) {
+        state.places = APP_DATA.places;
+      }
     } else {
       state.places = APP_DATA.places;
     }
-  } catch (err) {
-    state.places = APP_DATA.places;
   }
 
   renderMarkers();
@@ -684,13 +737,25 @@ async function loadCategories() {
     const res = await fetch("/api/categories");
     if (res.ok) {
       state.categories = await res.json();
+      localStorage.setItem("bsas_categories", JSON.stringify(state.categories));
+    } else {
+      throw new Error("No backend");
     }
   } catch (e) {
-    state.categories = [
-      { id: "food", name: "Parrillas & Carnes", icon: "🥩", color: "#ef4444" },
-      { id: "tango", name: "Tango & Shows", icon: "💃", color: "#a855f7" },
-      { id: "shopping", name: "Shoppings & Paseos", icon: "🛍️", color: "#06b6d4" }
-    ];
+    const saved = localStorage.getItem("bsas_categories");
+    if (saved) {
+      try { state.categories = JSON.parse(saved); } catch(err) { state.categories = null; }
+    }
+    if (!state.categories || state.categories.length === 0) {
+      state.categories = [
+        { id: "food", name: "Parrillas & Carnes", icon: "🥩", color: "#ef4444" },
+        { id: "tango", name: "Tango & Shows", icon: "💃", color: "#a855f7" },
+        { id: "shopping", name: "Shoppings & Paseos", icon: "🛍️", color: "#06b6d4" },
+        { id: "bars", name: "Bares & Coctelería", icon: "🍸", color: "#f59e0b" },
+        { id: "cafes", name: "Cafés Notables", icon: "☕", color: "#d97706" },
+        { id: "culture", name: "Museos & Cultura", icon: "🏛️", color: "#3b82f6" }
+      ];
+    }
   }
 
   renderFilterChips();
@@ -1038,18 +1103,38 @@ async function submitReview() {
         waiterId: state.waiterId || "isaias"
       })
     });
-
-    const data = await res.json();
-    if (data.success) {
-      alert("🎉 ¡Muchas gracias por compartir tu experiencia y foto!");
-      closeReviewForm();
-      await loadPlaceReviews(state.selectedPlace.id);
-    } else {
-      alert(data.error || "No se pudo publicar la opinión.");
+    if (res.ok) {
+      const data = await res.json();
+      if (data && data.success) {
+        alert("🎉 ¡Muchas gracias por compartir tu experiencia y foto!");
+        closeReviewForm();
+        await loadPlaceReviews(state.selectedPlace.id);
+        return;
+      }
     }
   } catch (err) {
-    alert("Error de conexión al enviar tu opinión.");
+    // Modo GitHub Pages o sin backend
   }
+
+  // Fallback local en navegador
+  const localReview = {
+    id: "rev_" + Date.now(),
+    place_id: state.selectedPlace.id,
+    user_name: userName,
+    user_country: userCountry,
+    rating: state.newReviewRating || 5,
+    comment,
+    photo_data: state.newReviewPhotoBase64,
+    waiter_id: state.waiterId || "isaias",
+    created_at: Date.now()
+  };
+  const savedReviews = JSON.parse(localStorage.getItem("bsas_reviews") || "[]");
+  savedReviews.unshift(localReview);
+  localStorage.setItem("bsas_reviews", JSON.stringify(savedReviews));
+
+  alert("🎉 ¡Muchas gracias por compartir tu experiencia y foto!");
+  closeReviewForm();
+  await loadPlaceReviews(state.selectedPlace.id);
 }
 
 async function loadPlaceReviews(placeId) {
@@ -1059,52 +1144,58 @@ async function loadPlaceReviews(placeId) {
 
   container.innerHTML = '<div style="font-size:0.8rem; color:#94a3b8; text-align:center; padding:10px 0;">Cargando opiniones...</div>';
 
+  let reviews = [];
   try {
     const res = await fetch(`/api/reviews?placeId=${encodeURIComponent(placeId)}`);
-    const reviews = await res.json();
-    state.currentPlaceReviews = reviews;
-
-    if (!reviews || reviews.length === 0) {
-      container.innerHTML = '<div style="font-size:0.82rem; color:#94a3b8; text-align:center; padding:12px; background:rgba(255,255,255,0.02); border-radius:8px;">Aún no hay opiniones de este lugar. ¡Sé el primero en compartir la tuya!</div>';
-      if (avgRatingEl) avgRatingEl.textContent = "Sé el primero en opinar";
-      return;
+    if (res.ok) {
+      reviews = await res.json();
+    } else {
+      throw new Error("No backend");
     }
-
-    // Calcular promedio
-    const sum = reviews.reduce((acc, r) => acc + (r.rating || 5), 0);
-    const avg = (sum / reviews.length).toFixed(1);
-    if (avgRatingEl) {
-      avgRatingEl.textContent = `★ ${avg} / 5 (${reviews.length} ${reviews.length === 1 ? 'opinión' : 'opiniones'})`;
-    }
-
-    container.innerHTML = reviews.map(r => {
-      const dateStr = new Date(r.created_at).toLocaleDateString("es-AR", { day: "2-digit", month: "2-digit", year: "numeric" });
-      const stars = "★".repeat(r.rating) + "☆".repeat(5 - r.rating);
-      return `
-        <div class="review-item-card">
-          <div class="review-item-header">
-            <div class="review-author">
-              <span>👤 ${r.user_name}</span>
-              <span style="font-size:0.75rem; color:#94a3b8; font-weight:normal;">(${r.user_country})</span>
-            </div>
-            <div class="review-stars">${stars}</div>
-          </div>
-          <div class="review-date" style="margin-bottom:6px;">${dateStr}</div>
-          <p class="review-comment">${r.comment}</p>
-          ${r.photo_data ? `
-            <img src="${r.photo_data}" class="review-photo-thumb" alt="Foto de ${r.user_name}" onclick="window.open(this.src, '_blank')">
-          ` : ''}
-          ${r.waiter_id ? `
-            <div>
-              <span class="review-waiter-tag">👨‍🍳 Recomendado por mozo ${capitalize(r.waiter_id)}</span>
-            </div>
-          ` : ''}
-        </div>
-      `;
-    }).join("");
   } catch (err) {
-    container.innerHTML = '<div style="font-size:0.8rem; color:#ef4444; text-align:center; padding:10px 0;">Error al cargar opiniones.</div>';
+    const saved = JSON.parse(localStorage.getItem("bsas_reviews") || "[]");
+    reviews = saved.filter(r => r.place_id === placeId);
   }
+  state.currentPlaceReviews = reviews;
+
+  if (!reviews || reviews.length === 0) {
+    container.innerHTML = '<div style="font-size:0.82rem; color:#94a3b8; text-align:center; padding:12px; background:rgba(255,255,255,0.02); border-radius:8px;">Aún no hay opiniones de este lugar. ¡Sé el primero en compartir la tuya!</div>';
+    if (avgRatingEl) avgRatingEl.textContent = "Sé el primero en opinar";
+    return;
+  }
+
+  // Calcular promedio
+  const sum = reviews.reduce((acc, r) => acc + (r.rating || 5), 0);
+  const avg = (sum / reviews.length).toFixed(1);
+  if (avgRatingEl) {
+    avgRatingEl.textContent = `★ ${avg} / 5 (${reviews.length} ${reviews.length === 1 ? 'opinión' : 'opiniones'})`;
+  }
+
+  container.innerHTML = reviews.map(r => {
+    const dateStr = new Date(r.created_at).toLocaleDateString("es-AR", { day: "2-digit", month: "2-digit", year: "numeric" });
+    const stars = "★".repeat(r.rating) + "☆".repeat(5 - r.rating);
+    return `
+      <div class="review-item-card">
+        <div class="review-item-header">
+          <div class="review-author">
+            <span>👤 ${r.user_name}</span>
+            <span style="font-size:0.75rem; color:#94a3b8; font-weight:normal;">(${r.user_country})</span>
+          </div>
+          <div class="review-stars">${stars}</div>
+        </div>
+        <div class="review-date" style="margin-bottom:6px;">${dateStr}</div>
+        <p class="review-comment">${r.comment}</p>
+        ${r.photo_data ? `
+          <img src="${r.photo_data}" class="review-photo-thumb" alt="Foto de ${r.user_name}" onclick="window.open(this.src, '_blank')">
+        ` : ''}
+        ${r.waiter_id ? `
+          <div>
+            <span class="review-waiter-tag">👨‍🍳 Recomendado por mozo ${capitalize(r.waiter_id)}</span>
+          </div>
+        ` : ''}
+      </div>
+    `;
+  }).join("");
 }
 
 // 12. Navegación y Trazado de Rutas en el Mapa (OSRM)
