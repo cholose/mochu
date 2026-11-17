@@ -2,22 +2,24 @@
 chcp 65001 > nul
 cd /d "%~dp0"
 echo ========================================================
-echo   SUBIENDO PROYECTO A GITHUB: cholose/mochu
+echo   SINCRONIZANDO Y SUBIENDO A GITHUB: cholose/mochu
 echo ========================================================
 echo.
-echo 1. Guardando cambios y lugares nuevos...
-git add .
-git commit -m "Actualizar lugares y datos de la app"
+echo 1. Sincronizando lugares de la base de datos hacia data.js...
+node sync-data.js
 echo.
-echo 2. Subiendo a GitHub Pages para todos los celulares...
+echo 2. Preparando archivos modificados...
+git add .
+git commit -m "Actualizar lugares y fotos para celulares y GitHub Pages"
+echo.
+echo 3. Subiendo a GitHub para actualizar todos los celulares...
 git push -u origin main
 echo.
 if %errorlevel% equ 0 (
     echo ========================================================
-    echo   EXITO: Tu proyecto fue subido a GitHub correctamente!
-    echo   Tus lugares nuevos ya estan visibles en los celulares.
-    echo   Web Turistas: https://cholose.github.io/mochu/
-    echo   Panel Admin:  https://cholose.github.io/mochu/admin.html
+    echo   EXITO: Todos los lugares y fotos se subieron a GitHub!
+    echo   En 1 o 2 minutos estara visible en todos los celulares:
+    echo   https://cholose.github.io/mochu/
     echo ========================================================
 ) else (
     echo ========================================================
@@ -29,4 +31,3 @@ if %errorlevel% equ 0 (
 )
 echo.
 pause
-

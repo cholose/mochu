@@ -612,7 +612,6 @@ const server = http.createServer(async (req, res) => {
           VALUES (?, ?, ?, ?, ?, 0, 0, 0, ?)
         `).run(id, name, alias, pin, commission, Date.now());
       }
-      syncPlacesToDataJs();
       return sendJSON(res, 200, { success: true, id });
     } catch (e) {
       return sendJSON(res, 400, { error: e.message });
@@ -650,50 +649,48 @@ const server = http.createServer(async (req, res) => {
     }
   }
 
-  function syncPlacesToDataJs() {
-    try {
-      const dataJsPath = path.join(__dirname, "data.js");
-      if (!fs.existsSync(dataJsPath)) return;
-      let content = fs.readFileSync(dataJsPath, "utf8");
-
-      const places = db.prepare("SELECT * FROM places WHERE active = 1 ORDER BY created_at DESC").all();
-      const formatted = places.map(p => ({
-        id: p.id,
-        category: p.category,
-        name: p.name,
-        address: p.address || "",
-        neighborhood: p.neighborhood,
-        lat: p.lat,
-        lng: p.lng,
-        price: p.price,
-        tag: p.tag,
-        image: p.image,
-        menu_url: p.menu_url || "",
-        is_indoor: p.is_indoor ?? 1,
-        tips: {
-          es: p.tip_es || "",
-          en: p.tip_en || p.tip_es || "",
-          pt: p.tip_pt || p.tip_es || ""
-        }
-      }));
-
-      const placesJson = JSON.stringify(formatted, null, 2);
-      const regex = /places:\s*\[[\s\S]*?\n\s*\],/;
-      if (regex.test(content)) {
-        content = content.replace(regex, `places: ${placesJson},`);
-        fs.writeFileSync(dataJsPath, content, "utf8");
-        console.log("data.js sincronizado automáticamente!");
-      }
-    } catch (err) {
-      console.error("Error sincronizando data.js:", err);
-    }
-  }
-
   // Lugares en Admin
   if (pathname === "/api/admin/places" && method === "GET") {
     const places = db.prepare("SELECT * FROM places ORDER BY created_at DESC").all();
     return sendJSON(res, 200, places);
   }
+
+function syncPlacesToDataJs() {
+  try {
+    const rows = db.prepare("SELECT * FROM places WHERE active = 1 ORDER BY created_at ASC").all();
+    if (!rows || rows.length === 0) return;
+    const formatted = rows.map(r => ({
+      id: r.id,
+      category: r.category,
+      name: r.name,
+      neighborhood: r.neighborhood || "",
+      address: r.address || "",
+      lat: r.lat,
+      lng: r.lng,
+      price: r.price || "$$",
+      tag: r.tag || "Recomendado",
+      image: r.image || "https://images.unsplash.com/photo-1544025162-d76694265947?w=600",
+      menu_url: r.menu_url || "",
+      is_indoor: r.is_indoor !== undefined ? r.is_indoor : 1,
+      tips: {
+        es: r.tip_es || "",
+        en: r.tip_en || r.tip_es || "",
+        pt: r.tip_pt || r.tip_es || ""
+      }
+    }));
+    const dataJsPath = path.join(__dirname, "data.js");
+    let content = fs.readFileSync(dataJsPath, "utf8");
+    const jsonStr = JSON.stringify(formatted, null, 2);
+    const regex = /places:\s*\[[\s\S]*?\n\s*\],/;
+    if (regex.test(content)) {
+      content = content.replace(regex, `places: ${jsonStr},`);
+      fs.writeFileSync(dataJsPath, content, "utf8");
+      console.log(`[Auto-Sync] data.js actualizado con ${formatted.length} lugares`);
+    }
+  } catch (err) {
+    console.error("Error auto-sincronizando data.js:", err.message);
+  }
+}
 
   if (pathname === "/api/admin/places" && method === "POST") {
     try {

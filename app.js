@@ -312,34 +312,44 @@ async function loadPlaces() {
     }
   } catch (err) {
     const saved = localStorage.getItem("bsas_places");
+    const appPlaces = (typeof APP_DATA !== "undefined" && APP_DATA.places) ? APP_DATA.places : [];
+
+    let localList = [];
     if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        state.places = parsed.map(p => ({
-          id: p.id,
-          category: p.category,
-          name: p.name,
-          address: p.address || "",
-          neighborhood: p.neighborhood,
-          lat: p.lat,
-          lng: p.lng,
-          price: p.price,
-          tag: p.tag,
-          image: p.image,
-          menu_url: p.menu_url || "",
-          is_indoor: p.is_indoor ?? 1,
-          tips: p.tips ? p.tips : {
-            es: p.tip_es || "",
-            en: p.tip_en || "",
-            pt: p.tip_pt || ""
-          }
-        }));
-      } catch(e) {
-        state.places = APP_DATA.places;
-      }
-    } else {
-      state.places = APP_DATA.places;
+      try { localList = JSON.parse(saved); } catch(e) { localList = []; }
     }
+
+    if (!localList || localList.length === 0) {
+      state.places = appPlaces;
+    } else {
+      // Sincronizar: agregar lugares nuevos que vengan en data.js
+      const localIds = new Set(localList.map(p => p.id));
+      const missing = appPlaces.filter(p => !localIds.has(p.id));
+      const combined = [...localList, ...missing];
+
+      state.places = combined.map(p => ({
+        id: p.id,
+        category: p.category,
+        name: p.name,
+        address: p.address || "",
+        neighborhood: p.neighborhood,
+        lat: p.lat,
+        lng: p.lng,
+        price: p.price,
+        tag: p.tag,
+        image: p.image,
+        menu_url: p.menu_url || "",
+        is_indoor: p.is_indoor ?? 1,
+        tips: p.tips ? p.tips : {
+          es: p.tip_es || "",
+          en: p.tip_en || "",
+          pt: p.tip_pt || ""
+        }
+      }));
+    }
+    try {
+      localStorage.setItem("bsas_places", JSON.stringify(state.places));
+    } catch(e) {}
   }
 
   renderMarkers();
@@ -1055,7 +1065,7 @@ function renderTangoList() {
 
     return `
       <article class="card-item">
-        <img src="${item.image}" alt="${item.name}" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=600&auto=format&fit=crop&q=80';">
+        <img src="${item.image}" alt="${item.name}">
         <div class="card-body">
           <div class="card-title-row">
             <h3 class="card-title">${item.name}</h3>

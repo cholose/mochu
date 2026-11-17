@@ -8,244 +8,254 @@ const APP_DATA = {
 
   // Lugares cargados para el mapa y las listas
   places: [
-    {
-      id: "p1",
-      category: "food",
-      name: "Parrilla Don Julio",
-      neighborhood: "Palermo",
-      lat: -34.5878,
-      lng: -58.4239,
-      price: "$$$$",
-      tag: "Top Mundial",
-      image: "https://images.unsplash.com/photo-1544025162-d76694265947?w=600&auto=format&fit=crop&q=80",
-      menu_url: "https://www.parrilladonjulio.com",
-      tips: {
-        es: "Considerada una de las mejores del mundo. Ojo: reservar con semanas de anticipación o ir a las 11:30 hs a hacer fila para el almuerzo.",
-        en: "Ranked among the world's best steakhouses. Tip: book weeks in advance or show up at 11:30 AM to wait for lunch walk-ins.",
-        pt: "Uma das melhores churrascarias do mundo. Dica: reserve com semanas de antecedência ou chegue às 11h30 para tentar vaga no almoço."
-      }
-    },
-    {
-      id: "p2",
-      category: "food",
-      name: "Parrilla Peña",
-      neighborhood: "Tribunales / Centro",
-      lat: -34.6033,
-      lng: -58.3905,
-      price: "$$",
-      tag: "Bodegón Auténtico",
-      image: "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=600&auto=format&fit=crop&q=80",
-      menu_url: "https://www.instagram.com/parrillapena",
-      tips: {
-        es: "Carne tierna y ambiente 100% porteño sin precios inflados para turistas. Te reciben con una empanada frita de cortesía.",
-        en: "Tender meat, true local atmosphere without tourist-trap prices. They welcome you with a complimentary fried empanada.",
-        pt: "Carne macia e ambiente autêntico portenho com preços justos. Recebem você com uma empanada frita de cortesia."
-      }
-    },
-    {
-      id: "p3",
-      category: "food",
-      name: "Pizzería Güerrin",
-      neighborhood: "Calle Corrientes",
-      lat: -34.6041,
-      lng: -58.3862,
-      price: "$$",
-      tag: "Clásico Porteño",
-      image: "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=600&auto=format&fit=crop&q=80",
-      menu_url: "https://pizzeriaguerrin.com",
-      tips: {
-        es: "La pizza al molde más famosa desde 1932. Pedí muzza al corte en el mostrador parado o sentate al fondo.",
-        en: "The most famous thick-crust pizza in town since 1932. Eat a slice standing at the counter or take a table in the back.",
-        pt: "A pizza mais famosa da cidade desde 1932. Peça uma fatia de mussarela no balcão em pé ou sente-se nos fundos."
-      }
-    },
-    {
-      id: "p_tifiamo",
-      category: "food",
-      name: "Tifiamo Resto & Bar",
-      address: "Av. Corrientes 1802",
-      neighborhood: "Balvanera / Av. Corrientes",
-      lat: -34.6044,
-      lng: -58.3934,
-      price: "$$",
-      tag: "Recomendado",
-      image: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=600&auto=format&fit=crop&q=80",
-      menu_url: "",
-      is_indoor: 1,
-      tips: {
-        es: "Excelente atención y ambiente agradable sobre Avenida Corrientes. Muy buenos platos y opciones para merendar o cenar.",
-        en: "Great service and cozy atmosphere on Corrientes Avenue. Wonderful food and options for afternoon coffee or dinner.",
-        pt: "Ótimo atendimento e ambiente agradável na Avenida Corrientes. Pratos deliciosos para lanchar ou jantar."
-      }
-    },
-    {
-      id: "t1",
-      category: "tango",
-      name: "Madero Tango",
-      neighborhood: "Puerto Madero",
-      lat: -34.6144,
-      lng: -58.3622,
-      price: "$$$",
-      tag: "Cena Show + Vista al Río",
-      commissionable: true,
-      image: "https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?w=600&auto=format&fit=crop&q=80",
-      tips: {
-        es: "Show moderno con vista panorámica a los diques de Puerto Madero. Ideal parejas y familias. Incluye traslado.",
-        en: "Modern musical tango show with panoramic views of the docks. Includes dinner, wine, and optional hotel pickup.",
-        pt: "Show moderno com vista panorâmica dos diques de Puerto Madero. Inclui jantar, vinho e traslado opcional."
-      }
-    },
-    {
-      id: "t2",
-      category: "tango",
-      name: "El Querandí",
-      neighborhood: "San Telmo",
-      lat: -34.6120,
-      lng: -58.3750,
-      price: "$$$",
-      tag: "Histórico e Íntimo",
-      commissionable: true,
-      image: "https://images.unsplash.com/photo-1545232979-fbf68fe9f1f8?w=600&auto=format&fit=crop&q=80",
-      tips: {
-        es: "Una casona colonial de 1920 en San Telmo. Show tradicional e intimista que recorre la historia del tango década a década.",
-        en: "Colonial 1920s house in San Telmo. An intimate, authentic journey through the history of tango decade by decade.",
-        pt: "Casarão colonial dos anos 1920 em San Telmo. Show íntimo e autêntico que percorre a história do tango década a década."
-      }
-    },
-    {
-      id: "s1",
-      category: "shopping",
-      name: "Galerías Pacífico",
-      neighborhood: "Microcentro / Florida",
-      lat: -34.5997,
-      lng: -58.3748,
-      price: "$$$",
-      tag: "Monumento Histórico",
-      image: "https://images.unsplash.com/photo-1519567241046-7f570eee3ce6?w=600&auto=format&fit=crop&q=80",
-      tips: {
-        es: "Cúpula pintada por grandes artistas argentinos. Marcas internacionales y locales. Ojo con carteristas sobre calle Florida.",
-        en: "Stunning hand-painted ceiling dome. Top brands and leather shops. Keep an eye on personal belongings on Florida St.",
-        pt: "Cúpula espetacular pintada por mestres argentinos. Lojas de couro e marcas de ponta. Fique atento na rua Florida."
-      }
-    },
-    {
-      id: "s2",
-      category: "shopping",
-      name: "Alto Palermo Shopping",
-      neighborhood: "Palermo",
-      lat: -34.5880,
-      lng: -58.4106,
-      price: "$$",
-      tag: "Moda & Compras",
-      image: "https://images.unsplash.com/photo-1567401893414-76b7b1e5a7a5?w=600&auto=format&fit=crop&q=80",
-      tips: {
-        es: "El shopping preferido de los locales para ropa y tecnología. Zona muy segura para caminar y tomar un café.",
-        en: "The locals' favorite mall for clothing and tech. Very safe area with plenty of outdoor cafes nearby.",
-        pt: "O shopping preferido dos locais para roupas e tecnologia. Bairro muito seguro para caminhar e tomar café."
-      }
-    },
-    {
-      id: "s3",
-      category: "shopping",
-      name: "Unicenter Shopping",
-      neighborhood: "Zona Norte (Martínez)",
-      lat: -34.5085,
-      lng: -58.5235,
-      price: "$$",
-      tag: "El más grande de BsAs",
-      image: "https://images.unsplash.com/photo-1555529669-e69e7aa0ba9a?w=600&auto=format&fit=crop&q=80",
-      tips: {
-        es: "El centro comercial más grande de la provincia. Ideal si querés pasar un día entero de compras sin gente apretada.",
-        en: "The largest mall in greater Buenos Aires. Huge food court, hundreds of stores, perfect for a full shopping afternoon.",
-        pt: "O maior shopping da região metropolitana. Centenas de lojas, praça de alimentação gigante e muito espaço."
-      }
-    },
-    {
-      id: "s4",
-      category: "shopping",
-      name: "Recoleta & Cementerio",
-      neighborhood: "Recoleta",
-      lat: -34.5874,
-      lng: -58.3929,
-      price: "$",
-      tag: "Cultura & Arquitectura",
-      image: "https://images.unsplash.com/photo-1589802829985-817e51171b92?w=600&auto=format&fit=crop&q=80",
-      is_indoor: 0,
-      tips: {
-        es: "Paseo arquitectónico imperdible. Mausoleo de Eva Perón. Los fines de semana hay feria artesanal en Plaza Francia.",
-        en: "World-class cemetery and French architecture. Eva Peron's tomb. Great weekend artisan craft fair in Plaza Francia.",
-        pt: "Passeio imperdível de arquitetura estilo parisiense. Túmulo de Eva Perón e feira de artesanato na Plaza Francia aos fins de semana."
-      }
-    },
-    {
-      id: "c1",
-      category: "cafes",
-      name: "Café Tortoni",
-      neighborhood: "Montserrat / Centro",
-      lat: -34.6085,
-      lng: -58.3792,
-      price: "$$",
-      tag: "Café Histórico 1858 (Bajo Techo)",
-      image: "https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?w=600&auto=format&fit=crop&q=80",
-      is_indoor: 1,
-      tips: {
-        es: "El café más antiguo y legendario de Buenos Aires (fundado en 1858). Chocolate con churros caliente imperdible, ideal para un día de lluvia o tarde fresca.",
-        en: "Buenos Aires' oldest and most legendary café (1858). Hot chocolate with churros is a must, especially on rainy days.",
-        pt: "O café mais antigo e lendário de Buenos Aires (1858). Chocolate quente com churros imperdível, perfeito para dias de chuva."
-      }
-    },
-    {
-      id: "c2",
-      category: "culture",
-      name: "El Ateneo Grand Splendid",
-      neighborhood: "Recoleta",
-      lat: -34.5960,
-      lng: -58.3942,
-      price: "$",
-      tag: "Librería Teatro (Bajo Techo)",
-      image: "https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?w=600&auto=format&fit=crop&q=80",
-      is_indoor: 1,
-      tips: {
-        es: "Elegida entre las librerías más hermosas del mundo dentro de un teatro de 1919. El café está sobre el escenario original. Plan bajo techo perfecto.",
-        en: "Ranked among the world's most beautiful bookstores, set in a 1919 theater. Coffee on the stage. Perfect rainy day plan.",
-        pt: "Considerada uma das livrarias mais lindas do mundo em um antigo teatro. Café no palco principal. Plano perfeito para dia de chuva."
-      }
-    },
-    {
-      id: "f1",
-      category: "shopping",
-      name: "Feria de San Telmo",
-      neighborhood: "San Telmo",
-      lat: -34.6180,
-      lng: -58.3715,
-      price: "$",
-      tag: "Feria Domingos (Al Aire Libre)",
-      image: "https://images.unsplash.com/photo-1519567241046-7f570eee3ce6?w=600&auto=format&fit=crop&q=80",
-      is_indoor: 0,
-      tips: {
-        es: "Todos los domingos de 10 a 18 hs. 12 cuadras peatonales de antigüedades, orquestas de tango callejero y recuerdos.",
-        en: "Every Sunday from 10 AM to 6 PM. 12 pedestrian blocks with antiques, street tango dancers and artisans.",
-        pt: "Todos os domingos das 10h às 18h. 12 quadras de rua de pedestres com antiguidades, dançarinos de tango na rua e artesanato."
-      }
-    },
-    {
-      id: "f2",
-      category: "food",
-      name: "Feria de Mataderos",
-      neighborhood: "Mataderos",
-      lat: -34.6608,
-      lng: -58.5028,
-      price: "$$",
-      tag: "Gauchos & Asado (Domingos)",
-      image: "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=600&auto=format&fit=crop&q=80",
-      is_indoor: 0,
-      tips: {
-        es: "Domingos de tradición criolla. Jineteadas, asado al asador, empanadas y peñas folclóricas. Experiencia 100% auténtica.",
-        en: "Sundays of Argentine gaucho tradition. Open-fire barbecue, folklore dances and crafts. 100% authentic cultural immersion.",
-        pt: "Domingos de tradição gaúcha argentina. Churrasco no fogo de chão, danças folclóricas e comida típica autêntica."
-      }
+  {
+    "id": "p1",
+    "category": "food",
+    "name": "Parrilla Don Julio",
+    "neighborhood": "Palermo",
+    "address": "",
+    "lat": -34.5878,
+    "lng": -58.4239,
+    "price": "$$",
+    "tag": "Top Mundial",
+    "image": "https://images.unsplash.com/photo-1544025162-d76694265947?w=600&auto=format&fit=crop&q=80",
+    "menu_url": "",
+    "is_indoor": 1,
+    "tips": {
+      "es": "Considerada una de las mejores del mundo. Ojo: reservar con semanas de anticipación o ir a las 11:30 hs para almuerzo.",
+      "en": "Ranked among the world's best steakhouses. Book in advance or show up at 11:30 AM for lunch walk-in.",
+      "pt": "Uma das melhores churrascarias do mundo. Reserve com antecedência ou chegue às 11h30 para almoço."
     }
-  ],
+  },
+  {
+    "id": "p2",
+    "category": "food",
+    "name": "Parrilla Peña",
+    "neighborhood": "Tribunales / Centro",
+    "address": "",
+    "lat": -34.6033,
+    "lng": -58.3905,
+    "price": "$",
+    "tag": "Bodegón Auténtico",
+    "image": "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=600&auto=format&fit=crop&q=80",
+    "menu_url": "",
+    "is_indoor": 1,
+    "tips": {
+      "es": "Carne tierna y ambiente 100% porteño sin precios inflados. Te reciben con una empanada frita de cortesía.",
+      "en": "Tender meat, true local atmosphere without tourist-trap prices. Free fried empanada upon seating.",
+      "pt": "Carne macia e ambiente autêntico portenho com preços justos. Empanada frita de cortesia."
+    }
+  },
+  {
+    "id": "p3",
+    "category": "food",
+    "name": "Pizzería Güerrin",
+    "neighborhood": "Calle Corrientes",
+    "address": "",
+    "lat": -34.6041,
+    "lng": -58.3862,
+    "price": "$",
+    "tag": "Clásico Porteño",
+    "image": "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=600&auto=format&fit=crop&q=80",
+    "menu_url": "",
+    "is_indoor": 1,
+    "tips": {
+      "es": "La pizza al molde más famosa desde 1932. Pedí muzza al corte en el mostrador parado o sentate al fondo.",
+      "en": "The most famous thick-crust pizza in town since 1932. Eat standing at the counter or take a table.",
+      "pt": "A pizza mais famosa da cidade desde 1932. Peça no balcão em pé ou sente-se nos fundos."
+    }
+  },
+  {
+    "id": "t1",
+    "category": "tango",
+    "name": "Madero Tango",
+    "neighborhood": "Puerto Madero",
+    "address": "",
+    "lat": -34.6144,
+    "lng": -58.3622,
+    "price": "$$",
+    "tag": "Cena Show + Vista al Río",
+    "image": "https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?w=600&auto=format&fit=crop&q=80",
+    "menu_url": "",
+    "is_indoor": 1,
+    "tips": {
+      "es": "Show moderno con vista panorámica a los diques de Puerto Madero. Ideal parejas y familias.",
+      "en": "Modern musical tango show with panoramic views of the docks. Includes dinner and wine.",
+      "pt": "Show moderno com vista panorâmica dos diques de Puerto Madero. Inclui jantar e vinho."
+    }
+  },
+  {
+    "id": "t2",
+    "category": "tango",
+    "name": "El Querandí",
+    "neighborhood": "San Telmo",
+    "address": "",
+    "lat": -34.612,
+    "lng": -58.375,
+    "price": "$$",
+    "tag": "Histórico e Íntimo",
+    "image": "https://images.unsplash.com/photo-1545232979-fbf68fe9f1f8?w=600&auto=format&fit=crop&q=80",
+    "menu_url": "",
+    "is_indoor": 1,
+    "tips": {
+      "es": "Casona colonial de 1920 en San Telmo. Show tradicional e intimista década a década.",
+      "en": "Colonial 1920s house in San Telmo. An intimate journey through tango history.",
+      "pt": "Casarão colonial dos anos 1920 em San Telmo. Show íntimo e autêntico década a década."
+    }
+  },
+  {
+    "id": "s1",
+    "category": "shopping",
+    "name": "Galerías Pacífico",
+    "neighborhood": "Microcentro",
+    "address": "",
+    "lat": -34.5997,
+    "lng": -58.3748,
+    "price": "$$",
+    "tag": "Monumento Histórico",
+    "image": "https://images.unsplash.com/photo-1519567241046-7f570eee3ce6?w=600&auto=format&fit=crop&q=80",
+    "menu_url": "",
+    "is_indoor": 1,
+    "tips": {
+      "es": "Cúpula pintada por grandes artistas. Marcas internacionales. Cuidado con carteristas en la calle.",
+      "en": "Stunning hand-painted ceiling dome. Top leather shops. Keep an eye on personal belongings.",
+      "pt": "Cúpula espetacular pintada por mestres argentinos. Lojas de couro e marcas de ponta."
+    }
+  },
+  {
+    "id": "s2",
+    "category": "shopping",
+    "name": "Alto Palermo",
+    "neighborhood": "Palermo",
+    "address": "",
+    "lat": -34.588,
+    "lng": -58.4106,
+    "price": "$",
+    "tag": "Moda & Compras",
+    "image": "https://images.unsplash.com/photo-1567401893414-76b7b1e5a7a5?w=600&auto=format&fit=crop&q=80",
+    "menu_url": "",
+    "is_indoor": 1,
+    "tips": {
+      "es": "El shopping preferido de los locales para ropa y tecnología. Zona muy segura.",
+      "en": "The locals' favorite mall for clothing and tech. Very safe area with outdoor cafes.",
+      "pt": "O shopping preferido dos locais para roupas e tecnologia. Bairro muito seguro."
+    }
+  },
+  {
+    "id": "s3",
+    "category": "shopping",
+    "name": "Unicenter Shopping",
+    "neighborhood": "Zona Norte (Martínez)",
+    "address": "",
+    "lat": -34.5085,
+    "lng": -58.5235,
+    "price": "$",
+    "tag": "El más grande",
+    "image": "https://images.unsplash.com/photo-1555529669-e69e7aa0ba9a?w=600&auto=format&fit=crop&q=80",
+    "menu_url": "",
+    "is_indoor": 1,
+    "tips": {
+      "es": "El centro comercial más grande de la provincia. Ideal para una tarde completa de compras.",
+      "en": "The largest mall in greater Buenos Aires. Huge food court, hundreds of stores.",
+      "pt": "O maior shopping da região metropolitana. Centenas de lojas e praça de alimentação gigante."
+    }
+  },
+  {
+    "id": "c1",
+    "category": "cafes",
+    "name": "Café Tortoni",
+    "neighborhood": "Montserrat / Centro",
+    "address": "Av. de Mayo 825",
+    "lat": -34.6085,
+    "lng": -58.3792,
+    "price": "$",
+    "tag": "Café Histórico 1858 (Bajo Techo)",
+    "image": "https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?w=600&auto=format&fit=crop&q=80",
+    "menu_url": "",
+    "is_indoor": 1,
+    "tips": {
+      "es": "El café más legendario de Buenos Aires (fundado en 1858). Chocolate con churros caliente imperdible, ideal para un día de lluvia o tarde fresca.",
+      "en": "Buenos Aires' oldest and most legendary café (founded 1858). Hot chocolate with churros is a must, especially on rainy days.",
+      "pt": "O café mais antigo e lendário de Buenos Aires (fundado em 1858). Chocolate quente com churros imperdível, perfeito para dias de chuva."
+    }
+  },
+  {
+    "id": "c2",
+    "category": "culture",
+    "name": "El Ateneo Grand Splendid",
+    "neighborhood": "Recoleta",
+    "address": "Av. Santa Fe 1860",
+    "lat": -34.596,
+    "lng": -58.3942,
+    "price": "$",
+    "tag": "Librería Teatro (Bajo Techo)",
+    "image": "https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?w=600&auto=format&fit=crop&q=80",
+    "menu_url": "",
+    "is_indoor": 1,
+    "tips": {
+      "es": "Elegida entre las librerías más hermosas del mundo, dentro de un gran teatro de 1919. El café está sobre el escenario original. Plan bajo techo perfecto.",
+      "en": "Ranked among the world's most beautiful bookstores, set in a 1919 theater. Coffee on the stage. Perfect rainy day plan.",
+      "pt": "Considerada uma das livrarias mais lindas do mundo em um antigo teatro. Café no palco principal. Plano perfeito para dia de chuva."
+    }
+  },
+  {
+    "id": "f1",
+    "category": "shopping",
+    "name": "Feria de San Telmo",
+    "neighborhood": "San Telmo",
+    "address": "Defensa y Plaza Dorrego",
+    "lat": -34.618,
+    "lng": -58.3715,
+    "price": "$",
+    "tag": "Feria Domingos (Al Aire Libre)",
+    "image": "https://images.unsplash.com/photo-1519567241046-7f570eee3ce6?w=600&auto=format&fit=crop&q=80",
+    "menu_url": "",
+    "is_indoor": 0,
+    "tips": {
+      "es": "Todos los domingos de 10 a 18 hs. 12 cuadras peatonales de antigüedades, orquestas de tango callejero y recuerdos.",
+      "en": "Every Sunday from 10 AM to 6 PM. 12 pedestrian blocks with antiques, street tango dancers and artisans.",
+      "pt": "Todos os domingos das 10h às 18h. 12 quadras de rua de pedestres com antiguidades, dançarinos de tango na rua e artesanato."
+    }
+  },
+  {
+    "id": "f2",
+    "category": "food",
+    "name": "Feria de Mataderos",
+    "neighborhood": "Mataderos",
+    "address": "Av. Lisandro de la Torre y Corrales",
+    "lat": -34.6608,
+    "lng": -58.5028,
+    "price": "$",
+    "tag": "Gauchos & Asado (Domingos)",
+    "image": "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=600&auto=format&fit=crop&q=80",
+    "menu_url": "",
+    "is_indoor": 0,
+    "tips": {
+      "es": "Domingos de tradición criolla. Jineteadas, asado al asador, empanadas y peñas folclóricas. Experiencia 100% auténtica.",
+      "en": "Sundays of Argentine gaucho tradition. Open-fire barbecue, folklore dances and crafts. 100% authentic cultural immersion.",
+      "pt": "Domingos de tradição gaúcha argentina. Churrasco no fogo de chão, danças folclóricas e comida típica autêntica."
+    }
+  },
+  {
+    "id": "p_tifiamo",
+    "category": "food",
+    "name": "Tifiamo Resto & Bar",
+    "neighborhood": "Balvanera / Av. Corrientes",
+    "address": "Av. Corrientes 1802",
+    "lat": -34.6044,
+    "lng": -58.3934,
+    "price": "$",
+    "tag": "Recomendado",
+    "image": "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=600&auto=format&fit=crop&q=80",
+    "menu_url": "",
+    "is_indoor": 1,
+    "tips": {
+      "es": "Excelente atención y ambiente agradable sobre Avenida Corrientes. Muy buenos platos y opciones para merendar o cenar.",
+      "en": "Great service and cozy atmosphere on Corrientes Avenue. Wonderful food and options for afternoon coffee or dinner.",
+      "pt": "Ótimo atendimento e ambiente agradável na Avenida Corrientes. Pratos deliciosos para lanchar ou jantar."
+    }
+  }
+],
 
   // Guía de supervivencia y seguridad
   guide: {
