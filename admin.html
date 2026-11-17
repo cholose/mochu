@@ -550,19 +550,6 @@
     </div>
   </div>
 
-        <div class="form-group">
-          <label>Tip (Português)</label>
-          <textarea id="form-tip-pt" class="input-field" rows="2" placeholder="Dica local em Português..."></textarea>
-        </div>
-
-        <div style="display:flex; gap:10px; margin-top:14px;">
-          <button type="submit" class="btn-action" style="flex:1; padding:12px;">Guardar Lugar</button>
-          <button type="button" class="btn-action btn-secondary" onclick="closePlaceEditor()">Cancelar</button>
-        </div>
-      </form>
-    </div>
-  </div>
-
   <!-- Leaflet JS -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="data.js"></script>
@@ -578,11 +565,24 @@
 
     const isStaticHost = window.location.hostname.endsWith("github.io") || window.location.protocol === "file:";
 
+    const DEFAULT_WAITERS = [
+      { id: "isaias", name: "Isaias", alias: "isaias.mozo.mp", pin: "1234", commission_usd: 1.5, total_sales: 3, pending_payout_usd: 4.5, pending_payout_ars: 5400 }
+    ];
+
+    const DEFAULT_CATEGORIES = [
+      { id: "food", name: "Parrillas & Carnes", icon: "🥩", color: "#ef4444" },
+      { id: "tango", name: "Tango & Shows", icon: "💃", color: "#a855f7" },
+      { id: "shopping", name: "Shoppings & Paseos", icon: "🛍️", color: "#06b6d4" },
+      { id: "bars", name: "Bares & Coctelería", icon: "🍸", color: "#f59e0b" },
+      { id: "cafes", name: "Cafés Notables", icon: "☕", color: "#d97706" },
+      { id: "culture", name: "Museos & Cultura", icon: "🏛️", color: "#3b82f6" }
+    ];
+
     document.addEventListener("DOMContentLoaded", () => {
       showDashboard();
     });
 
-    function showDashboard() {
+    async function showDashboard() {
       try {
         const adminPanel = document.getElementById("admin-panel");
         if (adminPanel) adminPanel.style.display = "block";
@@ -595,84 +595,113 @@
         console.error(e);
       }
 
-      try { loadStats(); } catch(e){}
-      try { loadMpConfig(); } catch(e){}
-      try { loadWaiters(); } catch(e){}
-      try { loadAdminCategories(); } catch(e){}
-      try { initDashboardMap(); } catch(e){}
-      try { loadPlaces(); } catch(e){}
-      try { loadAdminReviews(); } catch(e){}
+      initDashboardMap();
+      await loadAdminCategories();
+      await loadPlaces();
+      await loadWaiters();
+      loadStats();
+      loadMpConfig();
+      loadAdminReviews();
+
+      setTimeout(() => {
+        if (dashboardMap) {
+          dashboardMap.invalidateSize();
+          renderDashboardMapMarkers();
+        }
+      }, 350);
     }
 
     async function loadStats() {
-      try {
-        const res = await fetch("/api/admin/stats");
-        if (res.ok) {
-          const stats = await res.json();
-          document.getElementById("stat-passes").textContent = stats.totalPasses;
-          document.getElementById("stat-revenue").textContent = `$${stats.totalEarningsUsd} USD`;
-          document.getElementById("stat-pending").textContent = `$${stats.totalWaitersPayoutUsd} USD (~$${stats.totalWaitersPayoutArs.toLocaleString('es-AR')} ARS)`;
-          return;
-        }
-      } catch (e) {}
+      if (!isStaticHost) {
+        try {
+          const res = await fetch("/api/admin/stats");
+          if (res.ok) {
+            const stats = await res.json();
+            document.getElementById("stat-passes").textContent = stats.totalPasses;
+            document.getElementById("stat-revenue").textContent = `$${stats.totalEarningsUsd} USD`;
+            document.getElementById("stat-pending").textContent = `$${stats.totalWaitersPayoutUsd} USD (~$${stats.totalWaitersPayoutArs.toLocaleString('es-AR')} ARS)`;
+            return;
+          }
+        } catch (e) {}
+      }
 
-      document.getElementById("stat-passes").textContent = "0";
-      document.getElementById("stat-revenue").textContent = "$0 USD";
-      document.getElementById("stat-pending").textContent = "$0 USD";
+      const waiters = allWaiters.length > 0 ? allWaiters : (JSON.parse(localStorage.getItem("bsas_waiters") || "[]"));
+      const totalSales = waiters.reduce((sum, w) => sum + (w.total_sales || 0), 0);
+      const totalPayoutUsd = waiters.reduce((sum, w) => sum + (w.pending_payout_usd || 0), 0);
+      const totalPayoutArs = waiters.reduce((sum, w) => sum + (w.pending_payout_ars || 0), 0);
+
+      document.getElementById("stat-passes").textContent = totalSales;
+      document.getElementById("stat-revenue").textContent = `$${(totalSales * 4.99).toFixed(2)} USD`;
+      document.getElementById("stat-pending").textContent = `$${totalPayoutUsd} USD (~$${totalPayoutArs.toLocaleString('es-AR')} ARS)`;
     }
 
     async function loadMpConfig() {
-      try {
-        const res = await fetch("/api/admin/config");
-        if (res.ok) {
-          const data = await res.json();
-          document.getElementById("cfg-mp-link").value = data.mpLink || "";
-          return;
-        }
-      } catch (e) {}
+      if (!isStaticHost) {
+        try {
+          const res = await fetch("/api/admin/config");
+          if (res.ok) {
+            const data = await res.json();
+            document.getElementById("cfg-mp-link").value = data.mpLink || "";
+            return;
+          }
+        } catch (e) {}
+      }
       document.getElementById("cfg-mp-link").value = localStorage.getItem("bsas_mp_link") || "";
     }
 
     async function saveMpConfig() {
       const mpLink = document.getElementById("cfg-mp-link").value.trim();
-      try {
-        const res = await fetch("/api/admin/config", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ mpLink })
-        });
-        if (res.ok) {
-          alert("¡Link de Mercado Pago actualizado!");
-          return;
-        }
-      } catch (e) {}
+      if (!isStaticHost) {
+        try {
+          const res = await fetch("/api/admin/config", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ mpLink })
+          });
+          if (res.ok) {
+            alert("¡Link de Mercado Pago actualizado!");
+            return;
+          }
+        } catch (e) {}
+      }
       localStorage.setItem("bsas_mp_link", mpLink);
       alert("¡Link de Mercado Pago guardado en tu navegador!");
     }
 
     async function loadWaiters() {
-      try {
-        const res = await fetch("/api/admin/waiters");
-        if (res.ok) {
-          allWaiters = await res.json();
-          localStorage.setItem("bsas_waiters", JSON.stringify(allWaiters));
-        } else {
-          throw new Error("No backend");
+      if (!isStaticHost) {
+        try {
+          const res = await fetch("/api/admin/waiters");
+          if (res.ok) {
+            allWaiters = await res.json();
+            localStorage.setItem("bsas_waiters", JSON.stringify(allWaiters));
+          } else {
+            loadWaitersLocal();
+          }
+        } catch (e) {
+          loadWaitersLocal();
         }
-      } catch (e) {
-        const saved = localStorage.getItem("bsas_waiters");
-        if (saved) {
-          try { allWaiters = JSON.parse(saved); } catch(err) { allWaiters = []; }
-        }
-        if (!allWaiters || allWaiters.length === 0) {
-          allWaiters = [
-            { id: "isaias", name: "Isaias", alias: "isaias.mozo.mp", pin: "1234", commission_usd: 1.5, total_sales: 0, pending_payout_usd: 0, pending_payout_ars: 0 }
-          ];
-          localStorage.setItem("bsas_waiters", JSON.stringify(allWaiters));
-        }
+      } else {
+        loadWaitersLocal();
       }
 
+      renderWaitersUI();
+    }
+
+    function loadWaitersLocal() {
+      const saved = localStorage.getItem("bsas_waiters");
+      if (saved) {
+        try { allWaiters = JSON.parse(saved); } catch(err) { allWaiters = []; }
+      }
+      if (!allWaiters || allWaiters.length === 0) {
+        allWaiters = DEFAULT_WAITERS;
+        localStorage.setItem("bsas_waiters", JSON.stringify(allWaiters));
+      }
+    }
+
+    function renderWaitersUI() {
       const container = document.getElementById("waiters-container");
+      if (!container) return;
       if (allWaiters.length === 0) {
         container.innerHTML = '<div style="color:#94a3b8; font-size:0.85rem;">No hay mozos registrados.</div>';
         return;
@@ -704,14 +733,14 @@
             <div>
               <span style="color:#94a3b8;">Por transferir:</span> 
               <strong style="color:#34d399; font-size:1.05rem;">$${w.pending_payout_usd} USD</strong>
-              <span style="color:#94a3b8; font-size:0.8rem;">(~$${w.pending_payout_ars.toLocaleString('es-AR')} ARS)</span>
+              <span style="color:#94a3b8; font-size:0.8rem;">(~$${(w.pending_payout_ars || 0).toLocaleString('es-AR')} ARS)</span>
             </div>
             ${w.pending_payout_usd > 0 ? `
-              <button class="btn-action btn-transfer" onclick="settlePayout('${w.id}', '${w.name}', '${w.pending_payout_ars}')">
+              <button class="btn-action btn-transfer" onclick="settlePayout('${w.id}', '${w.name}', '${w.pending_payout_ars || 0}')">
                 💸 Marcar como Transferido
               </button>
             ` : `
-              <span style="color:#94a3b8; font-size:0.75rem;">✅ Al día (${w.total_sales} ventas)</span>
+              <span style="color:#94a3b8; font-size:0.75rem;">✅ Al día (${w.total_sales || 0} ventas)</span>
             `}
           </div>
         </div>
@@ -719,9 +748,16 @@
     }
 
     function openQrModal(waiterId, waiterName) {
-      const host = window.location.hostname === "localhost" ? "192.168.100.11" : window.location.hostname;
-      const port = window.location.port ? `:${window.location.port}` : "";
-      const fullUrl = `http://${host}${port}/?m=${waiterId}`;
+      const isGH = window.location.hostname.endsWith("github.io");
+      let fullUrl = "";
+      if (isGH) {
+        const repoPath = window.location.pathname.replace(/\/admin\.html.*$/, "");
+        fullUrl = `${window.location.origin}${repoPath}/?m=${waiterId}`;
+      } else {
+        const host = window.location.hostname === "localhost" ? "192.168.100.11" : window.location.hostname;
+        const port = window.location.port ? `:${window.location.port}` : "";
+        fullUrl = `http://${host}${port}/?m=${waiterId}`;
+      }
 
       const qrImageUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(fullUrl)}`;
 
@@ -745,16 +781,30 @@
     async function settlePayout(waiterId, name, amountArs) {
       if (!confirm(`¿Confirmás que ya le transferiste los ~$${parseInt(amountArs).toLocaleString('es-AR')} ARS a ${name}?`)) return;
 
-      const res = await fetch("/api/admin/waiters/payout", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ waiterId })
-      });
-      const data = await res.json();
-      if (data.success) {
+      if (!isStaticHost) {
+        try {
+          const res = await fetch("/api/admin/waiters/payout", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ waiterId })
+          });
+          if (res.ok) {
+            alert("¡Liquidación registrada con éxito!");
+            await loadWaiters();
+            loadStats();
+            return;
+          }
+        } catch (e) {}
+      }
+
+      const w = allWaiters.find(x => x.id === waiterId);
+      if (w) {
+        w.pending_payout_usd = 0;
+        w.pending_payout_ars = 0;
+        localStorage.setItem("bsas_waiters", JSON.stringify(allWaiters));
         alert("¡Liquidación registrada con éxito!");
+        renderWaitersUI();
         loadStats();
-        loadWaiters();
       }
     }
 
@@ -775,19 +825,25 @@
 
       const payload = { id, name, alias, pin, commissionUsd };
 
-      try {
-        const res = await fetch("/api/admin/waiters", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload)
-        });
-        if (!res.ok) throw new Error("Fallback local");
-      } catch (err) {
-        const idx = allWaiters.findIndex(w => w.id === id);
-        if (idx >= 0) allWaiters[idx] = { ...allWaiters[idx], ...payload };
-        else allWaiters.push({ ...payload, total_sales: 0, pending_payout_usd: 0, pending_payout_ars: 0 });
-        localStorage.setItem("bsas_waiters", JSON.stringify(allWaiters));
+      if (!isStaticHost) {
+        try {
+          const res = await fetch("/api/admin/waiters", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
+          });
+          if (res.ok) {
+            closeWaiterModal();
+            loadWaiters();
+            return;
+          }
+        } catch (err) {}
       }
+
+      const idx = allWaiters.findIndex(w => w.id === id);
+      if (idx >= 0) allWaiters[idx] = { ...allWaiters[idx], ...payload };
+      else allWaiters.push({ ...payload, total_sales: 0, pending_payout_usd: 0, pending_payout_ars: 0 });
+      localStorage.setItem("bsas_waiters", JSON.stringify(allWaiters));
 
       closeWaiterModal();
       loadWaiters();
@@ -807,7 +863,6 @@
 
         dashboardMarkersLayer = L.layerGroup().addTo(dashboardMap);
 
-        // Clic en cualquier punto del mapa para agregar lugar allí
         dashboardMap.on("click", function(e) {
           const lat = e.latlng.lat;
           const lng = e.latlng.lng;
@@ -834,7 +889,7 @@
 
           const cat = allCategories ? allCategories.find(c => c.id === p.category) : null;
           const iconEmoji = cat ? cat.icon : "🥩";
-          const pinColor = p.active ? (cat ? cat.color : '#10b981') : '#64748b';
+          const pinColor = (p.active !== 0 && p.active !== false && p.active !== "0") ? (cat ? cat.color : '#10b981') : '#64748b';
 
           const customIcon = L.divIcon({
             className: "admin-map-pin",
@@ -858,14 +913,15 @@
 
           const marker = L.marker([lat, lng], { icon: customIcon });
 
+          const isAct = (p.active !== 0 && p.active !== false && p.active !== "0");
           const popupContent = `
             <div class="admin-map-popup">
               <h4>${p.name}</h4>
               <p>${p.neighborhood || ''} • ${(p.category || '').toUpperCase()} • ${p.price || ''}</p>
               <div style="display:flex; gap:6px;">
                 <button onclick="editPlace('${p.id}')">✏️ Editar</button>
-                <button onclick="togglePlace('${p.id}', ${!p.active})" style="background:${p.active ? '#f59e0b' : '#10b981'};">
-                  ${p.active ? 'Pausar' : 'Activar'}
+                <button onclick="togglePlace('${p.id}', ${!isAct})" style="background:${isAct ? '#f59e0b' : '#10b981'};">
+                  ${isAct ? 'Pausar' : 'Activar'}
                 </button>
                 <button onclick="deletePlace('${p.id}')" style="background:#ef4444;">🗑️</button>
               </div>
@@ -881,48 +937,66 @@
     }
 
     async function loadPlaces() {
-      try {
-        const res = await fetch("/api/admin/places");
-        if (res.ok) {
-          allPlaces = await res.json();
-          localStorage.setItem("bsas_places", JSON.stringify(allPlaces));
-        } else {
-          throw new Error("No backend");
-        }
-      } catch (err) {
-        const saved = localStorage.getItem("bsas_places");
-        if (saved) {
-          try { allPlaces = JSON.parse(saved); } catch(e) { allPlaces = []; }
-        }
-        if (!allPlaces || allPlaces.length === 0) {
-          if (typeof APP_DATA !== "undefined" && APP_DATA.places) {
-            allPlaces = APP_DATA.places.map(p => ({
-              id: p.id,
-              category: p.category,
-              name: p.name,
-              address: p.address || "",
-              neighborhood: p.neighborhood,
-              lat: p.lat,
-              lng: p.lng,
-              price: p.price,
-              tag: p.tag,
-              image: p.image,
-              tip_es: p.tips ? p.tips.es : "",
-              tip_en: p.tips ? p.tips.en : "",
-              tip_pt: p.tips ? p.tips.pt : "",
-              is_indoor: p.is_indoor ?? 1,
-              active: 1
-            }));
+      if (!isStaticHost) {
+        try {
+          const res = await fetch("/api/admin/places");
+          if (res.ok) {
+            allPlaces = await res.json();
             localStorage.setItem("bsas_places", JSON.stringify(allPlaces));
+          } else {
+            loadPlacesLocal();
           }
+        } catch (err) {
+          loadPlacesLocal();
         }
+      } else {
+        loadPlacesLocal();
       }
 
+      renderPlacesUI();
       renderDashboardMapMarkers();
+    }
 
+    function loadPlacesLocal() {
+      const saved = localStorage.getItem("bsas_places");
+      if (saved) {
+        try { allPlaces = JSON.parse(saved); } catch(e) { allPlaces = []; }
+      }
+      if (!allPlaces || allPlaces.length === 0) {
+        if (typeof APP_DATA !== "undefined" && APP_DATA.places) {
+          allPlaces = APP_DATA.places.map(p => ({
+            id: p.id,
+            category: p.category,
+            name: p.name,
+            address: p.address || "",
+            neighborhood: p.neighborhood,
+            lat: p.lat,
+            lng: p.lng,
+            price: p.price,
+            tag: p.tag,
+            image: p.image,
+            tip_es: p.tips ? p.tips.es : "",
+            tip_en: p.tips ? p.tips.en : "",
+            tip_pt: p.tips ? p.tips.pt : "",
+            is_indoor: p.is_indoor ?? 1,
+            active: 1
+          }));
+          localStorage.setItem("bsas_places", JSON.stringify(allPlaces));
+        }
+      }
+    }
+
+    function renderPlacesUI() {
       const container = document.getElementById("places-container");
       if (!container) return;
-      container.innerHTML = allPlaces.map(p => `
+      if (!allPlaces || allPlaces.length === 0) {
+        container.innerHTML = '<div style="color:#94a3b8; font-size:0.85rem;">No hay lugares cargados.</div>';
+        return;
+      }
+
+      container.innerHTML = allPlaces.map(p => {
+        const isAct = (p.active !== 0 && p.active !== false && p.active !== "0");
+        return `
         <div class="place-row">
           <div style="flex:1;">
             <div style="font-weight:700; font-size:0.95rem;">${p.name}</div>
@@ -931,72 +1005,82 @@
               ${p.neighborhood} • <strong>${(p.category || '').toUpperCase()}</strong> • ${p.price}
             </div>
           </div>
-          <button class="toggle-active ${p.active ? 'on' : 'off'}" onclick="togglePlace('${p.id}', ${!p.active})">
-            ${p.active ? 'Activo' : 'Pausado'}
+          <button class="toggle-active ${isAct ? 'on' : 'off'}" onclick="togglePlace('${p.id}', ${!isAct})">
+            ${isAct ? 'Activo' : 'Pausado'}
           </button>
           <button class="btn-action" style="padding:6px 10px;" onclick="editPlace('${p.id}')">✏️</button>
           <button class="btn-action btn-danger" style="padding:6px 10px;" onclick="deletePlace('${p.id}')">🗑️</button>
         </div>
-      `).join("");
+      `;
+      }).join("");
     }
 
     async function togglePlace(id, newStatus) {
-      try {
-        const res = await fetch("/api/admin/places/toggle", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ id, active: newStatus })
-        });
-        if (!res.ok) throw new Error("Fallback local");
-      } catch (e) {
-        const p = allPlaces.find(x => x.id === id);
-        if (p) p.active = newStatus ? 1 : 0;
-        localStorage.setItem("bsas_places", JSON.stringify(allPlaces));
+      if (!isStaticHost) {
+        try {
+          const res = await fetch("/api/admin/places/toggle", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ id, active: newStatus })
+          });
+          if (res.ok) {
+            loadPlaces();
+            return;
+          }
+        } catch (e) {}
       }
+      const p = allPlaces.find(x => x.id === id);
+      if (p) p.active = newStatus ? 1 : 0;
+      localStorage.setItem("bsas_places", JSON.stringify(allPlaces));
       loadPlaces();
     }
 
     async function deletePlace(id) {
       if (!confirm("¿Seguro que querés borrar este lugar?")) return;
-      try {
-        const res = await fetch(`/api/admin/places/${id}`, { method: "DELETE" });
-        if (!res.ok) throw new Error("Fallback local");
-      } catch (e) {
-        allPlaces = allPlaces.filter(x => x.id !== id);
-        localStorage.setItem("bsas_places", JSON.stringify(allPlaces));
+      if (!isStaticHost) {
+        try {
+          const res = await fetch(`/api/admin/places/${id}`, { method: "DELETE" });
+          if (res.ok) {
+            loadPlaces();
+            return;
+          }
+        } catch (e) {}
       }
+      allPlaces = allPlaces.filter(x => x.id !== id);
+      localStorage.setItem("bsas_places", JSON.stringify(allPlaces));
       loadPlaces();
     }
 
     // ==================== GESTIÓN DE CATEGORÍAS ====================
     async function loadAdminCategories() {
-      try {
-        const res = await fetch("/api/categories");
-        if (res.ok) {
-          allCategories = await res.json();
-          localStorage.setItem("bsas_categories", JSON.stringify(allCategories));
-        } else {
-          throw new Error("No backend");
+      if (!isStaticHost) {
+        try {
+          const res = await fetch("/api/categories");
+          if (res.ok) {
+            allCategories = await res.json();
+            localStorage.setItem("bsas_categories", JSON.stringify(allCategories));
+          } else {
+            loadCategoriesLocal();
+          }
+        } catch (e) {
+          loadCategoriesLocal();
         }
-      } catch (e) {
-        const saved = localStorage.getItem("bsas_categories");
-        if (saved) {
-          try { allCategories = JSON.parse(saved); } catch(err) { allCategories = []; }
-        }
-        if (!allCategories || allCategories.length === 0) {
-          allCategories = [
-            { id: "food", name: "Parrillas & Carnes", icon: "🥩", color: "#ef4444" },
-            { id: "tango", name: "Tango & Shows", icon: "💃", color: "#a855f7" },
-            { id: "shopping", name: "Shoppings & Paseos", icon: "🛍️", color: "#06b6d4" },
-            { id: "bars", name: "Bares & Coctelería", icon: "🍸", color: "#f59e0b" },
-            { id: "cafes", name: "Cafés Notables", icon: "☕", color: "#d97706" },
-            { id: "culture", name: "Museos & Cultura", icon: "🏛️", color: "#3b82f6" }
-          ];
-          localStorage.setItem("bsas_categories", JSON.stringify(allCategories));
-        }
+      } else {
+        loadCategoriesLocal();
       }
 
       renderCategoriesUI();
+    }
+
+    function loadCategoriesLocal() {
+      const saved = localStorage.getItem("bsas_categories");
+      if (saved) {
+        try { allCategories = JSON.parse(saved); } catch(err) { allCategories = []; }
+      }
+      if (!allCategories || allCategories.length === 0) {
+        allCategories = DEFAULT_CATEGORIES;
+        localStorage.setItem("bsas_categories", JSON.stringify(allCategories));
+      }
     }
 
     function renderCategoriesUI() {
@@ -1055,54 +1139,46 @@
       if (!name) return;
 
       const payload = { id, name, icon, color };
-      try {
-        const res = await fetch("/api/admin/categories", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload)
-        });
-        if (!res.ok) throw new Error("Fallback local");
-      } catch (err) {
-        const idx = allCategories.findIndex(c => c.id === id);
-        if (idx >= 0) allCategories[idx] = payload;
-        else allCategories.push(payload);
-        localStorage.setItem("bsas_categories", JSON.stringify(allCategories));
+      if (!isStaticHost) {
+        try {
+          const res = await fetch("/api/admin/categories", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
+          });
+          if (res.ok) {
+            document.getElementById("cat-name").value = "";
+            alert("🎉 ¡Categoría guardada exitosamente!");
+            await loadAdminCategories();
+            return;
+          }
+        } catch (err) {}
       }
+
+      const idx = allCategories.findIndex(c => c.id === id);
+      if (idx >= 0) allCategories[idx] = payload;
+      else allCategories.push(payload);
+      localStorage.setItem("bsas_categories", JSON.stringify(allCategories));
 
       document.getElementById("cat-name").value = "";
       alert("🎉 ¡Categoría guardada exitosamente!");
-      await loadAdminCategories();
-    }
-
-    async function deleteCategory(id) {
-      if (!confirm("¿Eliminar esta categoría?")) return;
-      try {
-        const res = await fetch(`/api/admin/categories/${id}`, { method: "DELETE" });
-        if (!res.ok) throw new Error("Fallback local");
-      } catch (e) {
-        allCategories = allCategories.filter(c => c.id !== id);
-        localStorage.setItem("bsas_categories", JSON.stringify(allCategories));
-      }
       loadAdminCategories();
     }
 
     async function deleteCategory(id) {
       if (!confirm(`¿Eliminar la categoría "${id}"?`)) return;
-      try {
-        const res = await fetch("/api/admin/categories/delete", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ id })
-        });
-        const data = await res.json();
-        if (data.success) {
-          loadAdminCategories();
-        } else {
-          alert(data.error || "Error al eliminar categoría.");
-        }
-      } catch (err) {
-        alert("Error de conexión.");
+      if (!isStaticHost) {
+        try {
+          const res = await fetch(`/api/admin/categories/${id}`, { method: "DELETE" });
+          if (res.ok) {
+            loadAdminCategories();
+            return;
+          }
+        } catch (e) {}
       }
+      allCategories = allCategories.filter(c => c.id !== id);
+      localStorage.setItem("bsas_categories", JSON.stringify(allCategories));
+      loadAdminCategories();
     }
 
     // ==================== BÚSQUEDA DE DIRECCIÓN & GEOCODIFICACIÓN ====================
@@ -1139,7 +1215,6 @@
 
           initOrUpdateMiniMap(lat, lng);
 
-          // Intentar auto-completar barrio si está vacío
           const neighborhoodInput = document.getElementById("form-neighborhood");
           if (!neighborhoodInput.value.trim() && data[0].display_name) {
             const parts = data[0].display_name.split(",");
@@ -1264,7 +1339,6 @@
         document.getElementById("form-lat").value = initialLat.toFixed ? initialLat.toFixed(6) : initialLat;
         document.getElementById("form-lng").value = initialLng.toFixed ? initialLng.toFixed(6) : initialLng;
 
-        // Si se hizo clic en el mapa del dashboard, intentar auto-completar dirección
         if (presetLat && presetLng) {
           reverseGeocode(presetLat, presetLng);
         }
@@ -1303,19 +1377,25 @@
         active: 1
       };
 
-      try {
-        const res = await fetch("/api/admin/places", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload)
-        });
-        if (!res.ok) throw new Error("Fallback local");
-      } catch (err) {
-        const idx = allPlaces.findIndex(p => p.id === id);
-        if (idx >= 0) allPlaces[idx] = payload;
-        else allPlaces.unshift(payload);
-        localStorage.setItem("bsas_places", JSON.stringify(allPlaces));
+      if (!isStaticHost) {
+        try {
+          const res = await fetch("/api/admin/places", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
+          });
+          if (res.ok) {
+            closePlaceEditor();
+            loadPlaces();
+            return;
+          }
+        } catch (err) {}
       }
+
+      const idx = allPlaces.findIndex(p => p.id === id);
+      if (idx >= 0) allPlaces[idx] = payload;
+      else allPlaces.unshift(payload);
+      localStorage.setItem("bsas_places", JSON.stringify(allPlaces));
 
       closePlaceEditor();
       loadPlaces();
@@ -1326,34 +1406,23 @@
       if (!container) return;
       container.innerHTML = '<div style="color:#94a3b8; font-size:0.85rem;">Cargando opiniones...</div>';
 
-      let reviews = [];
       try {
-        const res = await fetch("/api/admin/reviews");
-        if (res.ok) {
-          reviews = await res.json();
-          localStorage.setItem("bsas_reviews", JSON.stringify(reviews));
-        } else {
-          throw new Error("No backend");
-        }
-      } catch (err) {
-        const saved = localStorage.getItem("bsas_reviews");
-        if (saved) {
-          try { reviews = JSON.parse(saved); } catch(e) { reviews = []; }
-        }
-        if (!reviews || reviews.length === 0) {
-          reviews = [
-            {
-              id: "rev_1",
-              place_name: "Parrilla Don Julio",
-              user_name: "Sarah & David",
-              user_country: "🇺🇸 USA",
-              rating: 5,
-              comment: "Incredible steak! Mozo Isaias recommended arriving early and we got in without line.",
-              created_at: Date.now() - 86400000
+        let reviews = [];
+        if (!isStaticHost) {
+          try {
+            const res = await fetch("/api/admin/reviews");
+            if (res.ok) {
+              reviews = await res.json();
+              localStorage.setItem("bsas_reviews", JSON.stringify(reviews));
+            } else {
+              reviews = loadReviewsLocal();
             }
-          ];
+          } catch (err) {
+            reviews = loadReviewsLocal();
+          }
+        } else {
+          reviews = loadReviewsLocal();
         }
-      }
 
         if (!reviews || reviews.length === 0) {
           container.innerHTML = '<div style="color:#94a3b8; font-size:0.85rem;">Aún no hay comentarios subidos por turistas.</div>';
@@ -1362,13 +1431,13 @@
 
         container.innerHTML = reviews.map(r => {
           const dateStr = new Date(r.created_at).toLocaleDateString("es-AR", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" });
-          const stars = "★".repeat(r.rating) + "☆".repeat(5 - r.rating);
+          const stars = "★".repeat(r.rating || 5) + "☆".repeat(Math.max(0, 5 - (r.rating || 5)));
           return `
             <div style="background:#0f172a; border:1px solid rgba(255,255,255,0.08); border-radius:12px; padding:14px; margin-bottom:12px; display:flex; flex-direction:column; gap:8px;">
               <div style="display:flex; justify-content:space-between; align-items:flex-start;">
                 <div>
                   <div style="font-weight:700; color:#fff; font-size:0.95rem;">
-                    ${r.user_name} <span style="font-size:0.8rem; color:#94a3b8; font-weight:normal;">(${r.user_country})</span>
+                    ${r.user_name} <span style="font-size:0.8rem; color:#94a3b8; font-weight:normal;">(${r.user_country || 'Turista'})</span>
                   </div>
                   <div style="font-size:0.8rem; color:#38bdf8; margin-top:2px;">
                     📍 Lugar: <strong>${r.place_name || r.place_id}</strong>
@@ -1400,23 +1469,46 @@
       }
     }
 
+    function loadReviewsLocal() {
+      const saved = localStorage.getItem("bsas_reviews");
+      if (saved) {
+        try { return JSON.parse(saved); } catch(e) { return []; }
+      }
+      const initial = [
+        {
+          id: "rev_1",
+          place_name: "Parrilla Don Julio",
+          user_name: "Sarah & David",
+          user_country: "🇺🇸 USA",
+          rating: 5,
+          comment: "Incredible steak! Mozo Isaias recommended arriving early and we got in without line.",
+          created_at: Date.now() - 86400000
+        }
+      ];
+      localStorage.setItem("bsas_reviews", JSON.stringify(initial));
+      return initial;
+    }
+
     async function deleteAdminReview(id) {
       if (!confirm("¿Seguro que deseas eliminar este comentario?")) return;
-      try {
-        const res = await fetch("/api/admin/reviews/delete", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ id })
-        });
-        const data = await res.json();
-        if (data.success) {
-          loadAdminReviews();
-        } else {
-          alert("Error al eliminar comentario.");
-        }
-      } catch (e) {
-        alert("Error de conexión.");
+      if (!isStaticHost) {
+        try {
+          const res = await fetch("/api/admin/reviews/delete", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ id })
+          });
+          if (res.ok) {
+            loadAdminReviews();
+            return;
+          }
+        } catch (e) {}
       }
+
+      let reviews = JSON.parse(localStorage.getItem("bsas_reviews") || "[]");
+      reviews = reviews.filter(r => r.id !== id);
+      localStorage.setItem("bsas_reviews", JSON.stringify(reviews));
+      loadAdminReviews();
     }
   </script>
 </body>
