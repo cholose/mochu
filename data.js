@@ -254,6 +254,25 @@ const APP_DATA = {
       "en": "Great service and cozy atmosphere on Corrientes Avenue. Wonderful food and options for afternoon coffee or dinner.",
       "pt": "Ótimo atendimento e ambiente agradável na Avenida Corrientes. Pratos deliciosos para lanchar ou jantar."
     }
+  },
+  {
+    "id": "p_valerio",
+    "category": "food",
+    "name": "Valerio",
+    "neighborhood": "Microcentro",
+    "address": "Lavalle 799",
+    "lat": -34.6015,
+    "lng": -58.3785,
+    "price": "$",
+    "tag": "Clásico Porteño",
+    "image": "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=600&auto=format&fit=crop&q=80",
+    "menu_url": "",
+    "is_indoor": 1,
+    "tips": {
+      "es": "Clásico del microcentro porteño en la esquina de Lavalle y Esmeralda. Excelente para desayunar medialunas, minutas abundantes y pizzas al paso.",
+      "en": "Classic downtown cafe & diner on Lavalle pedestrian street. Great for breakfast croissants, hearty meals, and pizzas.",
+      "pt": "Clássico do centro portenho na esquina de Lavalle e Esmeralda. Excelente para café da manhã com medialunas, pratos caseiros e pizzas."
+    }
   }
 ],
 
