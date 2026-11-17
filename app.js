@@ -23,7 +23,10 @@ const state = {
   currentRouteLayer: null,
   routeGlowLayer: null,
   currentRouteTarget: null,
-  currentRouteMode: 'walking'
+  currentRouteMode: 'walking',
+  isRainyFilterActive: false,
+  selectedTipPercent: 10,
+  exchangeRates: { USD: 1180, EUR: 1280, BRL: 215, updated: false }
 };
 
 // Inicialización
@@ -36,6 +39,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   initFilters();
   initModalEvents();
   renderGuideList();
+  renderEventsList();
 
   // Comprobar si el dispositivo ya tiene pase VIP activo
   await checkOrPromptPass();
@@ -311,6 +315,7 @@ function setLanguage(lang) {
   renderMarkers();
   renderTangoList();
   renderGuideList();
+  renderEventsList();
   if (state.selectedPlace) {
     updateModalContent(state.selectedPlace);
   }
@@ -321,8 +326,16 @@ function updateUITranslations() {
   document.getElementById("lbl-title").textContent = `📍 ${t.appTitle}`;
   document.getElementById("lbl-subtitle").textContent = t.subtitle;
   document.getElementById("nav-map").textContent = t.tabMap;
+  const navEvents = document.getElementById("nav-events");
+  if (navEvents && t.tabEvents) navEvents.textContent = t.tabEvents;
   document.getElementById("nav-tango").textContent = t.tabTango;
   document.getElementById("nav-guide").textContent = t.tabGuide;
+
+  const btnCalc = document.getElementById("lbl-btn-calc");
+  if (btnCalc && t.btnCalc) btnCalc.textContent = t.btnCalc;
+
+  const rainyLbl = document.getElementById("lbl-rainy-toggle");
+  if (rainyLbl && t.rainyFilter) rainyLbl.textContent = t.rainyFilter;
 
   document.getElementById("btn-filter-all").textContent = t.filterAll;
   document.getElementById("btn-filter-food").textContent = t.filterFood;
@@ -575,8 +588,17 @@ function renderMarkers() {
 
   const placesToRender = (state.places && state.places.length > 0) ? state.places : APP_DATA.places;
 
-  // Filtrar por categoría activa y búsqueda
+  // Filtrar por categoría activa, búsqueda y filtro de día de lluvia
   const filteredPlaces = placesToRender.filter(place => {
+    // Filtro Día de Lluvia: sólo lugares techados / bajo techo
+    if (state.isRainyFilterActive) {
+      const isIndoor = (place.is_indoor !== 0 && place.is_indoor !== false) || 
+                       place.category === 'shopping' || 
+                       place.category === 'cafes' || 
+                       place.category === 'tango';
+      if (!isIndoor) return false;
+    }
+
     const matchCategory = (state.activeCategory === "all") || (place.category === state.activeCategory);
     if (!matchCategory) return false;
 
@@ -1270,5 +1292,273 @@ async function calculateAndDrawRoute(start, dest, place, mode, isSimulated) {
   const originNote = isSimulated ? " (desde Obelisco)" : "";
   if (summaryStats) {
     summaryStats.textContent = `📍 ${distStr} • ⏱️ ${timeStr}${originNote}`;
+  }
+}
+
+// 13. Filtro de Día de Lluvia (Bajo Techo)
+function toggleRainyFilter() {
+  state.isRainyFilterActive = !state.isRainyFilterActive;
+  const btn = document.getElementById("btn-toggle-rainy");
+  if (btn) {
+    btn.classList.toggle("active", state.isRainyFilterActive);
+  }
+  renderMarkers();
+}
+
+// 14. Calculadora de Propina y Conversión de Monedas
+function openTipCalculator() {
+  const modal = document.getElementById("tip-calc-modal");
+  if (modal) modal.classList.add("active");
+  updateTipCalculation();
+  fetchExchangeRates();
+}
+
+function closeTipCalculator() {
+  const modal = document.getElementById("tip-calc-modal");
+  if (modal) modal.classList.remove("active");
+}
+
+function setTipPercent(percent) {
+  state.selectedTipPercent = percent;
+  document.querySelectorAll(".tip-percent-btn").forEach(btn => {
+    btn.classList.toggle("active", parseInt(btn.dataset.tip, 10) === percent);
+  });
+  updateTipCalculation();
+}
+
+function updateTipCalculation() {
+  const billInput = document.getElementById("calc-bill-amount");
+  const subtotal = Math.max(0, parseFloat(billInput ? billInput.value : 0) || 0);
+  const percent = state.selectedTipPercent ?? 10;
+  const tipAmount = Math.round((subtotal * percent) / 100);
+  const totalAmount = subtotal + tipAmount;
+
+  const resSubtotal = document.getElementById("calc-res-subtotal");
+  const resTip = document.getElementById("calc-res-tip");
+  const resTipLbl = document.getElementById("calc-res-tip-lbl");
+  const resTotal = document.getElementById("calc-res-total");
+
+  if (resSubtotal) resSubtotal.textContent = `$${subtotal.toLocaleString("es-AR")} ARS`;
+  if (resTipLbl) resTipLbl.textContent = `Propina recomendada (${percent}%):`;
+  if (resTip) resTip.textContent = `+$${tipAmount.toLocaleString("es-AR")} ARS`;
+  if (resTotal) resTotal.textContent = `$${totalAmount.toLocaleString("es-AR")} ARS`;
+
+  const rates = state.exchangeRates || { USD: 1180, EUR: 1280, BRL: 215 };
+  const usdVal = totalAmount > 0 ? (totalAmount / rates.USD).toFixed(2) : "0.00";
+  const eurVal = totalAmount > 0 ? (totalAmount / rates.EUR).toFixed(2) : "0.00";
+  const brlVal = totalAmount > 0 ? (totalAmount / rates.BRL).toFixed(2) : "0.00";
+
+  const fxUsd = document.getElementById("calc-fx-usd");
+  const fxEur = document.getElementById("calc-fx-eur");
+  const fxBrl = document.getElementById("calc-fx-brl");
+
+  if (fxUsd) fxUsd.textContent = `$${usdVal}`;
+  if (fxEur) fxEur.textContent = `€${eurVal}`;
+  if (fxBrl) fxBrl.textContent = `R$ ${brlVal}`;
+}
+
+async function fetchExchangeRates() {
+  if (state.exchangeRates && state.exchangeRates.updated) return;
+  try {
+    const res = await fetch("https://dolarapi.com/v1/dolares/blue");
+    if (res.ok) {
+      const data = await res.json();
+      if (data && data.venta) {
+        state.exchangeRates.USD = data.venta;
+        state.exchangeRates.EUR = Math.round(data.venta * 1.08);
+        state.exchangeRates.BRL = Math.round(data.venta / 5.4);
+        state.exchangeRates.updated = true;
+        const note = document.getElementById("calc-fx-updated");
+        if (note) note.textContent = `Dólar Blue ~$${data.venta} ARS`;
+        updateTipCalculation();
+      }
+    }
+  } catch (e) {
+    // Si no hay conexión o falla la API, se usan los valores preestablecidos
+  }
+}
+
+// 15. Renderizado de la Sección de Eventos & Agendas Oficiales
+function renderEventsList() {
+  const container = document.getElementById("events-list-container");
+  if (!container) return;
+
+  const isEn = state.currentLang === "en";
+  const isPt = state.currentLang === "pt";
+
+  container.innerHTML = `
+    <!-- Banner de Cabecera -->
+    <div class="events-header-box">
+      <div style="font-size:1.15rem; font-weight:800; color:#fff; margin-bottom:4px;">
+        📅 ${isEn ? "What's Happening in Buenos Aires" : (isPt ? "O que Fazer em Buenos Aires" : "¿Qué hacer en Buenos Aires hoy?")}
+      </div>
+      <p style="font-size:0.82rem; color:#94a3b8; line-height:1.4; margin:0;">
+        ${isEn 
+          ? "Direct live access to the official cultural agendas of the City government plus the top weekly fairs and street markets." 
+          : (isPt 
+            ? "Acesso direto e atualizado às agendas culturais oficiais do governo e aos melhores eventos semanais da cidade." 
+            : "Consultá en vivo las agendas oficiales del Gobierno de la Ciudad y las mejores ferias semanales recomendadas por los mozos.")
+        }
+      </p>
+    </div>
+
+    <!-- Sección 1: Portales Oficiales en Vivo -->
+    <div class="events-section-title">
+      <span>🏛️</span> ${isEn ? "Official Live City Agendas" : (isPt ? "Agendas Oficiais ao Vivo" : "Agendas Oficiales en Vivo (Ciudad)")}
+    </div>
+
+    <div class="official-links-grid">
+      <!-- Disfrutemos BA -->
+      <div class="official-link-card">
+        <div>
+          <div style="font-size:1.05rem; margin-bottom:6px; color:#fff;">🎭 <strong>Disfrutemos BA</strong></div>
+          <p style="font-size:0.78rem; color:#cbd5e1; line-height:1.4; margin:0;">
+            ${isEn 
+              ? "Official Buenos Aires government cultural agenda. Free outdoor concerts, museum tours, street food festivals, and family events." 
+              : (isPt 
+                ? "A agenda cultural oficial mais completa do governo. Festivais ao ar livre, cinema, teatro, museus e atrações gratuitas." 
+                : "La cartelera cultural oficial más completa del Gobierno de la Ciudad: festivales, cine al aire libre, muestras de arte y recitales gratuitos.")
+            }
+          </p>
+        </div>
+        <a href="https://disfrutemosba.buenosaires.gob.ar/" target="_blank" class="btn-event-link">
+          🔗 ${isEn ? "Open Disfrutemos BA" : (isPt ? "Abrir Disfrutemos BA" : "Abrir Agenda Disfrutemos BA")}
+        </a>
+      </div>
+
+      <!-- Turismo BA -->
+      <div class="official-link-card">
+        <div>
+          <div style="font-size:1.05rem; margin-bottom:6px; color:#fff;">🌆 <strong>Turismo Buenos Aires</strong></div>
+          <p style="font-size:0.78rem; color:#cbd5e1; line-height:1.4; margin:0;">
+            ${isEn 
+              ? "The City's official tourism board. Filter activities for 'Today', 'This Weekend', free walking tours, and seasonal festivals." 
+              : (isPt 
+                ? "Portal oficial da Secretaria de Turismo. Filtre por 'Hoje', 'Fim de Semana', circuitos guiados a pé e passeios temáticos." 
+                : "Portal del Ente de Turismo de la Ciudad. Qué hacer hoy, este fin de semana, circuitos guiados a pie y monumentos históricos.")
+            }
+          </p>
+        </div>
+        <a href="https://turismo.buenosaires.gob.ar/es/agenda" target="_blank" class="btn-event-link">
+          🔗 ${isEn ? "View Tourism Agenda" : (isPt ? "Ver Agenda de Turismo" : "Ver Qué Hacer en Turismo BA")}
+        </a>
+      </div>
+
+      <!-- Teatro Calle Corrientes -->
+      <div class="official-link-card">
+        <div>
+          <div style="font-size:1.05rem; margin-bottom:6px; color:#fff;">🎬 <strong>Cartelera Calle Corrientes</strong></div>
+          <p style="font-size:0.78rem; color:#cbd5e1; line-height:1.4; margin:0;">
+            ${isEn 
+              ? "Buenos Aires is a world capital of theater. Check tonight's Broadway-style musicals, comedies, and drama plays on Corrientes St." 
+              : (isPt 
+                ? "Buenos Aires é a capital do teatro da América Latina. Veja as peças, musicais e comédias em cartaz na famosa Calle Corrientes." 
+                : "Buenos Aires es una de las capitales mundiales del teatro. Obras, comedias y shows musicales en cartelera sobre Av. Corrientes.")
+            }
+          </p>
+        </div>
+        <a href="https://www.plateanet.com/" target="_blank" class="btn-event-link">
+          🔗 ${isEn ? "View Theater Plays" : (isPt ? "Ver Cartaz de Teatros" : "Ver Cartelera de Teatro")}
+        </a>
+      </div>
+    </div>
+
+    <!-- Sección 2: Los Grandes Eventos Fijos Semanales -->
+    <div class="events-section-title">
+      <span>🌟</span> ${isEn ? "Iconic Weekly Events & Markets" : (isPt ? "Feiras e Eventos Semanais Clássicos" : "Eventos Semanales Imperdibles")}
+    </div>
+
+    <!-- Feria San Telmo -->
+    <div class="event-weekly-card">
+      <img src="https://images.unsplash.com/photo-1519567241046-7f570eee3ce6?w=600&auto=format&fit=crop&q=80" alt="Feria San Telmo" class="event-weekly-img">
+      <div class="event-weekly-body">
+        <span class="event-day-badge">📅 ${isEn ? "Every Sunday (10 AM - 6 PM)" : (isPt ? "Todo Domingo (10h às 18h)" : "Todos los Domingos (10:00 a 18:00 hs)")}</span>
+        <h3 style="font-size:1.05rem; font-weight:700; color:#fff; margin:2px 0 4px 0;">Feria de San Telmo (Calle Defensa)</h3>
+        <p style="font-size:0.8rem; color:#cbd5e1; margin:0 0 6px 0; line-height:1.4;">
+          ${isEn 
+            ? "12 pedestrian cobblestone blocks full of vintage antiques, buskers, street tango dancers, leather goods, and local treats." 
+            : (isPt 
+              ? "12 quadras históricas de paralelepípedos com antiguidades, artistas de rua, dançarinos de tango e muito artesanato." 
+              : "12 cuadras peatonales repletas de antigüedades, artistas callejeros, parejas bailando tango al aire libre y recuerdos.")
+          }
+        </p>
+        <button type="button" class="btn-event-map" onclick="navigateToPlaceOnMap('f1')">
+          📍 ${isEn ? "Show on Map & Get Directions" : (isPt ? "Ver no Mapa e Traçar Rota" : "Ver en el Mapa y Trazar Ruta")}
+        </button>
+      </div>
+    </div>
+
+    <!-- Feria de Mataderos -->
+    <div class="event-weekly-card">
+      <img src="https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=600&auto=format&fit=crop&q=80" alt="Feria Mataderos" class="event-weekly-img">
+      <div class="event-weekly-body">
+        <span class="event-day-badge">📅 ${isEn ? "Sundays & Holidays (11 AM - 7 PM)" : (isPt ? "Domingos e Feriados (11h às 19h)" : "Domingos y Feriados (11:00 a 19:00 hs)")}</span>
+        <h3 style="font-size:1.05rem; font-weight:700; color:#fff; margin:2px 0 4px 0;">Feria de las Tradiciones Criollas (Mataderos)</h3>
+        <p style="font-size:0.8rem; color:#cbd5e1; margin:0 0 6px 0; line-height:1.4;">
+          ${isEn 
+            ? "Authentic Argentine gaucho culture: open-pit barbecue (asado al asador), horseback ring races, folklore music, and country crafts." 
+            : (isPt 
+              ? "Cultura gaúcha tradicional: churrasco no fogo de chão, danças folclóricas, pastel de carne e artesanato criollo autêntico." 
+              : "Tradición gauchesca pura: asado a la cruz, destrezas ecuestres, empanadas criollas, peñas folclóricas y artesanías de campo.")
+          }
+        </p>
+        <button type="button" class="btn-event-map" onclick="navigateToPlaceOnMap('f2')">
+          📍 ${isEn ? "Show on Map & Get Directions" : (isPt ? "Ver no Mapa e Traçar Rota" : "Ver en el Mapa y Trazar Ruta")}
+        </button>
+      </div>
+    </div>
+
+    <!-- Feria de Plaza Francia y Recoleta -->
+    <div class="event-weekly-card">
+      <img src="https://images.unsplash.com/photo-1589802829985-817e51171b92?w=600&auto=format&fit=crop&q=80" alt="Recoleta" class="event-weekly-img">
+      <div class="event-weekly-body">
+        <span class="event-day-badge">📅 ${isEn ? "Saturdays, Sundays & Holidays (11 AM - 8 PM)" : (isPt ? "Sábados, Domingos e Feriados (11h às 20h)" : "Sábados, Domingos y Feriados (11:00 a 20:00 hs)")}</span>
+        <h3 style="font-size:1.05rem; font-weight:700; color:#fff; margin:2px 0 4px 0;">Feria de Artesanos de Plaza Francia (Recoleta)</h3>
+        <p style="font-size:0.8rem; color:#cbd5e1; margin:0 0 6px 0; line-height:1.4;">
+          ${isEn 
+            ? "Right next to the famous Recoleta Cemetery. Top-tier silver jewelry, leather mates, acoustic musicians, and European-style gardens." 
+            : (isPt 
+              ? "Ao lado do famoso Cemitério da Recoleta. Feira de prataria, couro, cuia de mate e música ao vivo em belos jardins franceses." 
+              : "Junto al Cementerio de Recoleta. Orfebrería en plata, cuero, mates artesanales, músicos en vivo y cafés al aire libre.")
+          }
+        </p>
+        <button type="button" class="btn-event-map" onclick="navigateToPlaceOnMap('s4')">
+          📍 ${isEn ? "Show on Map & Get Directions" : (isPt ? "Ver no Mapa e Traçar Rota" : "Ver en el Mapa y Trazar Ruta")}
+        </button>
+      </div>
+    </div>
+
+    <!-- Noche de los Museos Especial -->
+    <div class="event-weekly-card" style="border-color:rgba(168,85,247,0.3); background:rgba(30,27,75,0.4);">
+      <div class="event-weekly-body">
+        <span class="event-day-badge" style="background:rgba(168,85,247,0.2); color:#c084fc;">🏛️ ${isEn ? "Annual Mega Cultural Nights" : (isPt ? "Mega Noites Culturais Anuais" : "Mega Noches Temáticas Anuales")}</span>
+        <h3 style="font-size:1.05rem; font-weight:700; color:#fff; margin:2px 0 4px 0;">La Noche de los Museos & La Noche de las Librerías</h3>
+        <p style="font-size:0.8rem; color:#cbd5e1; margin:0 0 8px 0; line-height:1.4;">
+          ${isEn 
+            ? "Once a year, over 250 museums open for free until 2 AM with complimentary public transport. Similar nights exist for Pizzerias, Bookstores, and Tourism." 
+            : (isPt 
+              ? "Mais de 250 museus abertos de graça até as 2h da madrugada com ônibus e metrô gratuitos. Também há noites da pizza e livrarias." 
+              : "Más de 250 museos y centros culturales abren gratis hasta las 2:00 AM con transporte público gratuito. Además se realizan La Noche de las Pizzerías y de las Librerías.")
+          }
+        </p>
+        <a href="https://turismo.buenosaires.gob.ar/es/article/la-noche-de-los-museos" target="_blank" class="btn-event-link" style="background:linear-gradient(135deg, #7c3aed, #6d28d9); margin-top:4px;">
+          🔗 ${isEn ? "Official Museum Night Info" : (isPt ? "Informações Noite dos Museus" : "Ver Fechas Oficiales Noche de los Museos")}
+        </a>
+      </div>
+    </div>
+  `;
+}
+
+function navigateToPlaceOnMap(placeId) {
+  activateTab("tab-map");
+  const places = (state.places && state.places.length > 0) ? state.places : APP_DATA.places;
+  const target = places.find(p => p.id === placeId);
+  if (target) {
+    if (state.map) {
+      state.map.flyTo([target.lat, target.lng], 16, { duration: 1.2 });
+    }
+    setTimeout(() => {
+      openPlaceModal(target);
+    }, 700);
   }
 }

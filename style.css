@@ -198,11 +198,17 @@ body {
   display: none;
 }
 
-.safety-toggle-btn {
+.map-quick-toggles {
   position: absolute;
   bottom: 20px;
   left: 16px;
   z-index: 1000;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.safety-toggle-btn {
   background: rgba(15, 23, 42, 0.92);
   color: #34d399;
   border: 1px solid rgba(16, 185, 129, 0.4);
@@ -226,6 +232,39 @@ body {
 .safety-toggle-btn.off {
   color: #94a3b8;
   border-color: rgba(255, 255, 255, 0.2);
+}
+
+.btn-rainy-toggle {
+  color: #38bdf8;
+  border-color: rgba(56, 189, 248, 0.4);
+}
+
+.btn-rainy-toggle.active {
+  background: #0284c7;
+  color: #ffffff;
+  border-color: #38bdf8;
+  box-shadow: 0 0 14px rgba(56, 189, 248, 0.6);
+}
+
+.btn-calc-pill {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(6, 182, 212, 0.2));
+  color: #34d399;
+  border: 1px solid rgba(16, 185, 129, 0.4);
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 5px 11px;
+  border-radius: 999px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  transition: all 0.2s;
+}
+
+.btn-calc-pill:hover {
+  background: rgba(16, 185, 129, 0.35);
+  color: #fff;
+  transform: translateY(-1px);
 }
 
 /* Pines Modernos con Etiqueta */
@@ -878,5 +917,218 @@ body {
   padding: 2px 6px;
   border-radius: 4px;
   margin-top: 6px;
+}
+
+/* ==================== CALCULADORA DE PROPINA & DIVISAS ==================== */
+.calc-card {
+  max-width: 440px;
+}
+.calc-input {
+  width: 100%;
+  padding: 10px 10px 10px 28px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  color: #fff;
+  font-size: 1.15rem;
+  font-weight: bold;
+  box-sizing: border-box;
+}
+.calc-input:focus {
+  outline: none;
+  border-color: #10b981;
+}
+.tip-percent-btn {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #cbd5e1;
+  padding: 8px 4px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.82rem;
+  font-weight: 700;
+  text-align: center;
+  transition: all 0.2s;
+}
+.tip-percent-btn.active {
+  background: rgba(16, 185, 129, 0.25);
+  border-color: #10b981;
+  color: #34d399;
+  box-shadow: 0 0 10px rgba(16, 185, 129, 0.3);
+}
+.tip-cultural-note {
+  font-size: 0.75rem;
+  color: #94a3b8;
+  background: rgba(255, 255, 255, 0.03);
+  border-left: 3px solid #f59e0b;
+  padding: 8px 10px;
+  border-radius: 0 6px 6px 0;
+  margin-bottom: 12px;
+  line-height: 1.4;
+}
+.calc-results-box {
+  background: #0f172a;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  padding: 10px 12px;
+  margin-bottom: 12px;
+}
+.calc-result-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.82rem;
+  color: #cbd5e1;
+  padding: 4px 0;
+}
+.calc-total-row {
+  border-top: 1px solid rgba(255, 255, 255, 0.15);
+  margin-top: 4px;
+  padding-top: 6px;
+  font-size: 0.95rem;
+  font-weight: bold;
+  color: #fff;
+}
+.calc-fx-box {
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px dashed rgba(255, 255, 255, 0.15);
+  border-radius: 10px;
+  padding: 10px 12px;
+}
+.calc-fx-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+.calc-fx-item {
+  background: rgba(255, 255, 255, 0.04);
+  padding: 8px 6px;
+  border-radius: 6px;
+  text-align: center;
+}
+.fx-flag {
+  display: block;
+  font-size: 0.7rem;
+  color: #94a3b8;
+  margin-bottom: 2px;
+}
+.fx-val {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #38bdf8;
+}
+
+/* ==================== SECCIÓN DE EVENTOS & AGENDAS ==================== */
+.events-header-box {
+  background: linear-gradient(135deg, rgba(30, 41, 59, 0.9), rgba(15, 23, 42, 0.95));
+  border: 1px solid rgba(56, 189, 248, 0.25);
+  border-radius: 14px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+.events-section-title {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #38bdf8;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin: 16px 0 10px 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.official-links-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+@media (min-width: 640px) {
+  .official-links-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+.official-link-card {
+  background: #1e293b;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transition: transform 0.2s, border-color 0.2s;
+}
+.official-link-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(56, 189, 248, 0.4);
+}
+.btn-event-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: linear-gradient(135deg, #0284c7, #0369a1);
+  color: #fff;
+  text-decoration: none;
+  font-size: 0.8rem;
+  font-weight: 700;
+  padding: 9px 12px;
+  border-radius: 8px;
+  margin-top: 12px;
+  transition: opacity 0.2s;
+}
+.btn-event-link:hover {
+  opacity: 0.9;
+}
+.event-weekly-card {
+  background: #1e293b;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+  margin-bottom: 14px;
+  display: flex;
+  flex-direction: column;
+}
+@media (min-width: 600px) {
+  .event-weekly-card {
+    flex-direction: row;
+  }
+  .event-weekly-img {
+    width: 150px;
+    height: auto;
+    object-fit: cover;
+  }
+}
+.event-weekly-body {
+  padding: 12px 14px;
+  flex: 1;
+}
+.event-day-badge {
+  display: inline-block;
+  background: rgba(245, 158, 11, 0.15);
+  color: #f59e0b;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 4px;
+  margin-bottom: 6px;
+}
+.btn-event-map {
+  background: rgba(16, 185, 129, 0.15);
+  border: 1px solid rgba(16, 185, 129, 0.4);
+  color: #34d399;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 10px;
+}
+.btn-event-map:hover {
+  background: #10b981;
+  color: #0f172a;
 }
 

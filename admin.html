@@ -480,6 +480,13 @@
           <textarea id="form-tip-pt" class="input-field" rows="2" placeholder="Dica do garçom em português..."></textarea>
         </div>
 
+        <div class="form-group" style="margin-top:4px;">
+          <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
+            <input type="checkbox" id="form-indoor" checked style="width:18px; height:18px; cursor:pointer;">
+            <span style="font-size:0.85rem; color:#cbd5e1;">🌧️ Lugar bajo techo (Apto para Día de Lluvia)</span>
+          </label>
+        </div>
+
         <div style="display:flex; gap:10px; margin-top:14px;">
           <button type="submit" class="btn-action" style="flex:1; padding:12px;">Guardar Lugar</button>
           <button type="button" class="btn-action btn-secondary" onclick="closePlaceEditor()">Cancelar</button>
@@ -1119,11 +1126,13 @@
           document.getElementById("form-tip-es").value = p.tip_es;
           document.getElementById("form-tip-en").value = p.tip_en;
           document.getElementById("form-tip-pt").value = p.tip_pt;
+          document.getElementById("form-indoor").checked = (p.is_indoor !== 0 && p.is_indoor !== "0");
 
           initialLat = parseFloat(p.lat);
           initialLng = parseFloat(p.lng);
         }
       } else {
+        document.getElementById("form-indoor").checked = true;
         document.getElementById("form-lat").value = initialLat.toFixed ? initialLat.toFixed(6) : initialLat;
         document.getElementById("form-lng").value = initialLng.toFixed ? initialLng.toFixed(6) : initialLng;
 
@@ -1161,6 +1170,7 @@
         tip_es: document.getElementById("form-tip-es").value,
         tip_en: document.getElementById("form-tip-en").value || document.getElementById("form-tip-es").value,
         tip_pt: document.getElementById("form-tip-pt").value || document.getElementById("form-tip-es").value,
+        is_indoor: document.getElementById("form-indoor").checked ? 1 : 0,
         active: 1
       };
 

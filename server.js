@@ -165,10 +165,75 @@ if (checkReviews.count === 0) {
   seedReviews.forEach(r => insertSeed.run(r.id, r.place_id, r.user_name, r.user_country, r.rating, r.comment, r.photo_data, r.waiter_id, r.created_at));
 }
 
-// Migración de esquema: agregar columna address a places si no existe
+// Migración de esquema: agregar columna address e is_indoor a places si no existen
 try {
   db.exec("ALTER TABLE places ADD COLUMN address TEXT DEFAULT ''");
 } catch (e) {}
+
+try {
+  db.exec("ALTER TABLE places ADD COLUMN is_indoor INTEGER DEFAULT 1");
+} catch (e) {}
+
+// Pre-cargar lugares icónicos (bajo techo y ferias fijas) si no existen
+const checkTortoni = db.prepare("SELECT id FROM places WHERE id = ?").get("c1");
+if (!checkTortoni) {
+  db.prepare(`
+    INSERT INTO places (id, category, name, address, neighborhood, lat, lng, price, tag, image, tip_es, tip_en, tip_pt, active, created_at, is_indoor)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?, 1)
+  `).run(
+    "c1", "cafes", "Café Tortoni", "Av. de Mayo 825", "Montserrat / Centro", -34.6085, -58.3792, "$$", "Café Histórico 1858 (Bajo Techo)",
+    "https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?w=600&auto=format&fit=crop&q=80",
+    "El café más legendario de Buenos Aires (fundado en 1858). Chocolate con churros caliente imperdible, ideal para un día de lluvia o tarde fresca.",
+    "Buenos Aires' oldest and most legendary café (founded 1858). Hot chocolate with churros is a must, especially on rainy days.",
+    "O café mais antigo e lendário de Buenos Aires (fundado em 1858). Chocolate quente com churros imperdível, perfeito para dias de chuva.",
+    Date.now()
+  );
+}
+
+const checkAteneo = db.prepare("SELECT id FROM places WHERE id = ?").get("c2");
+if (!checkAteneo) {
+  db.prepare(`
+    INSERT INTO places (id, category, name, address, neighborhood, lat, lng, price, tag, image, tip_es, tip_en, tip_pt, active, created_at, is_indoor)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?, 1)
+  `).run(
+    "c2", "culture", "El Ateneo Grand Splendid", "Av. Santa Fe 1860", "Recoleta", -34.5960, -58.3942, "$", "Librería Teatro (Bajo Techo)",
+    "https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?w=600&auto=format&fit=crop&q=80",
+    "Elegida entre las librerías más hermosas del mundo, dentro de un gran teatro de 1919. El café está sobre el escenario original. Plan bajo techo perfecto.",
+    "Ranked among the world's most beautiful bookstores, set in a 1919 theater. Coffee on the stage. Perfect rainy day plan.",
+    "Considerada uma das livrarias mais lindas do mundo em um antigo teatro. Café no palco principal. Plano perfeito para dia de chuva.",
+    Date.now()
+  );
+}
+
+const checkSanTelmo = db.prepare("SELECT id FROM places WHERE id = ?").get("f1");
+if (!checkSanTelmo) {
+  db.prepare(`
+    INSERT INTO places (id, category, name, address, neighborhood, lat, lng, price, tag, image, tip_es, tip_en, tip_pt, active, created_at, is_indoor)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?, 0)
+  `).run(
+    "f1", "shopping", "Feria de San Telmo", "Defensa y Plaza Dorrego", "San Telmo", -34.6180, -58.3715, "$", "Feria Domingos (Al Aire Libre)",
+    "https://images.unsplash.com/photo-1519567241046-7f570eee3ce6?w=600&auto=format&fit=crop&q=80",
+    "Todos los domingos de 10 a 18 hs. 12 cuadras peatonales de antigüedades, orquestas de tango callejero y recuerdos.",
+    "Every Sunday from 10 AM to 6 PM. 12 pedestrian blocks with antiques, street tango dancers and artisans.",
+    "Todos os domingos das 10h às 18h. 12 quadras de rua de pedestres com antiguidades, dançarinos de tango na rua e artesanato.",
+    Date.now()
+  );
+}
+
+const checkMataderos = db.prepare("SELECT id FROM places WHERE id = ?").get("f2");
+if (!checkMataderos) {
+  db.prepare(`
+    INSERT INTO places (id, category, name, address, neighborhood, lat, lng, price, tag, image, tip_es, tip_en, tip_pt, active, created_at, is_indoor)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?, 0)
+  `).run(
+    "f2", "food", "Feria de Mataderos", "Av. Lisandro de la Torre y Corrales", "Mataderos", -34.6608, -58.5028, "$$", "Gauchos & Asado (Domingos)",
+    "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=600&auto=format&fit=crop&q=80",
+    "Domingos de tradición criolla. Jineteadas, asado al asador, empanadas y peñas folclóricas. Experiencia 100% auténtica.",
+    "Sundays of Argentine gaucho tradition. Open-fire barbecue, folklore dances and crafts. 100% authentic cultural immersion.",
+    "Domingos de tradição gaúcha argentina. Churrasco no fogo de chão, danças folclóricas e comida típica autêntica.",
+    Date.now()
+  );
+}
 
 // Pre-cargar categorías por defecto si no existen
 const checkCats = db.prepare("SELECT COUNT(*) as count FROM categories").get();
@@ -593,23 +658,24 @@ const server = http.createServer(async (req, res) => {
 
       const existing = db.prepare("SELECT id FROM places WHERE id = ?").get(id);
       const address = (p.address || "").trim();
+      const isIndoor = p.is_indoor === 0 || p.is_indoor === "0" ? 0 : 1;
       if (existing) {
         db.prepare(`
           UPDATE places SET 
             category = ?, name = ?, address = ?, neighborhood = ?, lat = ?, lng = ?, 
-            price = ?, tag = ?, image = ?, tip_es = ?, tip_en = ?, tip_pt = ?, active = ?
+            price = ?, tag = ?, image = ?, tip_es = ?, tip_en = ?, tip_pt = ?, active = ?, is_indoor = ?
           WHERE id = ?
         `).run(
           p.category, p.name, address, p.neighborhood, parseFloat(p.lat), parseFloat(p.lng),
-          p.price, p.tag, p.image, p.tip_es, p.tip_en, p.tip_pt, p.active ? 1 : 0, id
+          p.price, p.tag, p.image, p.tip_es, p.tip_en, p.tip_pt, p.active ? 1 : 0, isIndoor, id
         );
       } else {
         db.prepare(`
-          INSERT INTO places (id, category, name, address, neighborhood, lat, lng, price, tag, image, tip_es, tip_en, tip_pt, active, created_at)
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+          INSERT INTO places (id, category, name, address, neighborhood, lat, lng, price, tag, image, tip_es, tip_en, tip_pt, active, created_at, is_indoor)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `).run(
           id, p.category, p.name, address, p.neighborhood, parseFloat(p.lat), parseFloat(p.lng),
-          p.price, p.tag, p.image, p.tip_es, p.tip_en, p.tip_pt, 1, Date.now()
+          p.price, p.tag, p.image, p.tip_es, p.tip_en, p.tip_pt, 1, Date.now(), isIndoor
         );
       }
       return sendJSON(res, 200, { success: true, id });

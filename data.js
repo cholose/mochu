@@ -148,10 +148,79 @@ const APP_DATA = {
       price: "$",
       tag: "Cultura & Arquitectura",
       image: "https://images.unsplash.com/photo-1589802829985-817e51171b92?w=600&auto=format&fit=crop&q=80",
+      is_indoor: 0,
       tips: {
         es: "Paseo arquitectónico imperdible. Mausoleo de Eva Perón. Los fines de semana hay feria artesanal en Plaza Francia.",
         en: "World-class cemetery and French architecture. Eva Peron's tomb. Great weekend artisan craft fair in Plaza Francia.",
         pt: "Passeio imperdível de arquitetura estilo parisiense. Túmulo de Eva Perón e feira de artesanato na Plaza Francia aos fins de semana."
+      }
+    },
+    {
+      id: "c1",
+      category: "cafes",
+      name: "Café Tortoni",
+      neighborhood: "Montserrat / Centro",
+      lat: -34.6085,
+      lng: -58.3792,
+      price: "$$",
+      tag: "Café Histórico 1858 (Bajo Techo)",
+      image: "https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?w=600&auto=format&fit=crop&q=80",
+      is_indoor: 1,
+      tips: {
+        es: "El café más antiguo y legendario de Buenos Aires (fundado en 1858). Chocolate con churros caliente imperdible, ideal para un día de lluvia o tarde fresca.",
+        en: "Buenos Aires' oldest and most legendary café (1858). Hot chocolate with churros is a must, especially on rainy days.",
+        pt: "O café mais antigo e lendário de Buenos Aires (1858). Chocolate quente com churros imperdível, perfeito para dias de chuva."
+      }
+    },
+    {
+      id: "c2",
+      category: "culture",
+      name: "El Ateneo Grand Splendid",
+      neighborhood: "Recoleta",
+      lat: -34.5960,
+      lng: -58.3942,
+      price: "$",
+      tag: "Librería Teatro (Bajo Techo)",
+      image: "https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?w=600&auto=format&fit=crop&q=80",
+      is_indoor: 1,
+      tips: {
+        es: "Elegida entre las librerías más hermosas del mundo dentro de un teatro de 1919. El café está sobre el escenario original. Plan bajo techo perfecto.",
+        en: "Ranked among the world's most beautiful bookstores, set in a 1919 theater. Coffee on the stage. Perfect rainy day plan.",
+        pt: "Considerada uma das livrarias mais lindas do mundo em um antigo teatro. Café no palco principal. Plano perfeito para dia de chuva."
+      }
+    },
+    {
+      id: "f1",
+      category: "shopping",
+      name: "Feria de San Telmo",
+      neighborhood: "San Telmo",
+      lat: -34.6180,
+      lng: -58.3715,
+      price: "$",
+      tag: "Feria Domingos (Al Aire Libre)",
+      image: "https://images.unsplash.com/photo-1519567241046-7f570eee3ce6?w=600&auto=format&fit=crop&q=80",
+      is_indoor: 0,
+      tips: {
+        es: "Todos los domingos de 10 a 18 hs. 12 cuadras peatonales de antigüedades, orquestas de tango callejero y recuerdos.",
+        en: "Every Sunday from 10 AM to 6 PM. 12 pedestrian blocks with antiques, street tango dancers and artisans.",
+        pt: "Todos os domingos das 10h às 18h. 12 quadras de rua de pedestres com antiguidades, dançarinos de tango na rua e artesanato."
+      }
+    },
+    {
+      id: "f2",
+      category: "food",
+      name: "Feria de Mataderos",
+      neighborhood: "Mataderos",
+      lat: -34.6608,
+      lng: -58.5028,
+      price: "$$",
+      tag: "Gauchos & Asado (Domingos)",
+      image: "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=600&auto=format&fit=crop&q=80",
+      is_indoor: 0,
+      tips: {
+        es: "Domingos de tradición criolla. Jineteadas, asado al asador, empanadas y peñas folclóricas. Experiencia 100% auténtica.",
+        en: "Sundays of Argentine gaucho tradition. Open-fire barbecue, folklore dances and crafts. 100% authentic cultural immersion.",
+        pt: "Domingos de tradição gaúcha argentina. Churrasco no fogo de chão, danças folclóricas e comida típica autêntica."
       }
     }
   ],
@@ -215,8 +284,11 @@ const APP_DATA = {
       subtitle: "Recomendaciones reales de mozos y anfitriones",
       recommendedBy: "Atendido por",
       tabMap: "Mapa en Vivo",
+      tabEvents: "Eventos & Agenda",
       tabTango: "Tango & Shows",
       tabGuide: "Tips & Seguridad",
+      btnCalc: "💵 Propina & Divisas",
+      rainyFilter: "🌧️ Día de Lluvia",
       filterAll: "Todos",
       filterFood: "🥩 Parrillas & Pastas",
       filterTango: "💃 Tango",
@@ -241,8 +313,11 @@ const APP_DATA = {
       subtitle: "Curated by local waiters and hosts",
       recommendedBy: "Hosted by",
       tabMap: "Live Map",
+      tabEvents: "Events & Agenda",
       tabTango: "Tango & Shows",
       tabGuide: "Tips & Safety",
+      btnCalc: "💵 Tip & Currency",
+      rainyFilter: "🌧️ Rainy Day Plan",
       filterAll: "All",
       filterFood: "🥩 Steakhouses",
       filterTango: "💃 Tango",
@@ -267,8 +342,11 @@ const APP_DATA = {
       subtitle: "Dicas reais de garçons e anfitriões locais",
       recommendedBy: "Atendido por",
       tabMap: "Mapa ao Vivo",
+      tabEvents: "Eventos & Agenda",
       tabTango: "Tango & Shows",
       tabGuide: "Dicas & Segurança",
+      btnCalc: "💵 Gorjeta & Câmbio",
+      rainyFilter: "🌧️ Dia de Chuva",
       filterAll: "Todos",
       filterFood: "🥩 Carnes e Massas",
       filterTango: "💃 Tango",

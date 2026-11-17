@@ -117,12 +117,94 @@
     </div>
   </div>
 
+  <!-- MODAL: CALCULADORA DE PROPINA Y CAMBIO DE DIVISAS -->
+  <div class="modal-overlay" id="tip-calc-modal">
+    <div class="auth-card calc-card">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+        <h2 style="font-size:1.15rem; color:#fff; margin:0;" id="calc-modal-title">💵 Propina & Divisas</h2>
+        <button type="button" onclick="closeTipCalculator()" style="background:none; border:none; color:#94a3b8; font-size:1.2rem; cursor:pointer; padding:4px;">✕</button>
+      </div>
+
+      <div style="margin-bottom:14px;">
+        <label style="display:block; font-size:0.8rem; color:#94a3b8; margin-bottom:6px;" id="lbl-calc-bill">
+          Monto total de tu cuenta en Pesos ($ ARS):
+        </label>
+        <div style="position:relative;">
+          <span style="position:absolute; left:12px; top:9px; color:#10b981; font-weight:bold; font-size:1.1rem;">$</span>
+          <input type="number" id="calc-bill-amount" placeholder="Ej: 35000" class="calc-input" oninput="updateTipCalculation()">
+        </div>
+      </div>
+
+      <div style="margin-bottom:12px;">
+        <label style="display:block; font-size:0.8rem; color:#94a3b8; margin-bottom:6px;" id="lbl-calc-tip-choice">
+          Propina recomendada para el Mozo:
+        </label>
+        <div style="display:flex; gap:6px;">
+          <button type="button" class="tip-percent-btn active" data-tip="10" onclick="setTipPercent(10)">
+            10% <span style="font-size:0.7rem; font-weight:normal; display:block;">(Habitual BsAs)</span>
+          </button>
+          <button type="button" class="tip-percent-btn" data-tip="15" onclick="setTipPercent(15)">
+            15% <span style="font-size:0.7rem; font-weight:normal; display:block;">(Excelente)</span>
+          </button>
+          <button type="button" class="tip-percent-btn" data-tip="0" onclick="setTipPercent(0)">
+            0% <span style="font-size:0.7rem; font-weight:normal; display:block;">(Sin propina)</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="tip-cultural-note" id="calc-cultural-note">
+        💡 <strong>Costumbre en Argentina:</strong> La propina habitual en restaurantes es del <strong>10%</strong>. No viene incluida en la cuenta y se acostumbra dejarla en reconocimiento a la atención del mozo.
+      </div>
+
+      <div class="calc-results-box">
+        <div class="calc-result-row">
+          <span id="lbl-res-subtotal">Subtotal consumo:</span>
+          <span id="calc-res-subtotal">$0 ARS</span>
+        </div>
+        <div class="calc-result-row" style="color:#10b981; font-weight:bold;">
+          <span id="calc-res-tip-lbl">Propina recomendada (10%):</span>
+          <span id="calc-res-tip">+$0 ARS</span>
+        </div>
+        <div class="calc-result-row calc-total-row">
+          <span id="lbl-res-total">Total a pagar con propina:</span>
+          <span id="calc-res-total">$0 ARS</span>
+        </div>
+      </div>
+
+      <div class="calc-fx-box">
+        <div style="font-size:0.75rem; color:#94a3b8; margin-bottom:6px; display:flex; justify-content:space-between;">
+          <span id="lbl-fx-approx">Equivalente aproximado del total:</span>
+          <span id="calc-fx-updated" style="color:#64748b; font-size:0.7rem;">Cálculo en vivo</span>
+        </div>
+        <div class="calc-fx-grid">
+          <div class="calc-fx-item">
+            <span class="fx-flag">🇺🇸 USD</span>
+            <span class="fx-val" id="calc-fx-usd">$0.00</span>
+          </div>
+          <div class="calc-fx-item">
+            <span class="fx-flag">🇪🇺 EUR</span>
+            <span class="fx-val" id="calc-fx-eur">€0.00</span>
+          </div>
+          <div class="calc-fx-item">
+            <span class="fx-flag">🇧🇷 BRL</span>
+            <span class="fx-val" id="calc-fx-brl">R$ 0.00</span>
+          </div>
+        </div>
+      </div>
+
+      <button type="button" onclick="closeTipCalculator()" class="btn-transport" style="background:#334155; margin-top:14px; width:100%; border:none; cursor:pointer;">
+        Cerrar
+      </button>
+    </div>
+  </div>
+
   <!-- Header -->
   <header class="app-header">
     <div class="brand-section">
       <h1 id="lbl-title">📍 BsAs Local Guide</h1>
       <div class="subtitle" id="lbl-subtitle">Recomendaciones reales de mozos</div>
       <div id="waiter-tag" class="waiter-badge" style="display:none;"></div>
+      <button id="btn-header-calc" class="btn-calc-pill" onclick="openTipCalculator()">💵 <span id="lbl-btn-calc">Propina & Divisas</span></button>
       <button id="btn-header-unlock" class="btn-unlock-pill" onclick="openUnlockModal()">🔑 Desbloquear VIP</button>
       <div id="pass-tag" class="vip-active-pill" style="display:none;"></div>
     </div>
@@ -138,6 +220,10 @@
     <button class="tab-btn active" data-tab="tab-map">
       <span>🗺️</span>
       <span id="nav-map">Mapa</span>
+    </button>
+    <button class="tab-btn" data-tab="tab-events">
+      <span>📅</span>
+      <span id="nav-events">Eventos BA</span>
     </button>
     <button class="tab-btn" data-tab="tab-tango">
       <span>💃</span>
@@ -165,10 +251,15 @@
       </div>
     </div>
 
-    <!-- Toggle Zonas Seguras Semáforo -->
-    <button id="btn-toggle-safety" class="safety-toggle-btn" onclick="toggleSafetyLayer()">
-      <span>🛡️</span> <span id="lbl-safety-toggle">Zonas Seguras: ON</span>
-    </button>
+    <!-- Toggles Rápidos en Mapa (Zonas Seguras y Día de Lluvia) -->
+    <div class="map-quick-toggles">
+      <button id="btn-toggle-safety" class="safety-toggle-btn" onclick="toggleSafetyLayer()">
+        <span>🛡️</span> <span id="lbl-safety-toggle">Zonas Seguras: ON</span>
+      </button>
+      <button id="btn-toggle-rainy" class="safety-toggle-btn btn-rainy-toggle" onclick="toggleRainyFilter()">
+        <span>🌧️</span> <span id="lbl-rainy-toggle">Día de Lluvia</span>
+      </button>
+    </div>
 
     <!-- Panel flotante de navegación cuando hay una ruta activa -->
     <div id="route-panel" class="route-floating-panel" style="display:none;">
@@ -191,6 +282,11 @@
 
     <div id="map"></div>
     <button id="btn-locate" class="locate-btn" title="Mi ubicación">📍</button>
+  </main>
+
+  <!-- TAB: EVENTOS & AGENDAS EN VIVO -->
+  <main id="tab-events" class="tab-content">
+    <div class="scrollable-list" id="events-list-container"></div>
   </main>
 
   <!-- TAB 2: TANGO & TOURS -->
