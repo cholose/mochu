@@ -10,7 +10,7 @@
   
   <!-- Leaflet CSS para los mapas del admin -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css?v=20261117_5">
 
   <style>
     body {
@@ -605,7 +605,7 @@
 
   <!-- Leaflet JS -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <script src="data.js"></script>
+  <script src="data.js?v=20261117_5"></script>
 
   <script>
     let allPlaces = [];
@@ -1046,6 +1046,10 @@
       if (dashboardMap) return;
       if (typeof L === "undefined") return;
 
+      const mapEl = document.getElementById("dashboard-admin-map");
+      if (!mapEl) return;
+      if (mapEl._leaflet_id) return;
+
       try {
         dashboardMap = L.map("dashboard-admin-map", { zoomControl: true }).setView([-34.6037, -58.3816], 13);
         L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
@@ -1063,9 +1067,9 @@
 
         setTimeout(() => {
           if (dashboardMap) dashboardMap.invalidateSize();
-        }, 300);
+        }, 350);
       } catch (err) {
-        console.error("Error inicializando mapa:", err);
+        console.warn("Aviso inicializando mapa:", err);
       }
     }
 
@@ -1156,54 +1160,38 @@
       if (saved) {
         try { localList = JSON.parse(saved); } catch(e) { localList = []; }
       }
-      const appPlaces = (typeof APP_DATA !== "undefined" && APP_DATA.places) ? APP_DATA.places : [];
+      const officialPlaces = (typeof APP_DATA !== "undefined" && APP_DATA.places) ? APP_DATA.places : [];
 
-      if (!localList || localList.length === 0) {
-        allPlaces = appPlaces.map(p => ({
-          id: p.id,
-          category: p.category,
-          name: p.name,
-          address: p.address || "",
-          neighborhood: p.neighborhood,
-          lat: p.lat,
-          lng: p.lng,
-          price: p.price,
-          tag: p.tag,
-          image: p.image,
-          menu_url: p.menu_url || "",
-          tip_es: p.tips ? p.tips.es : (p.tip_es || ""),
-          tip_en: p.tips ? p.tips.en : (p.tip_en || ""),
-          tip_pt: p.tips ? p.tips.pt : (p.tip_pt || ""),
-          is_indoor: p.is_indoor ?? 1,
-          active: p.active ?? 1
-        }));
-      } else {
-        // Combinar lugares nuevos de data.js que no estén en la lista local
-        const localIds = new Set(localList.map(p => p.id));
-        appPlaces.forEach(p => {
-          if (!localIds.has(p.id)) {
-            localList.push({
-              id: p.id,
-              category: p.category,
-              name: p.name,
-              address: p.address || "",
-              neighborhood: p.neighborhood,
-              lat: p.lat,
-              lng: p.lng,
-              price: p.price,
-              tag: p.tag,
-              image: p.image,
-              menu_url: p.menu_url || "",
-              tip_es: p.tips ? p.tips.es : (p.tip_es || ""),
-              tip_en: p.tips ? p.tips.en : (p.tip_en || ""),
-              tip_pt: p.tips ? p.tips.pt : (p.tip_pt || ""),
-              is_indoor: p.is_indoor ?? 1,
-              active: p.active ?? 1
-            });
-          }
-        });
-        allPlaces = localList;
-      }
+      // Priorizar los lugares oficiales de data.js y evitar duplicados por nombre
+      const officialNames = new Set(officialPlaces.map(p => (p.name || "").trim().toLowerCase()));
+      const officialIds = new Set(officialPlaces.map(p => p.id));
+
+      const customLocal = localList.filter(p => {
+        const name = (p.name || "").trim().toLowerCase();
+        return !officialIds.has(p.id) && !officialNames.has(name);
+      });
+
+      const combined = [...officialPlaces, ...customLocal];
+
+      allPlaces = combined.map(p => ({
+        id: p.id,
+        category: p.category,
+        name: p.name,
+        address: p.address || "",
+        neighborhood: p.neighborhood || "",
+        lat: parseFloat(p.lat) || -34.6037,
+        lng: parseFloat(p.lng) || -58.3816,
+        price: p.price || "$$",
+        tag: p.tag || "Recomendado",
+        image: p.image || "https://images.unsplash.com/photo-1544025162-d76694265947?w=600",
+        menu_url: p.menu_url || "",
+        tip_es: p.tips ? p.tips.es : (p.tip_es || ""),
+        tip_en: p.tips ? p.tips.en : (p.tip_en || ""),
+        tip_pt: p.tips ? p.tips.pt : (p.tip_pt || ""),
+        is_indoor: p.is_indoor !== undefined ? (p.is_indoor === 1 || p.is_indoor === true ? 1 : 0) : 1,
+        active: p.active !== undefined ? (p.active !== 0 && p.active !== false && p.active !== "0" ? 1 : 0) : 1
+      }));
+
       try {
         localStorage.setItem("bsas_places", JSON.stringify(allPlaces));
       } catch(e) {}
@@ -1484,49 +1472,62 @@
 
     // ==================== MINI MAPA DENTRO DEL FORMULARIO DE EDICIÓN ====================
     function initOrUpdateMiniMap(lat, lng) {
+      const safeLat = (typeof lat === "number" && !isNaN(lat)) ? lat : -34.5878;
+      const safeLng = (typeof lng === "number" && !isNaN(lng)) ? lng : -58.4239;
+
       const badge = document.getElementById("pin-coords-badge");
       if (badge) {
         badge.textContent = `📍 Ubicado`;
       }
 
-      if (!editorMiniMap) {
-        editorMiniMap = L.map("editor-mini-map", { zoomControl: true }).setView([lat, lng], 15);
-        L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
-          attribution: '&copy; OpenStreetMap',
-          maxZoom: 19
-        }).addTo(editorMiniMap);
+      const miniEl = document.getElementById("editor-mini-map");
+      if (!miniEl || typeof L === "undefined") return;
 
-        editorMiniMarker = L.marker([lat, lng], { draggable: true }).addTo(editorMiniMap);
-
-        editorMiniMarker.on("dragend", function(e) {
-          const pos = e.target.getLatLng();
-          document.getElementById("form-lat").value = pos.lat.toFixed(6);
-          document.getElementById("form-lng").value = pos.lng.toFixed(6);
-          const msgEl = document.getElementById("geocode-msg");
-          if (msgEl) {
-            msgEl.textContent = "📍 Pin ajustado manualmente.";
-            msgEl.style.color = "#38bdf8";
+      try {
+        if (!editorMiniMap) {
+          if (miniEl._leaflet_id) {
+            miniEl._leaflet_id = null;
           }
-        });
+          editorMiniMap = L.map("editor-mini-map", { zoomControl: true }).setView([safeLat, safeLng], 15);
+          L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+            attribution: '&copy; OpenStreetMap',
+            maxZoom: 19
+          }).addTo(editorMiniMap);
 
-        editorMiniMap.on("click", function(e) {
-          editorMiniMarker.setLatLng(e.latlng);
-          document.getElementById("form-lat").value = e.latlng.lat.toFixed(6);
-          document.getElementById("form-lng").value = e.latlng.lng.toFixed(6);
-          const msgEl = document.getElementById("geocode-msg");
-          if (msgEl) {
-            msgEl.textContent = "📍 Pin ubicado donde hiciste clic.";
-            msgEl.style.color = "#38bdf8";
-          }
-        });
-      } else {
-        editorMiniMap.setView([lat, lng], 15);
-        editorMiniMarker.setLatLng([lat, lng]);
+          editorMiniMarker = L.marker([safeLat, safeLng], { draggable: true }).addTo(editorMiniMap);
+
+          editorMiniMarker.on("dragend", function(e) {
+            const pos = e.target.getLatLng();
+            document.getElementById("form-lat").value = pos.lat.toFixed(6);
+            document.getElementById("form-lng").value = pos.lng.toFixed(6);
+            const msgEl = document.getElementById("geocode-msg");
+            if (msgEl) {
+              msgEl.textContent = "📍 Pin ajustado manualmente.";
+              msgEl.style.color = "#38bdf8";
+            }
+          });
+
+          editorMiniMap.on("click", function(e) {
+            if (editorMiniMarker) editorMiniMarker.setLatLng(e.latlng);
+            document.getElementById("form-lat").value = e.latlng.lat.toFixed(6);
+            document.getElementById("form-lng").value = e.latlng.lng.toFixed(6);
+            const msgEl = document.getElementById("geocode-msg");
+            if (msgEl) {
+              msgEl.textContent = "📍 Pin ubicado donde hiciste clic.";
+              msgEl.style.color = "#38bdf8";
+            }
+          });
+        } else {
+          editorMiniMap.setView([safeLat, safeLng], 15);
+          if (editorMiniMarker) editorMiniMarker.setLatLng([safeLat, safeLng]);
+        }
+
+        setTimeout(() => {
+          if (editorMiniMap) editorMiniMap.invalidateSize();
+        }, 250);
+      } catch (err) {
+        console.warn("Aviso mini mapa:", err);
       }
-
-      setTimeout(() => {
-        if (editorMiniMap) editorMiniMap.invalidateSize();
-      }, 250);
     }
 
     // ==================== FOTOS: VISTA PREVIA Y SUBIDA DIRECTA ====================
