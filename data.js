@@ -60,6 +60,25 @@ const APP_DATA = {
       }
     },
     {
+      id: "p_tifiamo",
+      category: "food",
+      name: "Tifiamo Resto & Bar",
+      address: "Av. Corrientes 1802",
+      neighborhood: "Balvanera / Av. Corrientes",
+      lat: -34.6044,
+      lng: -58.3934,
+      price: "$$",
+      tag: "Recomendado",
+      image: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=600&auto=format&fit=crop&q=80",
+      menu_url: "",
+      is_indoor: 1,
+      tips: {
+        es: "Excelente atención y ambiente agradable sobre Avenida Corrientes. Muy buenos platos y opciones para merendar o cenar.",
+        en: "Great service and cozy atmosphere on Corrientes Avenue. Wonderful food and options for afternoon coffee or dinner.",
+        pt: "Ótimo atendimento e ambiente agradável na Avenida Corrientes. Pratos deliciosos para lanchar ou jantar."
+      }
+    },
+    {
       id: "t1",
       category: "tango",
       name: "Madero Tango",

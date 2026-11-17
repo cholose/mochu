@@ -5,15 +5,19 @@ echo ========================================================
 echo   SUBIENDO PROYECTO A GITHUB: cholose/mochu
 echo ========================================================
 echo.
-echo Si te abre una ventana en el navegador, selecciona
-echo "Sign in with your browser" e inicia sesion con "cholose".
+echo 1. Guardando cambios y lugares nuevos...
+git add .
+git commit -m "Actualizar lugares y datos de la app"
 echo.
+echo 2. Subiendo a GitHub Pages para todos los celulares...
 git push -u origin main
 echo.
 if %errorlevel% equ 0 (
     echo ========================================================
     echo   EXITO: Tu proyecto fue subido a GitHub correctamente!
-    echo   Repositorio: https://github.com/cholose/mochu
+    echo   Tus lugares nuevos ya estan visibles en los celulares.
+    echo   Web Turistas: https://cholose.github.io/mochu/
+    echo   Panel Admin:  https://cholose.github.io/mochu/admin.html
     echo ========================================================
 ) else (
     echo ========================================================

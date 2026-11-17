@@ -1055,7 +1055,7 @@ function renderTangoList() {
 
     return `
       <article class="card-item">
-        <img src="${item.image}" alt="${item.name}">
+        <img src="${item.image}" alt="${item.name}" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=600&auto=format&fit=crop&q=80';">
         <div class="card-body">
           <div class="card-title-row">
             <h3 class="card-title">${item.name}</h3>

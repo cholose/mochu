@@ -612,6 +612,7 @@ const server = http.createServer(async (req, res) => {
           VALUES (?, ?, ?, ?, ?, 0, 0, 0, ?)
         `).run(id, name, alias, pin, commission, Date.now());
       }
+      syncPlacesToDataJs();
       return sendJSON(res, 200, { success: true, id });
     } catch (e) {
       return sendJSON(res, 400, { error: e.message });
@@ -649,6 +650,45 @@ const server = http.createServer(async (req, res) => {
     }
   }
 
+  function syncPlacesToDataJs() {
+    try {
+      const dataJsPath = path.join(__dirname, "data.js");
+      if (!fs.existsSync(dataJsPath)) return;
+      let content = fs.readFileSync(dataJsPath, "utf8");
+
+      const places = db.prepare("SELECT * FROM places WHERE active = 1 ORDER BY created_at DESC").all();
+      const formatted = places.map(p => ({
+        id: p.id,
+        category: p.category,
+        name: p.name,
+        address: p.address || "",
+        neighborhood: p.neighborhood,
+        lat: p.lat,
+        lng: p.lng,
+        price: p.price,
+        tag: p.tag,
+        image: p.image,
+        menu_url: p.menu_url || "",
+        is_indoor: p.is_indoor ?? 1,
+        tips: {
+          es: p.tip_es || "",
+          en: p.tip_en || p.tip_es || "",
+          pt: p.tip_pt || p.tip_es || ""
+        }
+      }));
+
+      const placesJson = JSON.stringify(formatted, null, 2);
+      const regex = /places:\s*\[[\s\S]*?\n\s*\],/;
+      if (regex.test(content)) {
+        content = content.replace(regex, `places: ${placesJson},`);
+        fs.writeFileSync(dataJsPath, content, "utf8");
+        console.log("data.js sincronizado automáticamente!");
+      }
+    } catch (err) {
+      console.error("Error sincronizando data.js:", err);
+    }
+  }
+
   // Lugares en Admin
   if (pathname === "/api/admin/places" && method === "GET") {
     const places = db.prepare("SELECT * FROM places ORDER BY created_at DESC").all();
@@ -683,6 +723,7 @@ const server = http.createServer(async (req, res) => {
           p.price, p.tag, p.image, menuUrl, p.tip_es, p.tip_en, p.tip_pt, 1, Date.now(), isIndoor
         );
       }
+      syncPlacesToDataJs();
       return sendJSON(res, 200, { success: true, id });
     } catch (e) {
       return sendJSON(res, 400, { error: e.message });
@@ -729,6 +770,7 @@ const server = http.createServer(async (req, res) => {
     try {
       const data = await parseBody(req);
       db.prepare("UPDATE places SET active = ? WHERE id = ?").run(data.active ? 1 : 0, data.id);
+      syncPlacesToDataJs();
       return sendJSON(res, 200, { success: true });
     } catch (e) {
       return sendJSON(res, 400, { error: e.message });
@@ -738,6 +780,7 @@ const server = http.createServer(async (req, res) => {
   if (pathname.startsWith("/api/admin/places/") && method === "DELETE") {
     const id = pathname.split("/").pop();
     db.prepare("DELETE FROM places WHERE id = ?").run(id);
+    syncPlacesToDataJs();
     return sendJSON(res, 200, { success: true });
   }
 
