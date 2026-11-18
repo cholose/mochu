@@ -11,8 +11,8 @@
   <!-- Leaflet CSS y JS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <script src="data.js?v=20261117_8"></script>
-  <link rel="stylesheet" href="style.css?v=20261117_8">
+  <script src="data.js?v=20261117_9"></script>
+  <link rel="stylesheet" href="style.css?v=20261117_9">
 
   <style>
     body {
@@ -259,6 +259,61 @@
       font-weight: 600;
       font-size: 0.75rem;
     }
+
+    /* Pestañas de Navegación del Panel de Administración */
+    .admin-nav-tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 20px;
+      overflow-x: auto;
+      padding-bottom: 6px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      -webkit-overflow-scrolling: touch;
+    }
+    .admin-tab-btn {
+      background: #1e293b;
+      color: #94a3b8;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 10px 16px;
+      border-radius: 10px;
+      font-size: 0.88rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      white-space: nowrap;
+      transition: all 0.2s ease;
+    }
+    .admin-tab-btn:hover {
+      background: #334155;
+      color: #fff;
+    }
+    .admin-tab-btn.active {
+      background: #10b981;
+      color: #0f172a;
+      border-color: #34d399;
+      box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);
+    }
+    .admin-tab-btn .tab-badge {
+      background: #f59e0b;
+      color: #0f172a;
+      font-size: 0.72rem;
+      padding: 2px 7px;
+      border-radius: 999px;
+      font-weight: 800;
+    }
+    .admin-tab-content {
+      display: none;
+    }
+    .admin-tab-content.active {
+      display: block;
+      animation: fadeInTab 0.2s ease-in-out;
+    }
+    @keyframes fadeInTab {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
   </style>
 </head>
 <body>
@@ -304,80 +359,106 @@
       </div>
     </div>
 
-    <!-- SECCIÓN: CONFIGURACIÓN DE MERCADO PAGO -->
-    <div class="admin-card">
-      <div class="section-title">
-        <span>💙 Link de Cobro de Mercado Pago</span>
-      </div>
-      <div style="display:flex; gap:10px; align-items:center;">
-        <input type="url" id="cfg-mp-link" class="input-field" style="margin:0; flex:1;" placeholder="Pegá tu link de pago de Mercado Pago (ej: https://mpago.la/...)">
-        <button class="btn-action" onclick="saveMpConfig()">Guardar</button>
-      </div>
-      <div style="font-size:0.75rem; color:#94a3b8; margin-top:6px;">
-        Cuando el turista toque "Pagar con Mercado Pago", se le abrirá este link directamente.
+    <!-- PESTAÑAS DE NAVEGACIÓN -->
+    <div class="admin-nav-tabs">
+      <button class="admin-tab-btn active" data-tab="tab-admin-places" onclick="switchAdminTab('tab-admin-places')">
+        <span>🗺️</span> Lugares & Mapa
+      </button>
+      <button class="admin-tab-btn" data-tab="tab-admin-suggestions" onclick="switchAdminTab('tab-admin-suggestions')">
+        <span>💡</span> Recomendaciones
+        <span id="tab-suggestions-counter" class="tab-badge" style="display:none;">0</span>
+      </button>
+      <button class="admin-tab-btn" data-tab="tab-admin-reviews" onclick="switchAdminTab('tab-admin-reviews')">
+        <span>💬</span> Reseñas & Fotos
+      </button>
+      <button class="admin-tab-btn" data-tab="tab-admin-waiters" onclick="switchAdminTab('tab-admin-waiters')">
+        <span>👨‍🍳</span> Mozos & Cobros
+      </button>
+    </div>
+
+    <!-- PESTAÑA 1: LUGARES & MAPA -->
+    <div id="tab-admin-places" class="admin-tab-content active">
+      <div class="admin-card">
+        <div class="section-title">
+          <span>🗺️ Mapa de Lugares & Edición en Vivo</span>
+          <div style="display:flex; gap:8px;">
+            <button class="btn-action btn-secondary" onclick="openCategoryModal()">🏷️ Gestionar Categorías</button>
+            <button class="btn-action" onclick="openPlaceEditor()">+ Nuevo Lugar</button>
+          </div>
+        </div>
+        
+        <div style="background:rgba(56, 189, 248, 0.1); border:1px solid rgba(56, 189, 248, 0.3); border-radius:8px; padding:10px; margin-bottom:12px; font-size:0.82rem; color:#38bdf8;">
+          📍 <strong>Instrucciones:</strong> Hacé clic en cualquier calle del mapa para <strong>agregar un nuevo lugar</strong> en esa posición, o hacé clic en un <strong>pin existente</strong> para editarlo o cambiar sus datos.
+        </div>
+
+        <!-- MAPA DEL DASHBOARD -->
+        <div id="dashboard-admin-map" style="height:360px; width:100%; border-radius:12px; border:1px solid rgba(255,255,255,0.15); background:#1e293b; margin-bottom:16px;"></div>
+
+        <div class="section-title" style="margin-top:16px;">
+          <span style="font-size:0.95rem;">📋 Listado de Lugares Cargados</span>
+        </div>
+        <div class="places-list" id="places-container"></div>
       </div>
     </div>
 
-    <!-- SECCIÓN: MOZOS, QR Y TRANSFERENCIAS POR ALIAS -->
-    <div class="admin-card">
-      <div class="section-title">
-        <span>👨‍🍳 Mozos, Códigos QR y Liquidaciones</span>
-        <button class="btn-action" onclick="openWaiterModal()">+ Nuevo Mozo</button>
+    <!-- PESTAÑA 2: RECOMENDACIONES DE CLIENTES -->
+    <div id="tab-admin-suggestions" class="admin-tab-content">
+      <div class="admin-card">
+        <div class="section-title">
+          <span style="display:flex; align-items:center; gap:8px;">
+            💡 Lugares Recomendados por Clientes
+            <span id="suggestions-badge" style="font-size:0.72rem; background:#f59e0b; color:#0f172a; font-weight:800; padding:2px 8px; border-radius:10px;">0 pendientes</span>
+          </span>
+          <button class="btn-action btn-secondary" onclick="loadAdminSuggestions()">🔄 Actualizar</button>
+        </div>
+        <p style="font-size:0.8rem; color:#94a3b8; margin-bottom:14px;">
+          Lugares que visitaron los turistas y te recomiendan para sumar al mapa. Tocá <strong>"➕ Agregar al Mapa"</strong> para abrir el formulario con los datos pre-cargados y ubicar el pin en un solo clic.
+        </p>
+        <div id="admin-suggestions-container"></div>
       </div>
-      <p style="font-size:0.8rem; color:#94a3b8; margin-bottom:14px;">
-        Generá el QR para que cada mozo lo imprima o muestre en la mesa, y transferile su parte por Alias.
-      </p>
-      <div id="waiters-container"></div>
     </div>
 
-    <!-- SECCIÓN PRINCIPAL: MAPA INTERACTIVO DE LUGARES -->
-    <div class="admin-card">
-      <div class="section-title">
-        <span>🗺️ Mapa de Lugares & Edición en Vivo</span>
-        <div style="display:flex; gap:8px;">
-          <button class="btn-action btn-secondary" onclick="openCategoryModal()">🏷️ Gestionar Categorías</button>
-          <button class="btn-action" onclick="openPlaceEditor()">+ Nuevo Lugar</button>
+    <!-- PESTAÑA 3: RESEÑAS Y FOTOS -->
+    <div id="tab-admin-reviews" class="admin-tab-content">
+      <div class="admin-card">
+        <div class="section-title">
+          <span>💬 Reseñas y Fotos de Turistas</span>
+          <button class="btn-action btn-secondary" onclick="loadAdminReviews()">🔄 Actualizar</button>
+        </div>
+        <p style="font-size:0.8rem; color:#94a3b8; margin-bottom:14px;">
+          Revisá las fotos y comentarios que dejan los turistas en los restaurantes y shows. Podés eliminar cualquier comentario inadecuado o spam con un solo clic.
+        </p>
+        <div id="admin-reviews-container"></div>
+      </div>
+    </div>
+
+    <!-- PESTAÑA 4: MOZOS, QR Y COBROS -->
+    <div id="tab-admin-waiters" class="admin-tab-content">
+      <!-- CONFIGURACIÓN DE MERCADO PAGO -->
+      <div class="admin-card">
+        <div class="section-title">
+          <span>💙 Link de Cobro de Mercado Pago</span>
+        </div>
+        <div style="display:flex; gap:10px; align-items:center;">
+          <input type="url" id="cfg-mp-link" class="input-field" style="margin:0; flex:1;" placeholder="Pegá tu link de pago de Mercado Pago (ej: https://mpago.la/...)">
+          <button class="btn-action" onclick="saveMpConfig()">Guardar</button>
+        </div>
+        <div style="font-size:0.75rem; color:#94a3b8; margin-top:6px;">
+          Cuando el turista toque "Pagar con Mercado Pago", se le abrirá este link directamente.
         </div>
       </div>
-      
-      <div style="background:rgba(56, 189, 248, 0.1); border:1px solid rgba(56, 189, 248, 0.3); border-radius:8px; padding:10px; margin-bottom:12px; font-size:0.82rem; color:#38bdf8;">
-        📍 <strong>Instrucciones:</strong> Hacé clic en cualquier calle del mapa para <strong>agregar un nuevo lugar</strong> en esa posición, o hacé clic en un <strong>pin existente</strong> para editarlo o cambiar sus datos.
-      </div>
 
-      <!-- MAPA DEL DASHBOARD -->
-      <div id="dashboard-admin-map" style="height:360px; width:100%; border-radius:12px; border:1px solid rgba(255,255,255,0.15); background:#1e293b; margin-bottom:16px;"></div>
-
-      <div class="section-title" style="margin-top:16px;">
-        <span style="font-size:0.95rem;">📋 Listado de Lugares Cargados</span>
+      <!-- MOZOS, QR Y TRANSFERENCIAS POR ALIAS -->
+      <div class="admin-card">
+        <div class="section-title">
+          <span>👨‍🍳 Mozos, Códigos QR y Liquidaciones</span>
+          <button class="btn-action" onclick="openWaiterModal()">+ Nuevo Mozo</button>
+        </div>
+        <p style="font-size:0.8rem; color:#94a3b8; margin-bottom:14px;">
+          Generá el QR para que cada mozo lo imprima o muestre en la mesa, y transferile su parte por Alias.
+        </p>
+        <div id="waiters-container"></div>
       </div>
-      <div class="places-list" id="places-container"></div>
-    </div>
-
-    <!-- SECCIÓN: RECOMENDACIONES DE LUGARES POR CLIENTES Y TURISTAS -->
-    <div class="admin-card">
-      <div class="section-title">
-        <span style="display:flex; align-items:center; gap:8px;">
-          💡 Lugares Recomendados por Clientes
-          <span id="suggestions-badge" style="font-size:0.72rem; background:#f59e0b; color:#0f172a; font-weight:800; padding:2px 8px; border-radius:10px;">0 pendientes</span>
-        </span>
-        <button class="btn-action btn-secondary" onclick="loadAdminSuggestions()">🔄 Actualizar</button>
-      </div>
-      <p style="font-size:0.8rem; color:#94a3b8; margin-bottom:14px;">
-        Lugares que visitaron los turistas y te recomiendan para sumar al mapa. Tocá <strong>"➕ Agregar al Mapa"</strong> para abrir el formulario con los datos pre-cargados y ubicar el pin en un solo clic.
-      </p>
-      <div id="admin-suggestions-container"></div>
-    </div>
-
-    <!-- SECCIÓN: COMENTARIOS Y FOTOS DE TURISTAS -->
-    <div class="admin-card">
-      <div class="section-title">
-        <span>💬 Reseñas y Fotos de Turistas</span>
-        <button class="btn-action btn-secondary" onclick="loadAdminReviews()">🔄 Actualizar</button>
-      </div>
-      <p style="font-size:0.8rem; color:#94a3b8; margin-bottom:14px;">
-        Revisá las fotos y comentarios que dejan los turistas en los restaurantes y shows. Podés eliminar cualquier comentario inadecuado o spam con un solo clic.
-      </p>
-      <div id="admin-reviews-container"></div>
     </div>
   </div>
 
@@ -1217,18 +1298,26 @@
       if (saved) {
         try { localList = JSON.parse(saved); } catch(e) { localList = []; }
       }
+      const deletedIds = new Set(JSON.parse(localStorage.getItem("bsas_deleted_places") || "[]"));
+      deletedIds.add("p_tifiamo");
+      deletedIds.add("p_valerio");
+      deletedIds.add("place_mwl1ksaa");
+      deletedIds.add("place_mwkv5zyi");
+
       const officialPlaces = (typeof APP_DATA !== "undefined" && APP_DATA.places) ? APP_DATA.places : [];
 
-      // Priorizar los lugares oficiales de data.js y evitar duplicados por nombre
-      const officialNames = new Set(officialPlaces.map(p => (p.name || "").trim().toLowerCase()));
-      const officialIds = new Set(officialPlaces.map(p => p.id));
+      // Filtrar lugares oficiales que no hayan sido eliminados
+      const validOfficials = officialPlaces.filter(p => !deletedIds.has(p.id));
+
+      const officialNames = new Set(validOfficials.map(p => (p.name || "").trim().toLowerCase()));
+      const officialIds = new Set(validOfficials.map(p => p.id));
 
       const customLocal = localList.filter(p => {
         const name = (p.name || "").trim().toLowerCase();
-        return !officialIds.has(p.id) && !officialNames.has(name);
+        return !officialIds.has(p.id) && !officialNames.has(name) && !deletedIds.has(p.id);
       });
 
-      const combined = [...officialPlaces, ...customLocal];
+      const combined = [...validOfficials, ...customLocal];
 
       allPlaces = combined.map(p => ({
         id: p.id,
@@ -1317,9 +1406,34 @@
           }
         } catch (e) {}
       }
+
+      try {
+        const deleted = JSON.parse(localStorage.getItem("bsas_deleted_places") || "[]");
+        if (!deleted.includes(id)) deleted.push(id);
+        localStorage.setItem("bsas_deleted_places", JSON.stringify(deleted));
+      } catch(e) {}
+
       allPlaces = allPlaces.filter(x => x.id !== id);
       localStorage.setItem("bsas_places", JSON.stringify(allPlaces));
       loadPlaces();
+    }
+
+    // ==================== CAMBIO DE PESTAÑAS DEL ADMIN ====================
+    function switchAdminTab(tabId) {
+      document.querySelectorAll(".admin-tab-content").forEach(el => el.classList.remove("active"));
+      document.querySelectorAll(".admin-tab-btn").forEach(btn => btn.classList.remove("active"));
+
+      const target = document.getElementById(tabId);
+      if (target) target.classList.add("active");
+
+      const btn = document.querySelector(`.admin-tab-btn[data-tab="${tabId}"]`);
+      if (btn) btn.classList.add("active");
+
+      if (tabId === "tab-admin-places" && dashboardMap) {
+        setTimeout(() => {
+          dashboardMap.invalidateSize();
+        }, 150);
+      }
     }
 
     // ==================== GESTIÓN DE CATEGORÍAS ====================
@@ -1909,6 +2023,15 @@
           badge.style.background = pendingCount > 0 ? '#f59e0b' : '#334155';
           badge.style.color = pendingCount > 0 ? '#0f172a' : '#94a3b8';
         }
+        const tabBadge = document.getElementById("tab-suggestions-counter");
+        if (tabBadge) {
+          if (pendingCount > 0) {
+            tabBadge.textContent = pendingCount;
+            tabBadge.style.display = "inline-block";
+          } else {
+            tabBadge.style.display = "none";
+          }
+        }
 
         if (!suggestions || suggestions.length === 0) {
           container.innerHTML = '<div style="color:#94a3b8; font-size:0.85rem; padding:12px; background:rgba(255,255,255,0.02); border-radius:8px; text-align:center;">Todavía no hay recomendaciones enviadas por turistas.</div>';
@@ -1922,6 +2045,8 @@
           const cat = allCategories ? allCategories.find(c => c.id === s.category) : null;
           const catIcon = cat ? cat.icon : "🥩";
           const catName = cat ? cat.name : (s.category || "General");
+          const authorName = (s.user_name && s.user_name !== "undefined") ? s.user_name : (s.userName && s.userName !== "undefined" ? s.userName : "Turista");
+          const authorCountry = (s.user_country && s.user_country !== "undefined") ? s.user_country : (s.userCountry && s.userCountry !== "undefined" ? s.userCountry : "Turista");
 
           return `
             <div style="background:#0f172a; border:1px solid ${isApproved ? 'rgba(16,185,129,0.3)' : (isPending ? 'rgba(245,158,11,0.3)' : 'rgba(255,255,255,0.06)')}; border-radius:12px; padding:14px; margin-bottom:12px; display:flex; flex-direction:column; gap:10px;">
@@ -1954,7 +2079,7 @@
               </div>
 
               <div style="display:flex; align-items:center; gap:12px; font-size:0.75rem; color:#94a3b8;">
-                <span>👤 Recomendado por: <strong style="color:#cbd5e1;">${s.user_name}</strong> (${s.user_country || 'Turista'})</span>
+                <span>👤 Recomendado por: <strong style="color:#cbd5e1;">${authorName}</strong> (${authorCountry})</span>
                 <span>🏷️ ${catIcon} ${catName}</span>
                 <span>🕒 ${dateStr}</span>
               </div>
@@ -1994,7 +2119,10 @@
       const sug = allSuggestions.find(s => s.id === id);
       if (!sug) return;
 
-      // 1. Abrir editor de lugares
+      const author = (sug.user_name && sug.user_name !== "undefined") ? sug.user_name : (sug.userName && sug.userName !== "undefined" ? sug.userName : "");
+
+      // 1. Abrir editor de lugares y cambiar a pestaña de mapa
+      switchAdminTab("tab-admin-places");
       openPlaceEditor(null);
 
       // 2. Pre-cargar todos los datos del cliente
@@ -2003,8 +2131,8 @@
       document.getElementById("form-neighborhood").value = sug.neighborhood || sug.address.split(",")[1] || "Buenos Aires";
       if (sug.category) document.getElementById("form-category").value = sug.category;
       document.getElementById("form-price").value = "$$";
-      document.getElementById("form-tag").value = sug.user_name ? `Recomendado por ${sug.user_name}` : "Recomendado";
-      document.getElementById("form-tip-es").value = `${sug.tip}${sug.user_name ? ' (Recomendado por ' + sug.user_name + ' de ' + (sug.user_country || '') + ')' : ''}`;
+      document.getElementById("form-tag").value = author ? `Recomendado por ${author}` : "Recomendado";
+      document.getElementById("form-tip-es").value = `${sug.tip}${author ? ' (Recomendado por ' + author + ')' : ''}`;
       if (sug.link_url) document.getElementById("form-menu-url").value = sug.link_url;
 
       if (sug.photo_data) {

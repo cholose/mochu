@@ -312,7 +312,14 @@ async function loadPlaces() {
     }
   } catch (err) {
     const saved = localStorage.getItem("bsas_places");
+    const deletedIds = new Set(JSON.parse(localStorage.getItem("bsas_deleted_places") || "[]"));
+    deletedIds.add("p_tifiamo");
+    deletedIds.add("p_valerio");
+    deletedIds.add("place_mwl1ksaa");
+    deletedIds.add("place_mwkv5zyi");
+
     const officialPlaces = (typeof APP_DATA !== "undefined" && APP_DATA.places) ? APP_DATA.places : [];
+    const validOfficials = officialPlaces.filter(p => !deletedIds.has(p.id));
 
     let localList = [];
     if (saved) {
@@ -320,15 +327,15 @@ async function loadPlaces() {
     }
 
     // Filtrar duplicados: los lugares oficiales de data.js son la prioridad
-    const officialNames = new Set(officialPlaces.map(p => (p.name || "").trim().toLowerCase()));
-    const officialIds = new Set(officialPlaces.map(p => p.id));
+    const officialNames = new Set(validOfficials.map(p => (p.name || "").trim().toLowerCase()));
+    const officialIds = new Set(validOfficials.map(p => p.id));
 
     const customLocal = localList.filter(p => {
       const name = (p.name || "").trim().toLowerCase();
-      return !officialIds.has(p.id) && !officialNames.has(name);
+      return !officialIds.has(p.id) && !officialNames.has(name) && !deletedIds.has(p.id);
     });
 
-    const combined = [...officialPlaces, ...customLocal];
+    const combined = [...validOfficials, ...customLocal];
 
     state.places = combined.map(p => ({
       id: p.id,
@@ -370,25 +377,33 @@ async function refreshPlacesFromCloud() {
       const fn = new Function("let window={}; " + text + "; return (typeof APP_DATA !== 'undefined' ? APP_DATA : window.APP_DATA);");
       const freshData = fn();
       if (freshData && freshData.places && freshData.places.length > 0) {
-        const formatted = freshData.places.map(p => ({
-          id: p.id,
-          category: p.category,
-          name: p.name,
-          address: p.address || "",
-          neighborhood: p.neighborhood || "",
-          lat: parseFloat(p.lat) || -34.6037,
-          lng: parseFloat(p.lng) || -58.3816,
-          price: p.price || "$$",
-          tag: p.tag || "Recomendado",
-          image: p.image || "https://images.unsplash.com/photo-1544025162-d76694265947?w=600",
-          menu_url: p.menu_url || "",
-          is_indoor: p.is_indoor !== undefined ? (p.is_indoor === 1 || p.is_indoor === true ? 1 : 0) : 1,
-          tips: p.tips ? p.tips : {
-            es: p.tip_es || "",
-            en: p.tip_en || p.tip_es || "",
-            pt: p.tip_pt || p.tip_es || ""
-          }
-        }));
+        const deletedIds = new Set(JSON.parse(localStorage.getItem("bsas_deleted_places") || "[]"));
+        deletedIds.add("p_tifiamo");
+        deletedIds.add("p_valerio");
+        deletedIds.add("place_mwl1ksaa");
+        deletedIds.add("place_mwkv5zyi");
+
+        const formatted = freshData.places
+          .filter(p => !deletedIds.has(p.id))
+          .map(p => ({
+            id: p.id,
+            category: p.category,
+            name: p.name,
+            address: p.address || "",
+            neighborhood: p.neighborhood || "",
+            lat: parseFloat(p.lat) || -34.6037,
+            lng: parseFloat(p.lng) || -58.3816,
+            price: p.price || "$$",
+            tag: p.tag || "Recomendado",
+            image: p.image || "https://images.unsplash.com/photo-1544025162-d76694265947?w=600",
+            menu_url: p.menu_url || "",
+            is_indoor: p.is_indoor !== undefined ? (p.is_indoor === 1 || p.is_indoor === true ? 1 : 0) : 1,
+            tips: p.tips ? p.tips : {
+              es: p.tip_es || "",
+              en: p.tip_en || p.tip_es || "",
+              pt: p.tip_pt || p.tip_es || ""
+            }
+          }));
 
         const currentSig = state.places.map(p => p.id + ":" + (p.menu_url || "")).join("|");
         const freshSig = formatted.map(p => p.id + ":" + (p.menu_url || "")).join("|");
