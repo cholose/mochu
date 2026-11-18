@@ -12,7 +12,7 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 
   <!-- App Styles -->
-  <link rel="stylesheet" href="style.css?v=20261117_7">
+  <link rel="stylesheet" href="style.css?v=20261117_8">
   <style>
     .activation-overlay {
       position: fixed;
@@ -254,13 +254,16 @@
       </div>
     </div>
 
-    <!-- Toggles Rápidos en Mapa (Zonas Seguras y Día de Lluvia) -->
+    <!-- Toggles Rápidos en Mapa (Zonas Seguras, Día de Lluvia y Recomendar Lugar) -->
     <div class="map-quick-toggles">
       <button id="btn-toggle-safety" class="safety-toggle-btn" onclick="toggleSafetyLayer()">
         <span>🛡️</span> <span id="lbl-safety-toggle">Zonas Seguras: ON</span>
       </button>
       <button id="btn-toggle-rainy" class="safety-toggle-btn btn-rainy-toggle" onclick="toggleRainyFilter()">
         <span>🌧️</span> <span id="lbl-rainy-toggle">Día de Lluvia</span>
+      </button>
+      <button id="btn-toggle-recommend" class="safety-toggle-btn btn-recommend-toggle" onclick="openRecommendModal()">
+        <span>💡</span> <span id="lbl-recommend-toggle">Recomendar Lugar</span>
       </button>
     </div>
 
@@ -301,6 +304,105 @@
   <main id="tab-guide" class="tab-content">
     <div class="scrollable-list" id="guide-list-container"></div>
   </main>
+
+  <!-- MODAL: RECOMENDAR UN LUGAR NUEVO (CLIENTES Y TURISTAS) -->
+  <div class="modal-overlay" id="recommend-modal" style="display:none;">
+    <div class="bottom-sheet" style="max-width:480px; max-height:88dvh; overflow-y:auto;">
+      <div class="sheet-handle"></div>
+      
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+        <h2 style="font-size:1.2rem; color:#fff; margin:0;" id="lbl-rec-modal-title">💡 Recomendar un Lugar</h2>
+        <button type="button" onclick="closeRecommendModal()" style="background:none; border:none; color:#94a3b8; font-size:1.3rem; cursor:pointer; padding:4px;">✕</button>
+      </div>
+
+      <p style="font-size:0.8rem; color:#94a3b8; line-height:1.4; margin-bottom:14px;" id="lbl-rec-modal-sub">
+        ¿Conociste un restaurante, bar o rincón especial que no está en el mapa? Dejanos tu recomendación para que lo sumemos a la guía oficial.
+      </p>
+
+      <form id="recommend-form" onsubmit="submitPlaceRecommendation(event)">
+        <div class="form-group" style="margin-bottom:12px;">
+          <label style="font-size:0.82rem; color:#cbd5e1; font-weight:600; display:block; margin-bottom:4px;" id="lbl-rec-name">Nombre del Lugar *</label>
+          <input type="text" id="rec-name" class="input-field" required placeholder="ej. Parrilla El Pobre Luis o Bar La Poesía" style="width:100%; box-sizing:border-box;">
+        </div>
+
+        <div class="form-group" style="margin-bottom:12px;">
+          <label style="font-size:0.82rem; color:#cbd5e1; font-weight:600; display:block; margin-bottom:4px;" id="lbl-rec-address">Dirección aproximada o Barrio *</label>
+          <input type="text" id="rec-address" class="input-field" required placeholder="ej. Arribeños 2393, Belgrano o Palermo Soho" style="width:100%; box-sizing:border-box;">
+        </div>
+
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:12px;">
+          <div class="form-group">
+            <label style="font-size:0.82rem; color:#cbd5e1; font-weight:600; display:block; margin-bottom:4px;" id="lbl-rec-cat">Categoría *</label>
+            <select id="rec-category" class="input-field" required style="width:100%; box-sizing:border-box; padding:9px;">
+              <option value="food">🥩 Parrillas & Carnes</option>
+              <option value="bars">🍸 Bares & Coctelería</option>
+              <option value="cafes">☕ Cafés & Meriendas</option>
+              <option value="tango">💃 Tango & Shows</option>
+              <option value="shopping">🛍️ Compras & Ferias</option>
+              <option value="culture">🏛️ Museos & Cultura</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label style="font-size:0.82rem; color:#cbd5e1; font-weight:600; display:block; margin-bottom:4px;" id="lbl-rec-country">Tu País de Origen</label>
+            <select id="rec-user-country" class="input-field" style="width:100%; box-sizing:border-box; padding:9px;">
+              <option value="🇦🇷 Argentina">🇦🇷 Argentina</option>
+              <option value="🇧🇷 Brasil">🇧🇷 Brasil</option>
+              <option value="🇺🇸 USA / English">🇺🇸 USA / UK</option>
+              <option value="🇨🇱 Chile">🇨🇱 Chile</option>
+              <option value="🇺🇾 Uruguay">🇺🇾 Uruguay</option>
+              <option value="🇪🇸 España">🇪🇸 España</option>
+              <option value="🌍 Otro País">🌍 Otro</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group" style="margin-bottom:12px;">
+          <label style="font-size:0.82rem; color:#cbd5e1; font-weight:600; display:block; margin-bottom:4px;" id="lbl-rec-author">Tu Nombre o Apodo (Opcional)</label>
+          <input type="text" id="rec-user-name" class="input-field" placeholder="ej. Sarah o Lucas" style="width:100%; box-sizing:border-box;">
+        </div>
+
+        <div class="form-group" style="margin-bottom:12px;">
+          <label style="font-size:0.82rem; color:#cbd5e1; font-weight:600; display:block; margin-bottom:4px;" id="lbl-rec-tip">¿Por qué lo recomendás? (Tu consejo o plato estrella) *</label>
+          <textarea id="rec-tip" class="input-field" rows="3" required placeholder="ej. Las mejores mollejas crocantes y empanadas fritas. Recomiendo pedir mesa afuera y probar el flan con dulce de leche..." style="width:100%; box-sizing:border-box;"></textarea>
+        </div>
+
+        <!-- Foto Opcional -->
+        <div class="form-group" style="margin-bottom:12px;">
+          <label style="font-size:0.82rem; color:#cbd5e1; font-weight:600; display:block; margin-bottom:4px;" id="lbl-rec-photo">Foto del lugar o plato (Opcional)</label>
+          <div style="display:flex; gap:8px;">
+            <input type="file" id="rec-photo-file" accept="image/*" style="display:none;" onchange="handleRecPhotoUpload(event)">
+            <button type="button" class="btn-action" style="background:#334155; font-size:0.8rem; padding:8px 12px; display:flex; align-items:center; gap:6px;" onclick="document.getElementById('rec-photo-file').click()">
+              <span id="lbl-rec-photo-btn">📷 Adjuntar Foto</span>
+            </button>
+            <span id="rec-photo-name" style="font-size:0.75rem; color:#94a3b8; align-self:center; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:200px;"></span>
+          </div>
+          <div id="rec-photo-preview" style="display:none; margin-top:8px;">
+            <img id="rec-photo-preview-img" src="" style="width:100%; max-height:140px; object-fit:cover; border-radius:8px; border:1px solid rgba(255,255,255,0.2);">
+          </div>
+        </div>
+
+        <!-- Link Web / Instagram / Carta Opcional -->
+        <div class="form-group" style="margin-bottom:14px;">
+          <label style="font-size:0.82rem; color:#cbd5e1; font-weight:600; display:block; margin-bottom:4px;" id="lbl-rec-link">Link de Instagram o Carta Digital (Opcional)</label>
+          <input type="url" id="rec-link" class="input-field" placeholder="https://instagram.com/... o web" style="width:100%; box-sizing:border-box;">
+        </div>
+
+        <button type="submit" id="btn-submit-rec" class="btn-transport" style="background:linear-gradient(135deg, #f59e0b, #d97706); color:#fff; font-weight:700; width:100%; padding:13px; border:none; cursor:pointer; font-size:0.95rem; border-radius:10px; margin-bottom:8px;">
+          <span id="lbl-rec-submit-btn">🚀 Enviar Recomendación</span>
+        </button>
+
+        <div id="rec-success-box" style="display:none; background:rgba(16,185,129,0.15); border:1px solid rgba(16,185,129,0.4); border-radius:8px; padding:12px; margin-top:10px; text-align:center;">
+          <div style="font-size:0.88rem; color:#34d399; font-weight:700; margin-bottom:6px;" id="lbl-rec-success-title">🎉 ¡Recomendación Enviada!</div>
+          <div style="font-size:0.78rem; color:#cbd5e1; line-height:1.4; margin-bottom:8px;" id="lbl-rec-success-text">
+            Muchas gracias por compartir tu experiencia. La revisaremos para sumarla al mapa con tu crédito.
+          </div>
+          <a id="rec-wa-link" href="#" target="_blank" class="btn-action" style="background:#25D366; color:#fff; text-decoration:none; display:inline-flex; align-items:center; gap:6px; font-size:0.8rem; padding:8px 14px; font-weight:700; border-radius:6px;">
+            <span id="lbl-rec-wa-btn">💬 Enviar también por WhatsApp</span>
+          </a>
+        </div>
+      </form>
+    </div>
+  </div>
 
   <!-- MODAL: PLACE DETAILS & HOW TO GET THERE -->
   <div class="modal-overlay" id="place-modal">
@@ -433,7 +535,7 @@
   </div>
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <script src="data.js?v=20261117_7"></script>
-  <script src="app.js?v=20261117_7"></script>
+  <script src="data.js?v=20261117_8"></script>
+  <script src="app.js?v=20261117_8"></script>
 </body>
 </html>

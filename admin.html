@@ -11,8 +11,8 @@
   <!-- Leaflet CSS y JS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <script src="data.js?v=20261117_7"></script>
-  <link rel="stylesheet" href="style.css?v=20261117_7">
+  <script src="data.js?v=20261117_8"></script>
+  <link rel="stylesheet" href="style.css?v=20261117_8">
 
   <style>
     body {
@@ -353,6 +353,21 @@
       <div class="places-list" id="places-container"></div>
     </div>
 
+    <!-- SECCIÓN: RECOMENDACIONES DE LUGARES POR CLIENTES Y TURISTAS -->
+    <div class="admin-card">
+      <div class="section-title">
+        <span style="display:flex; align-items:center; gap:8px;">
+          💡 Lugares Recomendados por Clientes
+          <span id="suggestions-badge" style="font-size:0.72rem; background:#f59e0b; color:#0f172a; font-weight:800; padding:2px 8px; border-radius:10px;">0 pendientes</span>
+        </span>
+        <button class="btn-action btn-secondary" onclick="loadAdminSuggestions()">🔄 Actualizar</button>
+      </div>
+      <p style="font-size:0.8rem; color:#94a3b8; margin-bottom:14px;">
+        Lugares que visitaron los turistas y te recomiendan para sumar al mapa. Tocá <strong>"➕ Agregar al Mapa"</strong> para abrir el formulario con los datos pre-cargados y ubicar el pin en un solo clic.
+      </p>
+      <div id="admin-suggestions-container"></div>
+    </div>
+
     <!-- SECCIÓN: COMENTARIOS Y FOTOS DE TURISTAS -->
     <div class="admin-card">
       <div class="section-title">
@@ -653,6 +668,7 @@
       try { loadStats(); } catch(e) {}
       try { loadMpConfig(); } catch(e) {}
       try { loadAdminReviews(); } catch(e) {}
+      try { await loadAdminSuggestions(); } catch(e) { console.warn("Error sugerencias:", e); }
 
       // 2. Inicializar mapa
       try { initDashboardMap(); } catch(e) { console.warn("Error mapa:", e); }
@@ -1857,6 +1873,198 @@
       reviews = reviews.filter(r => r.id !== id);
       localStorage.setItem("bsas_reviews", JSON.stringify(reviews));
       loadAdminReviews();
+    }
+
+    // ==================== RECOMENDACIONES DE LUGARES POR CLIENTES ====================
+    let allSuggestions = [];
+
+    async function loadAdminSuggestions() {
+      const container = document.getElementById("admin-suggestions-container");
+      const badge = document.getElementById("suggestions-badge");
+      if (!container) return;
+      container.innerHTML = '<div style="color:#94a3b8; font-size:0.85rem;">Cargando recomendaciones...</div>';
+
+      try {
+        let suggestions = [];
+        if (!isStaticHost) {
+          try {
+            const res = await fetch("/api/admin/suggestions");
+            if (res.ok) {
+              suggestions = await res.json();
+              localStorage.setItem("bsas_suggestions", JSON.stringify(suggestions));
+            } else {
+              suggestions = loadSuggestionsLocal();
+            }
+          } catch(e) {
+            suggestions = loadSuggestionsLocal();
+          }
+        } else {
+          suggestions = loadSuggestionsLocal();
+        }
+
+        allSuggestions = suggestions;
+        const pendingCount = suggestions.filter(s => s.status !== "approved" && s.status !== "discarded").length;
+        if (badge) {
+          badge.textContent = `${pendingCount} pendiente${pendingCount === 1 ? '' : 's'}`;
+          badge.style.background = pendingCount > 0 ? '#f59e0b' : '#334155';
+          badge.style.color = pendingCount > 0 ? '#0f172a' : '#94a3b8';
+        }
+
+        if (!suggestions || suggestions.length === 0) {
+          container.innerHTML = '<div style="color:#94a3b8; font-size:0.85rem; padding:12px; background:rgba(255,255,255,0.02); border-radius:8px; text-align:center;">Todavía no hay recomendaciones enviadas por turistas.</div>';
+          return;
+        }
+
+        container.innerHTML = suggestions.map(s => {
+          const isPending = s.status !== "approved" && s.status !== "discarded";
+          const isApproved = s.status === "approved";
+          const dateStr = new Date(s.created_at).toLocaleDateString("es-AR", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" });
+          const cat = allCategories ? allCategories.find(c => c.id === s.category) : null;
+          const catIcon = cat ? cat.icon : "🥩";
+          const catName = cat ? cat.name : (s.category || "General");
+
+          return `
+            <div style="background:#0f172a; border:1px solid ${isApproved ? 'rgba(16,185,129,0.3)' : (isPending ? 'rgba(245,158,11,0.3)' : 'rgba(255,255,255,0.06)')}; border-radius:12px; padding:14px; margin-bottom:12px; display:flex; flex-direction:column; gap:10px;">
+              <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:10px; flex-wrap:wrap;">
+                <div>
+                  <div style="font-weight:700; color:#fff; font-size:1.05rem; display:flex; align-items:center; gap:8px;">
+                    ${s.name}
+                    ${isApproved ? '<span style="font-size:0.7rem; background:rgba(16,185,129,0.2); color:#34d399; padding:2px 8px; border-radius:4px; border:1px solid rgba(16,185,129,0.3);">✅ Agregado al Mapa</span>' : ''}
+                    ${s.status === 'discarded' ? '<span style="font-size:0.7rem; background:rgba(148,163,184,0.15); color:#94a3b8; padding:2px 8px; border-radius:4px;">Descartado</span>' : ''}
+                  </div>
+                  <div style="font-size:0.8rem; color:#38bdf8; margin-top:2px;">
+                    📍 Dirección: <strong>${s.address}</strong> ${s.neighborhood ? '(' + s.neighborhood + ')' : ''}
+                  </div>
+                </div>
+
+                <div style="display:flex; gap:6px;">
+                  ${isPending ? `
+                    <button class="btn-action" style="background:#10b981; font-weight:700; font-size:0.8rem; padding:6px 12px; display:flex; align-items:center; gap:4px;" onclick="approveAndOpenPlaceEditor('${s.id}')">
+                      ➕ Agregar al Mapa
+                    </button>
+                    <button class="btn-action btn-secondary" style="padding:6px 10px; font-size:0.75rem;" onclick="discardAdminSuggestion('${s.id}')">
+                      Descartar
+                    </button>
+                  ` : `
+                    <button class="btn-action btn-danger" style="padding:4px 8px; font-size:0.72rem;" onclick="deleteAdminSuggestionPermanently('${s.id}')">
+                      🗑️
+                    </button>
+                  `}
+                </div>
+              </div>
+
+              <div style="display:flex; align-items:center; gap:12px; font-size:0.75rem; color:#94a3b8;">
+                <span>👤 Recomendado por: <strong style="color:#cbd5e1;">${s.user_name}</strong> (${s.user_country || 'Turista'})</span>
+                <span>🏷️ ${catIcon} ${catName}</span>
+                <span>🕒 ${dateStr}</span>
+              </div>
+
+              <div style="background:rgba(255,255,255,0.03); border-left:3px solid #f59e0b; padding:8px 12px; border-radius:0 8px 8px 0; font-size:0.85rem; color:#cbd5e1; line-height:1.4;">
+                <strong style="color:#f59e0b;">Tip del Cliente:</strong> ${s.tip}
+              </div>
+
+              ${s.link_url ? `
+                <div style="font-size:0.75rem;">
+                  🔗 Link sugerido: <a href="${s.link_url}" target="_blank" style="color:#38bdf8; text-decoration:none;">${s.link_url} ↗</a>
+                </div>
+              ` : ''}
+
+              ${s.photo_data ? `
+                <div>
+                  <img src="${s.photo_data}" style="max-height:140px; border-radius:8px; object-fit:cover; border:1px solid rgba(255,255,255,0.15); cursor:pointer;" alt="Foto sugerida" onclick="window.open(this.src, '_blank')">
+                </div>
+              ` : ''}
+            </div>
+          `;
+        }).join("");
+      } catch (err) {
+        container.innerHTML = '<div style="color:#ef4444; font-size:0.85rem;">Error al cargar recomendaciones.</div>';
+      }
+    }
+
+    function loadSuggestionsLocal() {
+      try {
+        return JSON.parse(localStorage.getItem("bsas_suggestions") || "[]");
+      } catch(e) {
+        return [];
+      }
+    }
+
+    async function approveAndOpenPlaceEditor(id) {
+      const sug = allSuggestions.find(s => s.id === id);
+      if (!sug) return;
+
+      // 1. Abrir editor de lugares
+      openPlaceEditor(null);
+
+      // 2. Pre-cargar todos los datos del cliente
+      document.getElementById("form-name").value = sug.name;
+      document.getElementById("form-address").value = sug.address;
+      document.getElementById("form-neighborhood").value = sug.neighborhood || sug.address.split(",")[1] || "Buenos Aires";
+      if (sug.category) document.getElementById("form-category").value = sug.category;
+      document.getElementById("form-price").value = "$$";
+      document.getElementById("form-tag").value = sug.user_name ? `Recomendado por ${sug.user_name}` : "Recomendado";
+      document.getElementById("form-tip-es").value = `${sug.tip}${sug.user_name ? ' (Recomendado por ' + sug.user_name + ' de ' + (sug.user_country || '') + ')' : ''}`;
+      if (sug.link_url) document.getElementById("form-menu-url").value = sug.link_url;
+
+      if (sug.photo_data) {
+        document.getElementById("form-image").value = sug.photo_data;
+        updateImagePreview();
+      }
+
+      // 3. Intentar geocodificar la dirección automáticamente para posicionar el pin
+      if (sug.address) {
+        setTimeout(() => {
+          geocodeAddress();
+        }, 300);
+      }
+
+      // 4. Marcar la recomendación como aprobada
+      updateSuggestionStatus(id, "approved");
+    }
+
+    async function discardAdminSuggestion(id) {
+      if (!confirm("¿Descartar esta recomendación?")) return;
+      await updateSuggestionStatus(id, "discarded");
+      loadAdminSuggestions();
+    }
+
+    async function deleteAdminSuggestionPermanently(id) {
+      if (!confirm("¿Eliminar definitivamente este registro?")) return;
+      await updateSuggestionStatus(id, "deleted");
+      loadAdminSuggestions();
+    }
+
+    async function updateSuggestionStatus(id, status) {
+      if (!isStaticHost) {
+        try {
+          await fetch("/api/admin/suggestions/status", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ id, status })
+          });
+        } catch(e) {}
+      }
+
+      try {
+        let local = JSON.parse(localStorage.getItem("bsas_suggestions") || "[]");
+        if (status === "deleted") {
+          local = local.filter(s => s.id !== id);
+        } else {
+          const item = local.find(s => s.id === id);
+          if (item) item.status = status;
+        }
+        localStorage.setItem("bsas_suggestions", JSON.stringify(local));
+      } catch(e) {}
+
+      const inMemory = allSuggestions.find(s => s.id === id);
+      if (inMemory) {
+        if (status === "deleted") {
+          allSuggestions = allSuggestions.filter(s => s.id !== id);
+        } else {
+          inMemory.status = status;
+        }
+      }
     }
   </script>
 </body>

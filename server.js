@@ -101,6 +101,22 @@ db.exec(`
     created_at INTEGER NOT NULL,
     approved INTEGER DEFAULT 1
   );
+
+  CREATE TABLE IF NOT EXISTS suggestions (
+    id TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
+    address TEXT,
+    neighborhood TEXT,
+    category TEXT,
+    tip TEXT,
+    user_name TEXT,
+    user_country TEXT DEFAULT 'Turista',
+    photo_data TEXT,
+    link_url TEXT,
+    waiter_id TEXT,
+    status TEXT DEFAULT 'pending',
+    created_at INTEGER NOT NULL
+  );
 `);
 
 // Pre-cargar mozo por defecto 'isaias' si no existe
@@ -378,6 +394,38 @@ const server = http.createServer(async (req, res) => {
           created_at: now
         }
       });
+    } catch (e) {
+      return sendJSON(res, 400, { error: e.message });
+    }
+  }
+
+  // Sugerir / Recomendar nuevo lugar por parte de turistas y clientes
+  if (pathname === "/api/suggestions" && method === "POST") {
+    try {
+      const data = await parseBody(req);
+      const name = (data.name || "").trim();
+      if (!name) {
+        return sendJSON(res, 400, { error: "El nombre del lugar es requerido." });
+      }
+
+      const id = "sug_" + crypto.randomBytes(6).toString("hex");
+      const now = Date.now();
+      const address = (data.address || "").trim();
+      const neighborhood = (data.neighborhood || "").trim();
+      const category = (data.category || "food").trim();
+      const tip = (data.tip || "").trim();
+      const userName = (data.userName || "Turista Amigo").trim();
+      const userCountry = (data.userCountry || "🌍 Turista").trim();
+      const photoData = data.photoData || null;
+      const linkUrl = (data.linkUrl || "").trim();
+      const waiterId = (data.waiterId || "isaias").trim().toLowerCase();
+
+      db.prepare(`
+        INSERT INTO suggestions (id, name, address, neighborhood, category, tip, user_name, user_country, photo_data, link_url, waiter_id, status, created_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', ?)
+      `).run(id, name, address, neighborhood, category, tip, userName, userCountry, photoData, linkUrl, waiterId, now);
+
+      return sendJSON(res, 201, { success: true, id });
     } catch (e) {
       return sendJSON(res, 400, { error: e.message });
     }
@@ -811,6 +859,37 @@ function syncPlacesToDataJs() {
       const data = await parseBody(req);
       if (!data.id) return sendJSON(res, 400, { error: "ID requerido" });
       db.prepare("DELETE FROM reviews WHERE id = ?").run(data.id);
+      return sendJSON(res, 200, { success: true });
+    } catch (e) {
+      return sendJSON(res, 400, { error: e.message });
+    }
+  }
+
+  // Listar todas las recomendaciones de lugares en Admin
+  if (pathname === "/api/admin/suggestions" && method === "GET") {
+    try {
+      const suggestions = db.prepare(`
+        SELECT * FROM suggestions ORDER BY created_at DESC
+      `).all();
+      return sendJSON(res, 200, suggestions);
+    } catch (e) {
+      return sendJSON(res, 500, { error: e.message });
+    }
+  }
+
+  // Actualizar estado de recomendación (aprobar / descartar / eliminar) desde Admin
+  if (pathname === "/api/admin/suggestions/status" && method === "POST") {
+    try {
+      const data = await parseBody(req);
+      const id = data.id;
+      const status = data.status || "approved"; // 'approved' | 'discarded' | 'deleted'
+      if (!id) return sendJSON(res, 400, { error: "ID requerido" });
+
+      if (status === "deleted") {
+        db.prepare("DELETE FROM suggestions WHERE id = ?").run(id);
+      } else {
+        db.prepare("UPDATE suggestions SET status = ? WHERE id = ?").run(status, id);
+      }
       return sendJSON(res, 200, { success: true });
     } catch (e) {
       return sendJSON(res, 400, { error: e.message });

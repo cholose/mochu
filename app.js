@@ -533,6 +533,46 @@ function updateUITranslations() {
   const cancelReviewEl = document.getElementById("lbl-form-cancel");
   if (cancelReviewEl && t.formCancelBtn) cancelReviewEl.textContent = t.formCancelBtn;
 
+  // Recomendación de lugares por turistas
+  const lblRecToggle = document.getElementById("lbl-recommend-toggle");
+  if (lblRecToggle && t.btnRecommendToggle) lblRecToggle.textContent = t.btnRecommendToggle;
+  const lblRecModalTitle = document.getElementById("lbl-rec-modal-title");
+  if (lblRecModalTitle && t.recModalTitle) lblRecModalTitle.textContent = t.recModalTitle;
+  const lblRecModalSub = document.getElementById("lbl-rec-modal-sub");
+  if (lblRecModalSub && t.recModalSub) lblRecModalSub.textContent = t.recModalSub;
+  const lblRecName = document.getElementById("lbl-rec-name");
+  if (lblRecName && t.recNameLabel) lblRecName.textContent = t.recNameLabel;
+  const recNameInput = document.getElementById("rec-name");
+  if (recNameInput && t.recNamePlaceholder) recNameInput.placeholder = t.recNamePlaceholder;
+  const lblRecAddress = document.getElementById("lbl-rec-address");
+  if (lblRecAddress && t.recAddressLabel) lblRecAddress.textContent = t.recAddressLabel;
+  const recAddressInput = document.getElementById("rec-address");
+  if (recAddressInput && t.recAddressPlaceholder) recAddressInput.placeholder = t.recAddressPlaceholder;
+  const lblRecCat = document.getElementById("lbl-rec-cat");
+  if (lblRecCat && t.recCatLabel) lblRecCat.textContent = t.recCatLabel;
+  const lblRecAuthor = document.getElementById("lbl-rec-author");
+  if (lblRecAuthor && t.recAuthorLabel) lblRecAuthor.textContent = t.recAuthorLabel;
+  const recAuthorInput = document.getElementById("rec-user-name");
+  if (recAuthorInput && t.recAuthorPlaceholder) recAuthorInput.placeholder = t.recAuthorPlaceholder;
+  const lblRecTip = document.getElementById("lbl-rec-tip");
+  if (lblRecTip && t.recTipLabel) lblRecTip.textContent = t.recTipLabel;
+  const recTipInput = document.getElementById("rec-tip");
+  if (recTipInput && t.recTipPlaceholder) recTipInput.placeholder = t.recTipPlaceholder;
+  const lblRecPhoto = document.getElementById("lbl-rec-photo");
+  if (lblRecPhoto && t.recPhotoLabel) lblRecPhoto.textContent = t.recPhotoLabel;
+  const lblRecPhotoBtn = document.getElementById("lbl-rec-photo-btn");
+  if (lblRecPhotoBtn && t.recPhotoBtn) lblRecPhotoBtn.textContent = t.recPhotoBtn;
+  const lblRecLink = document.getElementById("lbl-rec-link");
+  if (lblRecLink && t.recLinkLabel) lblRecLink.textContent = t.recLinkLabel;
+  const lblRecSubmitBtn = document.getElementById("lbl-rec-submit-btn");
+  if (lblRecSubmitBtn && t.recSubmitBtn) lblRecSubmitBtn.textContent = t.recSubmitBtn;
+  const lblRecSuccessTitle = document.getElementById("lbl-rec-success-title");
+  if (lblRecSuccessTitle && t.recSuccessTitle) lblRecSuccessTitle.textContent = t.recSuccessTitle;
+  const lblRecSuccessText = document.getElementById("lbl-rec-success-text");
+  if (lblRecSuccessText && t.recSuccessText) lblRecSuccessText.textContent = t.recSuccessText;
+  const lblRecWaBtn = document.getElementById("lbl-rec-wa-btn");
+  if (lblRecWaBtn && t.recWaBtn) lblRecWaBtn.textContent = t.recWaBtn;
+
   // Route floating panel
   const routeToEl = document.getElementById("route-to-label");
   if (routeToEl && t.routeToLabel) routeToEl.textContent = t.routeToLabel;
@@ -1870,5 +1910,135 @@ function navigateToPlaceOnMap(placeId) {
     setTimeout(() => {
       openPlaceModal(target);
     }, 700);
+  }
+}
+
+// ==================== RECOMENDACIONES DE LUGARES POR TURISTAS ====================
+let currentRecPhotoData = null;
+
+function openRecommendModal() {
+  const modal = document.getElementById("recommend-modal");
+  if (!modal) return;
+  document.getElementById("recommend-form").reset();
+  currentRecPhotoData = null;
+  const preview = document.getElementById("rec-photo-preview");
+  if (preview) preview.style.display = "none";
+  const photoName = document.getElementById("rec-photo-name");
+  if (photoName) photoName.textContent = "";
+  const successBox = document.getElementById("rec-success-box");
+  if (successBox) successBox.style.display = "none";
+  const submitBtn = document.getElementById("btn-submit-rec");
+  if (submitBtn) {
+    submitBtn.disabled = false;
+    submitBtn.style.opacity = "1";
+    const t = APP_DATA.i18n[state.currentLang] || APP_DATA.i18n.es;
+    submitBtn.textContent = t.recSubmitBtn || "🚀 Enviar Recomendación";
+  }
+  modal.style.display = "flex";
+}
+
+function closeRecommendModal() {
+  const modal = document.getElementById("recommend-modal");
+  if (modal) modal.style.display = "none";
+}
+
+function handleRecPhotoUpload(event) {
+  const file = event.target.files && event.target.files[0];
+  if (!file) return;
+
+  const photoName = document.getElementById("rec-photo-name");
+  if (photoName) photoName.textContent = file.name;
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    currentRecPhotoData = e.target.result;
+    const preview = document.getElementById("rec-photo-preview");
+    const img = document.getElementById("rec-photo-preview-img");
+    if (preview && img) {
+      img.src = currentRecPhotoData;
+      preview.style.display = "block";
+    }
+  };
+  reader.readAsDataURL(file);
+}
+
+async function submitPlaceRecommendation(event) {
+  event.preventDefault();
+
+  const name = document.getElementById("rec-name").value.trim();
+  const address = document.getElementById("rec-address").value.trim();
+  const category = document.getElementById("rec-category").value;
+  const userCountry = document.getElementById("rec-user-country").value;
+  const userName = document.getElementById("rec-user-name").value.trim() || "Turista Amigo";
+  const tip = document.getElementById("rec-tip").value.trim();
+  const linkUrl = document.getElementById("rec-link").value.trim();
+  const photoData = currentRecPhotoData;
+  const waiterId = state.waiterId || "isaias";
+
+  const payload = {
+    name,
+    address,
+    neighborhood: address.split(",")[1] ? address.split(",")[1].trim() : address,
+    category,
+    tip,
+    userName,
+    userCountry,
+    photoData,
+    linkUrl,
+    waiterId
+  };
+
+  const submitBtn = document.getElementById("btn-submit-rec");
+  if (submitBtn) {
+    submitBtn.disabled = true;
+    submitBtn.style.opacity = "0.7";
+    submitBtn.textContent = "⏳ Enviando...";
+  }
+
+  let sentToServer = false;
+  try {
+    const res = await fetch("/api/suggestions", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+    if (res.ok) {
+      sentToServer = true;
+    }
+  } catch (err) {}
+
+  // En modo estático o GitHub Pages, guardar también en localStorage para que el admin lo lea
+  try {
+    const saved = JSON.parse(localStorage.getItem("bsas_suggestions") || "[]");
+    saved.unshift({
+      id: "sug_" + Date.now().toString(36),
+      ...payload,
+      status: "pending",
+      created_at: Date.now()
+    });
+    localStorage.setItem("bsas_suggestions", JSON.stringify(saved));
+  } catch (e) {}
+
+  // Generar link directo de WhatsApp para avisar al mozo o administrador
+  const catNames = {
+    food: "Parrilla / Restaurante",
+    bars: "Bar / Coctelería",
+    cafes: "Café / Merienda",
+    tango: "Tango & Show",
+    shopping: "Compras / Paseo",
+    culture: "Museo / Cultura"
+  };
+  const catLabel = catNames[category] || category;
+  const waMsg = `¡Hola! Recomiendo este lugar para sumar al mapa de BsAs Local Guide:\n\n📍 Lugar: ${name}\n🗺️ Dirección: ${address}\n🏷️ Tipo: ${catLabel}\n💡 Por qué lo recomiendo: ${tip}\n${linkUrl ? '🔗 Link: ' + linkUrl + '\n' : ''}👤 Enviado por: ${userName} (${userCountry})`;
+  const agencyPhone = (typeof APP_DATA !== "undefined" && APP_DATA.config && APP_DATA.config.agencyWhatsApp) ? APP_DATA.config.agencyWhatsApp : "5491122334455";
+  const waUrl = `https://wa.me/${agencyPhone}?text=${encodeURIComponent(waMsg)}`;
+
+  const waLink = document.getElementById("rec-wa-link");
+  if (waLink) waLink.href = waUrl;
+
+  const successBox = document.getElementById("rec-success-box");
+  if (successBox) successBox.style.display = "block";
+  if (submitBtn) {
+    submitBtn.textContent = "✅ ¡Recomendación Registrada!";
   }
 }

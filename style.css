@@ -250,6 +250,16 @@ body {
   box-shadow: 0 0 14px rgba(56, 189, 248, 0.6);
 }
 
+.btn-recommend-toggle {
+  color: #fbbf24;
+  border-color: rgba(245, 158, 11, 0.4);
+}
+
+.btn-recommend-toggle:hover {
+  background: rgba(245, 158, 11, 0.15);
+  border-color: #f59e0b;
+}
+
 .btn-calc-pill {
   background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(6, 182, 212, 0.2));
   color: #34d399;
