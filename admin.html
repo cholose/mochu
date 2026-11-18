@@ -1314,10 +1314,13 @@
 
       const customLocal = localList.filter(p => {
         const name = (p.name || "").trim().toLowerCase();
-        return !officialIds.has(p.id) && !officialNames.has(name) && !deletedIds.has(p.id);
+        return !officialIds.has(p.id) && !officialNames.has(name) && !deletedIds.has(p.id) && !name.includes("tifiamo") && !name.includes("valerio");
       });
 
-      const combined = [...validOfficials, ...customLocal];
+      const combined = [...validOfficials, ...customLocal].filter(p => {
+        const name = (p.name || "").trim().toLowerCase();
+        return !name.includes("tifiamo") && !name.includes("valerio");
+      });
 
       allPlaces = combined.map(p => ({
         id: p.id,
