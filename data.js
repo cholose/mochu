@@ -540,7 +540,7 @@ const APP_DATA = {
       "commission_usd": 1.5
     }
   ],
-  "version": "20261118_1795053352594",
+  "version": "20261118_1795053571191",
   "categories": [
     {
       "id": "food",
