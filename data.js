@@ -18,6 +18,7 @@ const APP_DATA = {
       "image": "https://images.unsplash.com/photo-1544025162-d76694265947?w=600&auto=format&fit=crop&q=80",
       "menu_url": "",
       "is_indoor": 1,
+      "active": 1,
       "tips": {
         "es": "Considerada una de las mejores del mundo. Ojo: reservar con semanas de anticipación o ir a las 11:30 hs a hacer fila para el almuerzo.",
         "en": "Ranked among the world's best steakhouses. Tip: book weeks in advance or show up at 11:30 AM to wait for lunch walk-ins.",
@@ -37,6 +38,7 @@ const APP_DATA = {
       "image": "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=600&auto=format&fit=crop&q=80",
       "menu_url": "",
       "is_indoor": 1,
+      "active": 1,
       "tips": {
         "es": "Carne tierna y ambiente 100% porteño sin precios inflados para turistas. Te reciben con una empanada frita de cortesía.",
         "en": "Tender meat, true local atmosphere without tourist-trap prices. They welcome you with a complimentary fried empanada.",
@@ -56,6 +58,7 @@ const APP_DATA = {
       "image": "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=600&auto=format&fit=crop&q=80",
       "menu_url": "",
       "is_indoor": 1,
+      "active": 1,
       "tips": {
         "es": "La pizza al molde más famosa desde 1932. Pedí muzza al corte en el mostrador parado o sentate al fondo.",
         "en": "The most famous thick-crust pizza in town since 1932. Eat a slice standing at the counter or take a table in the back.",
@@ -75,6 +78,7 @@ const APP_DATA = {
       "image": "https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?w=600&auto=format&fit=crop&q=80",
       "menu_url": "",
       "is_indoor": 1,
+      "active": 1,
       "tips": {
         "es": "Show moderno con vista panorámica a los diques de Puerto Madero. Ideal parejas y familias. Incluye traslado.",
         "en": "Modern musical tango show with panoramic views of the docks. Includes dinner, wine, and optional hotel pickup.",
@@ -94,6 +98,7 @@ const APP_DATA = {
       "image": "https://images.unsplash.com/photo-1545232979-fbf68fe9f1f8?w=600&auto=format&fit=crop&q=80",
       "menu_url": "",
       "is_indoor": 1,
+      "active": 1,
       "tips": {
         "es": "Una casona colonial de 1920 en San Telmo. Show tradicional e intimista que recorre la historia del tango década a década.",
         "en": "Colonial 1920s house in San Telmo. An intimate, authentic journey through the history of tango decade by decade.",
@@ -113,6 +118,7 @@ const APP_DATA = {
       "image": "https://images.unsplash.com/photo-1519567241046-7f570eee3ce6?w=600&auto=format&fit=crop&q=80",
       "menu_url": "",
       "is_indoor": 1,
+      "active": 1,
       "tips": {
         "es": "Cúpula pintada por grandes artistas argentinos. Marcas internacionales y locales. Ojo con carteristas sobre calle Florida.",
         "en": "Stunning hand-painted ceiling dome. Top brands and leather shops. Keep an eye on personal belongings on Florida St.",
@@ -132,6 +138,7 @@ const APP_DATA = {
       "image": "https://images.unsplash.com/photo-1567401893414-76b7b1e5a7a5?w=600&auto=format&fit=crop&q=80",
       "menu_url": "",
       "is_indoor": 1,
+      "active": 1,
       "tips": {
         "es": "El shopping preferido de los locales para ropa y tecnología. Zona muy segura para caminar y tomar un café.",
         "en": "The locals' favorite mall for clothing and tech. Very safe area with plenty of outdoor cafes nearby.",
@@ -151,6 +158,7 @@ const APP_DATA = {
       "image": "https://images.unsplash.com/photo-1555529669-e69e7aa0ba9a?w=600&auto=format&fit=crop&q=80",
       "menu_url": "",
       "is_indoor": 1,
+      "active": 1,
       "tips": {
         "es": "El centro comercial más grande de la provincia. Ideal si querés pasar un día entero de compras sin gente apretada.",
         "en": "The largest mall in greater Buenos Aires. Huge food court, hundreds of stores, perfect for a full shopping afternoon.",
@@ -170,6 +178,7 @@ const APP_DATA = {
       "image": "https://images.unsplash.com/photo-1589802829985-817e51171b92?w=600&auto=format&fit=crop&q=80",
       "menu_url": "",
       "is_indoor": 0,
+      "active": 1,
       "tips": {
         "es": "Paseo arquitectónico imperdible. Mausoleo de Eva Perón. Los fines de semana hay feria artesanal en Plaza Francia.",
         "en": "World-class cemetery and French architecture. Eva Peron's tomb. Great weekend artisan craft fair in Plaza Francia.",
@@ -189,6 +198,7 @@ const APP_DATA = {
       "image": "https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?w=600&auto=format&fit=crop&q=80",
       "menu_url": "",
       "is_indoor": 1,
+      "active": 1,
       "tips": {
         "es": "El café más antiguo y legendario de Buenos Aires (fundado en 1858). Chocolate con churros caliente imperdible, ideal para un día de lluvia o tarde fresca.",
         "en": "El café más antiguo y legendario de Buenos Aires (fundado en 1858). Chocolate con churros caliente imperdible, ideal para un día de lluvia o tarde fresca.",
@@ -208,6 +218,7 @@ const APP_DATA = {
       "image": "https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?w=600&auto=format&fit=crop&q=80",
       "menu_url": "",
       "is_indoor": 1,
+      "active": 1,
       "tips": {
         "es": "Elegida entre las librerías más hermosas del mundo dentro de un teatro de 1919. El café está sobre el escenario original. Plan bajo techo perfecto.",
         "en": "Ranked among the world's most beautiful bookstores, set in a 1919 theater. Coffee on the stage. Perfect rainy day plan.",
@@ -227,6 +238,7 @@ const APP_DATA = {
       "image": "https://images.unsplash.com/photo-1519567241046-7f570eee3ce6?w=600&auto=format&fit=crop&q=80",
       "menu_url": "",
       "is_indoor": 0,
+      "active": 1,
       "tips": {
         "es": "Todos los domingos de 10 a 18 hs. 12 cuadras peatonales de antigüedades, orquestas de tango callejero y recuerdos.",
         "en": "Every Sunday from 10 AM to 6 PM. 12 pedestrian blocks with antiques, street tango dancers and artisans.",
@@ -246,6 +258,7 @@ const APP_DATA = {
       "image": "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=600&auto=format&fit=crop&q=80",
       "menu_url": "",
       "is_indoor": 0,
+      "active": 1,
       "tips": {
         "es": "Domingos de tradición criolla. Jineteadas, asado al asador, empanadas y peñas folclóricas. Experiencia 100% auténtica.",
         "en": "Sundays of Argentine gaucho tradition. Open-fire barbecue, folklore dances and crafts. 100% authentic cultural immersion.",
