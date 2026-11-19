@@ -12,7 +12,7 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 
   <!-- App Styles -->
-  <link rel="stylesheet" href="style.css?v=20261117_9">
+  <link rel="stylesheet" href="style.css?v=20261118_10">
   <style>
     .activation-overlay {
       position: fixed;
@@ -199,6 +199,11 @@
         Cerrar
       </button>
     </div>
+  </div>
+
+  <!-- Mobile Pull Down Refresh Indicator -->
+  <div id="mobile-pull-indicator" style="display:none; position:fixed; top:0; left:0; right:0; height:45px; background:rgba(15,23,42,0.96); border-bottom:1px solid #10b981; color:#34d399; font-size:0.8rem; font-weight:700; align-items:center; justify-content:center; z-index:99999; transition:opacity 0.2s ease;">
+    <span>⬇️ Soltá para recargar</span>
   </div>
 
   <!-- Header -->
@@ -535,7 +540,7 @@
   </div>
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <script src="data.js?v=20261117_9"></script>
-  <script src="app.js?v=20261117_9"></script>
+  <script src="data.js?v=20261118_10"></script>
+  <script src="app.js?v=20261118_10"></script>
 </body>
 </html>

@@ -518,5 +518,14 @@ const APP_DATA = {
       "unlockCloseBtn": "Fechar e continuar no modo básico"
     }
   },
-  "version": "20261117_1794968716254"
+  "waiters": [
+    {
+      "id": "isaias",
+      "name": "Isaias",
+      "alias": "isaias.mozo.mp",
+      "pin": "1234",
+      "commission_usd": 1.5
+    }
+  ],
+  "version": "20261118_10"
 };

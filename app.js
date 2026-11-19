@@ -365,64 +365,254 @@ async function loadPlaces() {
   renderMarkers();
   renderTangoList();
 
-  // Refrescar en segundo plano desde la nube para saltar cualquier caché del celular
-  refreshPlacesFromCloud();
+  // Iniciar motor de sincronización continua con la nube
+  initContinuousCloudSync();
 }
 
-async function refreshPlacesFromCloud() {
+let isCloudSyncRunning = false;
+let cloudSyncInterval = null;
+
+function initContinuousCloudSync() {
+  // 1. Chequeo inicial
+  syncPlacesFromCloud(true);
+
+  // 2. Chequeo continuo en segundo plano cada 8 segundos
+  if (cloudSyncInterval) clearInterval(cloudSyncInterval);
+  cloudSyncInterval = setInterval(() => {
+    syncPlacesFromCloud(true);
+  }, 8000);
+
+  // 3. Chequeo instantáneo cuando el usuario vuelve a la app o desbloquea el celular
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "visible") {
+      syncPlacesFromCloud(true);
+    }
+  });
+
+  window.addEventListener("focus", () => {
+    syncPlacesFromCloud(true);
+  });
+
+  // 4. Chequeo al cambiar de pestaña en la barra inferior
+  document.querySelectorAll(".nav-item").forEach(btn => {
+    btn.addEventListener("click", () => {
+      syncPlacesFromCloud(true);
+    });
+  });
+
+  // 5. Soporte de gesto táctil pull-down en el encabezado
+  initPullDownToRefresh();
+}
+
+async function syncPlacesFromCloud(isSilent = true) {
+  if (isCloudSyncRunning) return;
+  isCloudSyncRunning = true;
+
   try {
-    const res = await fetch(`data.js?_t=${Date.now()}`, { cache: "no-store" });
+    const res = await fetch(`data.js?_t=${Date.now()}`, {
+      cache: "no-store",
+      headers: {
+        "Cache-Control": "no-cache, no-store, must-revalidate",
+        "Pragma": "no-cache"
+      }
+    });
+
     if (res.ok) {
       const text = await res.text();
       const fn = new Function("let window={}; " + text + "; return (typeof APP_DATA !== 'undefined' ? APP_DATA : window.APP_DATA);");
       const freshData = fn();
-      if (freshData && freshData.places && freshData.places.length > 0) {
-        const deletedIds = new Set(JSON.parse(localStorage.getItem("bsas_deleted_places") || "[]"));
-        deletedIds.add("p_tifiamo");
-        deletedIds.add("p_valerio");
-        deletedIds.add("place_mwl1ksaa");
-        deletedIds.add("place_mwkv5zyi");
 
-        const formatted = freshData.places
-          .filter(p => !deletedIds.has(p.id))
-          .map(p => ({
-            id: p.id,
-            category: p.category,
-            name: p.name,
-            address: p.address || "",
-            neighborhood: p.neighborhood || "",
-            lat: parseFloat(p.lat) || -34.6037,
-            lng: parseFloat(p.lng) || -58.3816,
-            price: p.price || "$$",
-            tag: p.tag || "Recomendado",
-            image: p.image || "https://images.unsplash.com/photo-1544025162-d76694265947?w=600",
-            menu_url: p.menu_url || "",
-            is_indoor: p.is_indoor !== undefined ? (p.is_indoor === 1 || p.is_indoor === true ? 1 : 0) : 1,
-            tips: p.tips ? p.tips : {
-              es: p.tip_es || "",
-              en: p.tip_en || p.tip_es || "",
-              pt: p.tip_pt || p.tip_es || ""
+      if (freshData) {
+        // Actualizar datos de mozos en vivo
+        if (freshData.waiters && Array.isArray(freshData.waiters)) {
+          APP_DATA.waiters = freshData.waiters;
+          if (state.waiterId) {
+            const foundWaiter = freshData.waiters.find(w => w.id === state.waiterId);
+            if (foundWaiter && foundWaiter.name && foundWaiter.name !== state.waiterName) {
+              state.waiterName = foundWaiter.name;
+              const banner = document.getElementById("activation-waiter-banner");
+              if (banner) banner.textContent = `👨‍🍳 ${state.waiterName}`;
+              const waiterTag = document.getElementById("waiter-tag");
+              if (waiterTag) {
+                const i18n = APP_DATA.i18n[state.currentLang];
+                waiterTag.textContent = `${i18n.recommendedBy}: ${state.waiterName}`;
+              }
             }
-          }));
+          }
+        }
 
-        const currentSig = state.places.map(p => p.id + ":" + (p.menu_url || "")).join("|");
-        const freshSig = formatted.map(p => p.id + ":" + (p.menu_url || "")).join("|");
-        if (currentSig !== freshSig) {
-          console.log("[Auto-Refresh] Nuevos lugares cargados desde la nube:", formatted.length);
-          state.places = formatted;
-          try {
-            localStorage.setItem("bsas_places", JSON.stringify(formatted));
-          } catch(e) {}
-          renderMarkers();
-          renderTangoList();
-          if (state.selectedPlace) {
-            const up = state.places.find(p => p.id === state.selectedPlace.id);
-            if (up) updateModalContent(up);
+        if (freshData.places && freshData.places.length > 0) {
+          const deletedIds = new Set(JSON.parse(localStorage.getItem("bsas_deleted_places") || "[]"));
+          deletedIds.add("p_tifiamo");
+          deletedIds.add("p_valerio");
+          deletedIds.add("place_mwl1ksaa");
+          deletedIds.add("place_mwkv5zyi");
+
+          const formatted = freshData.places
+            .filter(p => !deletedIds.has(p.id))
+            .map(p => ({
+              id: p.id,
+              category: p.category,
+              name: p.name,
+              address: p.address || "",
+              neighborhood: p.neighborhood || "",
+              lat: parseFloat(p.lat) || -34.6037,
+              lng: parseFloat(p.lng) || -58.3816,
+              price: p.price || "$$",
+              tag: p.tag || "Recomendado",
+              image: p.image || "https://images.unsplash.com/photo-1544025162-d76694265947?w=600",
+              menu_url: p.menu_url || "",
+              is_indoor: p.is_indoor !== undefined ? (p.is_indoor === 1 || p.is_indoor === true ? 1 : 0) : 1,
+              active: p.active !== undefined ? (p.active !== 0 && p.active !== false && p.active !== "0" ? 1 : 0) : 1,
+              tips: p.tips ? p.tips : {
+                es: p.tip_es || "",
+                en: p.tip_en || p.tip_es || "",
+                pt: p.tip_pt || p.tip_es || ""
+              }
+            }));
+
+          // Comparación profunda de todos los campos para detectar cualquier cambio
+          const currentSignature = JSON.stringify(state.places.map(p => ({
+            id: p.id,
+            name: p.name,
+            address: p.address,
+            cat: p.category,
+            lat: p.lat,
+            lng: p.lng,
+            menu: p.menu_url,
+            active: p.active,
+            indoor: p.is_indoor,
+            img: p.image,
+            tip: p.tips?.es
+          })));
+
+          const freshSignature = JSON.stringify(formatted.map(p => ({
+            id: p.id,
+            name: p.name,
+            address: p.address,
+            cat: p.category,
+            lat: p.lat,
+            lng: p.lng,
+            menu: p.menu_url,
+            active: p.active,
+            indoor: p.is_indoor,
+            img: p.image,
+            tip: p.tips?.es
+          })));
+
+          if (currentSignature !== freshSignature) {
+            console.log("⚡ [Auto-Sync Nube] Cambios detectados del Admin. Actualizando interfaz en vivo:", formatted.length, "lugares.");
+            state.places = formatted;
+            try {
+              localStorage.setItem("bsas_places", JSON.stringify(formatted));
+            } catch(e) {}
+
+            renderMarkers();
+            renderTangoList();
+            renderGuideList();
+            renderEventsList();
+
+            if (state.selectedPlace) {
+              const updatedPlace = state.places.find(p => p.id === state.selectedPlace.id);
+              if (updatedPlace) {
+                state.selectedPlace = updatedPlace;
+                updateModalContent(updatedPlace);
+              }
+            }
+
+            if (!isSilent) {
+              showSyncToast("✅ Datos actualizados con la nube");
+            }
           }
         }
       }
     }
-  } catch(e) {}
+  } catch (err) {
+    // Silencioso para navegación continua
+  } finally {
+    isCloudSyncRunning = false;
+  }
+}
+
+function showSyncToast(text) {
+  let toast = document.getElementById("sync-live-toast");
+  if (!toast) {
+    toast = document.createElement("div");
+    toast.id = "sync-live-toast";
+    toast.style.cssText = "position:fixed; top:65px; left:50%; transform:translateX(-50%); background:rgba(15,23,42,0.92); color:#34d399; border:1px solid #10b981; padding:8px 16px; border-radius:999px; font-size:0.8rem; font-weight:700; z-index:9999; box-shadow:0 10px 25px rgba(0,0,0,0.5); pointer-events:none; transition:opacity 0.3s ease;";
+    document.body.appendChild(toast);
+  }
+  toast.textContent = text;
+  toast.style.opacity = "1";
+  setTimeout(() => {
+    if (toast) toast.style.opacity = "0";
+  }, 2200);
+}
+
+function initPullDownToRefresh() {
+  const header = document.querySelector(".app-header");
+  if (!header) return;
+
+  let startY = 0;
+  let currentY = 0;
+  let isPulling = false;
+
+  header.addEventListener("touchstart", (e) => {
+    if (e.touches.length === 1) {
+      startY = e.touches[0].clientY;
+      isPulling = true;
+    }
+  }, { passive: true });
+
+  header.addEventListener("touchmove", (e) => {
+    if (!isPulling || e.touches.length !== 1) return;
+    currentY = e.touches[0].clientY;
+    const diff = currentY - startY;
+    if (diff > 50) {
+      let pullIndicator = document.getElementById("mobile-pull-indicator");
+      if (pullIndicator) {
+        pullIndicator.style.display = "flex";
+        pullIndicator.style.opacity = "1";
+      }
+    }
+  }, { passive: true });
+
+  header.addEventListener("touchend", () => {
+    if (!isPulling) return;
+    isPulling = false;
+    const diff = currentY - startY;
+    startY = 0;
+    currentY = 0;
+
+    const pullIndicator = document.getElementById("mobile-pull-indicator");
+    if (diff > 50) {
+      if (pullIndicator) {
+        pullIndicator.innerHTML = "<span>🔄 Actualizando con la nube...</span>";
+      }
+      syncPlacesFromCloud(false).finally(() => {
+        setTimeout(() => {
+          if (pullIndicator) {
+            pullIndicator.style.opacity = "0";
+            setTimeout(() => {
+              pullIndicator.style.display = "none";
+              pullIndicator.innerHTML = "<span>⬇️ Soltá para recargar</span>";
+            }, 300);
+          }
+        }, 500);
+      });
+    } else {
+      if (pullIndicator) {
+        pullIndicator.style.opacity = "0";
+        setTimeout(() => { pullIndicator.style.display = "none"; }, 200);
+      }
+    }
+  }, { passive: true });
+
+  // Doble toque en el logo del header para recargar al instante
+  header.addEventListener("dblclick", () => {
+    showSyncToast("🔄 Buscando cambios en la nube...");
+    syncPlacesFromCloud(false);
+  });
 }
 
 // 4. Idiomas

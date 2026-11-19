@@ -325,20 +325,26 @@
         <h1 style="font-size:1.3rem;">⚙️ Administración BsAs Guide</h1>
         <div style="font-size:0.8rem; color:#94a3b8;">Liquidaciones a mozos, QR de venta y mapa de comercios</div>
       </div>
-      <div style="display:flex; gap:8px;">
-        <button type="button" class="btn-action" style="background:#10b981; font-weight:700; display:flex; align-items:center; gap:6px;" onclick="publishToGitHub(this)">🚀 Publicar en Celulares</button>
+      <div style="display:flex; gap:8px; align-items:center;">
+        <div id="header-sync-pill" style="display:flex; align-items:center; gap:6px; background:rgba(16, 185, 129, 0.15); border:1px solid rgba(16, 185, 129, 0.4); padding:6px 12px; border-radius:999px; font-size:0.78rem; color:#34d399; font-weight:600;">
+          <span id="header-sync-icon">⚡</span> <span id="header-sync-text">Sincronización en vivo</span>
+        </div>
         <button class="btn-action btn-secondary" onclick="location.reload()">🔄 Actualizar</button>
       </div>
     </header>
 
-    <div id="github-pages-banner" style="display:none; background:rgba(2,132,199,0.15); border:1px solid rgba(56,189,248,0.4); padding:12px 14px; border-radius:10px; margin-bottom:14px; font-size:0.82rem; color:#bae6fd; line-height:1.4;">
-      🌐 <strong>Modo Web:</strong> Cuando agregues o edites lugares, tocá <strong>"🚀 Publicar en Celulares"</strong> para enviarlos a la nube. En 1 minuto se reflejarán en todos los teléfonos y turistas.
-      <div style="margin-top:10px; display:flex; gap:8px; flex-wrap:wrap;">
-        <button type="button" class="btn-action" style="background:#10b981; padding:8px 14px; font-weight:700;" onclick="publishToGitHub(this)">
-          🚀 Publicar en Celulares ahora
-        </button>
-        <button type="button" class="btn-action btn-secondary" style="padding:8px 12px; font-size:0.75rem;" onclick="downloadDataJs()">
-          📥 Descargar data.js
+    <div id="cloud-sync-status-bar" style="background:rgba(15, 23, 42, 0.8); border:1px solid rgba(56, 189, 248, 0.25); padding:10px 14px; border-radius:12px; margin-bottom:14px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;">
+      <div style="display:flex; align-items:center; gap:10px;">
+        <span id="sync-icon" style="font-size:1.3rem;">⚡</span>
+        <div>
+          <div id="sync-status-title" style="font-weight:700; font-size:0.85rem; color:#38bdf8;">Sincronización Automática con Celulares</div>
+          <div id="sync-status-desc" style="font-size:0.75rem; color:#94a3b8;">Cada lugar, cambio o mozo que guardás se publica automáticamente en la nube sin tocar ningún botón.</div>
+        </div>
+      </div>
+      <div style="display:flex; gap:8px; align-items:center;">
+        <span id="sync-time-badge" style="font-size:0.75rem; color:#34d399; background:#0f172a; padding:4px 10px; border-radius:6px; font-weight:600; border:1px solid rgba(255,255,255,0.08);">Listo y sincronizado</span>
+        <button type="button" class="btn-action" style="padding:6px 12px; font-size:0.75rem; background:#1e293b; border:1px solid rgba(255,255,255,0.15);" onclick="publishToGitHub(this, false, 'Sincronización forzada')">
+          ☁️ Forzar Nube
         </button>
       </div>
     </div>
@@ -508,6 +514,9 @@
       <div id="qr-modal-url" style="font-family:monospace; font-size:0.75rem; color:#38bdf8; word-break:break-all; margin-bottom:14px; background:#0f172a; padding:8px; border-radius:8px;"></div>
 
       <div style="display:flex; flex-direction:column; gap:8px;">
+        <a id="btn-share-qr-wa" href="#" target="_blank" class="btn-action" style="background:#25D366; color:#ffffff; padding:12px; text-decoration:none; text-align:center; font-weight:700; display:flex; align-items:center; justify-content:center; gap:8px; border-radius:10px; box-shadow:0 4px 15px rgba(37,211,102,0.3);">
+          <span style="font-size:1.15rem;">💬</span> Enviar QR y Link por WhatsApp
+        </a>
         <a id="btn-download-qr" href="#" target="_blank" class="btn-action" style="padding:12px; text-decoration:none; text-align:center; font-weight:700;">
           📥 Descargar Imagen QR
         </a>
@@ -815,19 +824,16 @@
       const mpLink = document.getElementById("cfg-mp-link").value.trim();
       if (!isStaticHost) {
         try {
-          const res = await fetch("/api/admin/config", {
+          await fetch("/api/admin/config", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ mpLink })
           });
-          if (res.ok) {
-            alert("¡Link de Mercado Pago actualizado!");
-            return;
-          }
         } catch (e) {}
       }
       localStorage.setItem("bsas_mp_link", mpLink);
-      alert("¡Link de Mercado Pago guardado en tu navegador!");
+      alert("¡Link de Mercado Pago guardado!");
+      scheduleAutoSync("Link Mercado Pago");
     }
 
     async function loadWaiters() {
@@ -861,6 +867,39 @@
       }
     }
 
+    function getWaiterShareDetails(waiterId, waiterName = "") {
+      const w = (allWaiters && allWaiters.find(x => x.id === waiterId)) || { id: waiterId, name: waiterName || waiterId, pin: "1234", alias: "" };
+      const isGH = window.location.hostname.endsWith("github.io");
+      let fullUrl = "";
+      if (isGH) {
+        const repoPath = window.location.pathname.replace(/\/admin\.html.*$/, "");
+        fullUrl = `${window.location.origin}${repoPath}/?m=${w.id}`;
+      } else {
+        const host = window.location.hostname === "localhost" ? "192.168.100.11" : window.location.hostname;
+        const port = window.location.port ? `:${window.location.port}` : "";
+        fullUrl = `http://${host}${port}/?m=${w.id}`;
+      }
+
+      const qrImageUrl = `https://api.qrserver.com/v1/create-qr-code/?size=600x600&data=${encodeURIComponent(fullUrl)}`;
+      const waMsg = `👋 ¡Hola ${w.name}!
+
+Acá tenés tu link y código QR de atención para turistas en BsAs Local Guide:
+
+🔗 Tu link de atención:
+${fullUrl}
+
+🔑 Tu PIN para cobrar en mesa: ${w.pin || '1234'}
+(Dáselo al turista cuando pague en tu mesa para activar su pase)
+
+🖼️ Tu código QR para imprimir o mostrar desde el celular:
+${qrImageUrl}
+
+¡Muchos éxitos con las propinas! 🚀`;
+
+      const waUrl = `https://wa.me/?text=${encodeURIComponent(waMsg)}`;
+      return { w, fullUrl, qrImageUrl, waMsg, waUrl };
+    }
+
     function renderWaitersUI() {
       const container = document.getElementById("waiters-container");
       if (!container) return;
@@ -876,9 +915,14 @@
               <strong style="font-size:1.05rem;">👨‍🍳 ${w.name}</strong> 
               <span style="font-size:0.75rem; color:#94a3b8; margin-left:6px;">(?m=${w.id})</span>
             </div>
-            <button class="btn-action btn-qr" onclick="openQrModal('${w.id}', '${w.name}')">
-              📱 Ver Código QR
-            </button>
+            <div style="display:flex; gap:8px; flex-wrap:wrap;">
+              <button class="btn-action btn-qr" onclick="openQrModal('${w.id}', '${w.name}')">
+                📱 Ver QR
+              </button>
+              <button class="btn-action" style="background:#25D366; color:#ffffff; font-weight:700; display:flex; align-items:center; gap:5px;" onclick="sendWaiterQrWa('${w.id}')">
+                <span>💬</span> WhatsApp
+              </button>
+            </div>
           </div>
 
           <div class="waiter-alias-box">
@@ -910,25 +954,24 @@
     }
 
     function openQrModal(waiterId, waiterName) {
-      const isGH = window.location.hostname.endsWith("github.io");
-      let fullUrl = "";
-      if (isGH) {
-        const repoPath = window.location.pathname.replace(/\/admin\.html.*$/, "");
-        fullUrl = `${window.location.origin}${repoPath}/?m=${waiterId}`;
-      } else {
-        const host = window.location.hostname === "localhost" ? "192.168.100.11" : window.location.hostname;
-        const port = window.location.port ? `:${window.location.port}` : "";
-        fullUrl = `http://${host}${port}/?m=${waiterId}`;
+      const details = getWaiterShareDetails(waiterId, waiterName);
+
+      document.getElementById("qr-modal-title").textContent = `Código QR: ${details.w.name}`;
+      document.getElementById("qr-modal-img").src = details.qrImageUrl;
+      document.getElementById("qr-modal-url").textContent = details.fullUrl;
+      document.getElementById("btn-download-qr").href = details.qrImageUrl;
+
+      const waBtn = document.getElementById("btn-share-qr-wa");
+      if (waBtn) {
+        waBtn.href = details.waUrl;
       }
 
-      const qrImageUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(fullUrl)}`;
-
-      document.getElementById("qr-modal-title").textContent = `Código QR: ${waiterName}`;
-      document.getElementById("qr-modal-img").src = qrImageUrl;
-      document.getElementById("qr-modal-url").textContent = fullUrl;
-      document.getElementById("btn-download-qr").href = qrImageUrl;
-
       document.getElementById("qr-modal").classList.add("active");
+    }
+
+    function sendWaiterQrWa(waiterId) {
+      const details = getWaiterShareDetails(waiterId);
+      window.open(details.waUrl, "_blank");
     }
 
     function closeQrModal() {
@@ -954,6 +997,7 @@
             alert("¡Liquidación registrada con éxito!");
             await loadWaiters();
             loadStats();
+            scheduleAutoSync("Liquidación mozo: " + name);
             return;
           }
         } catch (e) {}
@@ -967,6 +1011,7 @@
         alert("¡Liquidación registrada con éxito!");
         renderWaitersUI();
         loadStats();
+        scheduleAutoSync("Liquidación mozo: " + name);
       }
     }
 
@@ -989,16 +1034,11 @@
 
       if (!isStaticHost) {
         try {
-          const res = await fetch("/api/admin/waiters", {
+          await fetch("/api/admin/waiters", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(payload)
           });
-          if (res.ok) {
-            closeWaiterModal();
-            loadWaiters();
-            return;
-          }
         } catch (err) {}
       }
 
@@ -1009,6 +1049,17 @@
 
       closeWaiterModal();
       loadWaiters();
+
+      // Sincronización automática a la nube
+      scheduleAutoSync("Guardar Mozo: " + name);
+
+      // Abrir QR del mozo y ofrecer enviar por WhatsApp
+      openQrModal(id, name);
+      setTimeout(() => {
+        if (confirm(`¡Mozo "${name}" guardado con éxito!\n\n¿Querés abrir WhatsApp ahora para enviarle su link, PIN y código QR?`)) {
+          sendWaiterQrWa(id);
+        }
+      }, 300);
     }
 
     function downloadDataJs() {
@@ -1070,14 +1121,91 @@
       }
     }
 
-    async function publishToGitHub(btnElement = null) {
+    let autoSyncTimer = null;
+    let isCloudSyncing = false;
+
+    function updateSyncUI(status, label, detail) {
+      const pillIcon = document.getElementById("header-sync-icon");
+      const pillText = document.getElementById("header-sync-text");
+      const pill = document.getElementById("header-sync-pill");
+      const iconEl = document.getElementById("sync-icon");
+      const titleEl = document.getElementById("sync-status-title");
+      const descEl = document.getElementById("sync-status-desc");
+      const timeBadge = document.getElementById("sync-time-badge");
+
+      if (status === "syncing") {
+        if (pill) {
+          pill.style.background = "rgba(56, 189, 248, 0.15)";
+          pill.style.borderColor = "rgba(56, 189, 248, 0.4)";
+          pill.style.color = "#38bdf8";
+        }
+        if (pillIcon) pillIcon.textContent = "⏳";
+        if (pillText) pillText.textContent = "Sincronizando con celulares...";
+        if (iconEl) iconEl.textContent = "⏳";
+        if (titleEl) {
+          titleEl.textContent = "Guardando y enviando a la nube...";
+          titleEl.style.color = "#38bdf8";
+        }
+        if (descEl) descEl.textContent = detail || "Los cambios se están propagando a los celulares sin que tengas que tocar nada.";
+        if (timeBadge) timeBadge.textContent = "Guardando...";
+      } else if (status === "success") {
+        if (pill) {
+          pill.style.background = "rgba(16, 185, 129, 0.15)";
+          pill.style.borderColor = "rgba(16, 185, 129, 0.4)";
+          pill.style.color = "#34d399";
+        }
+        if (pillIcon) pillIcon.textContent = "✅";
+        if (pillText) pillText.textContent = "Sincronizado en celulares";
+        if (iconEl) iconEl.textContent = "✅";
+        if (titleEl) {
+          titleEl.textContent = "¡Cambios sincronizados en vivo con celulares!";
+          titleEl.style.color = "#34d399";
+        }
+        if (descEl) descEl.textContent = detail || "Todos los cambios ya están activos y se actualizan solos en los teléfonos.";
+        if (timeBadge) {
+          const d = new Date();
+          timeBadge.textContent = `Al día ${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`;
+        }
+      } else if (status === "local") {
+        if (pill) {
+          pill.style.background = "rgba(245, 158, 11, 0.15)";
+          pill.style.borderColor = "rgba(245, 158, 11, 0.4)";
+          pill.style.color = "#f59e0b";
+        }
+        if (pillIcon) pillIcon.textContent = "💾";
+        if (pillText) pillText.textContent = "Guardado local";
+        if (iconEl) iconEl.textContent = "💾";
+        if (titleEl) {
+          titleEl.textContent = "Guardado en este navegador";
+          titleEl.style.color = "#f59e0b";
+        }
+        if (descEl) descEl.textContent = detail || "No se pudo conectar a GitHub, los cambios están seguros en este navegador.";
+        if (timeBadge) timeBadge.textContent = "Solo local";
+      }
+    }
+
+    function scheduleAutoSync(reason = "Actualización") {
+      updateSyncUI("syncing", "Sincronizando...", "Guardando: " + reason);
+      if (autoSyncTimer) clearTimeout(autoSyncTimer);
+      autoSyncTimer = setTimeout(() => {
+        publishToGitHub(null, true, reason);
+      }, 500);
+    }
+
+    async function publishToGitHub(btnElement = null, silent = false, reason = "Actualización") {
+      if (isCloudSyncing) return;
+      isCloudSyncing = true;
       let btn = btnElement;
-      if (!btn && window.event && window.event.target) btn = window.event.target;
+      if (!btn && window.event && window.event.target && window.event.target.tagName === "BUTTON") {
+        btn = window.event.target;
+      }
       const originalText = btn ? btn.innerHTML : "";
       if (btn) {
         btn.disabled = true;
         btn.innerHTML = "⏳ Publicando...";
       }
+
+      updateSyncUI("syncing", "Publicando...", `Enviando a GitHub: ${reason}`);
 
       try {
         const token = ["ghp", "3pGVKAG9X3KdOo6XAsfBfpEj0nShP80OGLB8"].join("_");
@@ -1116,6 +1244,7 @@
           image: p.image || "https://images.unsplash.com/photo-1544025162-d76694265947?w=600",
           menu_url: p.menu_url || "",
           is_indoor: p.is_indoor !== undefined ? p.is_indoor : 1,
+          active: p.active !== undefined ? p.active : 1,
           tips: {
             es: p.tip_es || (p.tips ? p.tips.es : "") || "",
             en: p.tip_en || (p.tips ? p.tips.en : "") || "",
@@ -1129,7 +1258,19 @@
           const appDataObj = fn();
           if (appDataObj) {
             appDataObj.places = formatted;
-            appDataObj.version = "20261117_" + Date.now();
+            if (allWaiters && allWaiters.length > 0) {
+              appDataObj.waiters = allWaiters.map(w => ({
+                id: w.id,
+                name: w.name,
+                alias: w.alias || "",
+                pin: w.pin || "1234",
+                commission_usd: w.commission_usd || 1.5
+              }));
+            }
+            if (allCategories && allCategories.length > 0) {
+              appDataObj.categories = allCategories;
+            }
+            appDataObj.version = "20261118_" + Date.now();
             updatedContent = '// Base de datos de lugares, traducciones y tips para Buenos Aires\nconst APP_DATA = ' + JSON.stringify(appDataObj, null, 2) + ';\n';
           }
         } catch(e) {}
@@ -1140,7 +1281,7 @@
           if (regex.test(currentContent)) {
             updatedContent = currentContent.replace(regex, `"places": ${placesJson},`);
           } else {
-            const clone = { ...APP_DATA, places: formatted, version: "20261117_" + Date.now() };
+            const clone = { ...APP_DATA, places: formatted, version: "20261118_" + Date.now() };
             updatedContent = `// Base de datos de lugares, traducciones y tips para Buenos Aires\nconst APP_DATA = ${JSON.stringify(clone, null, 2)};\n`;
           }
         }
@@ -1157,7 +1298,7 @@
             "Accept": "application/vnd.github.v3+json"
           },
           body: JSON.stringify({
-            message: `Actualizar lugares desde panel Admin (${formatted.length} lugares)`,
+            message: `Auto-sync Admin: ${reason} (${formatted.length} lugares)`,
             content: base64Updated,
             sha: currentSha
           })
@@ -1167,14 +1308,23 @@
           throw new Error("Error al guardar en GitHub (Status " + putRes.status + ")");
         }
 
-        alert("🎉 ¡Éxito! Los lugares se publicaron en la nube.\nEn 1 minuto estarán disponibles en todos los celulares del mundo.");
+        updateSyncUI("success", "Sincronizado", `¡Éxito! ${reason} publicado en la nube.`);
+        if (!silent) {
+          alert("🎉 ¡Éxito! Los lugares se publicaron en la nube.\nEn unos segundos estarán disponibles en todos los celulares del mundo.");
+        }
+        return true;
       } catch (err) {
         console.error("Error publicando en GitHub:", err);
-        alert("⚠️ No se pudo publicar directo a la nube: " + err.message + "\nLos cambios quedaron guardados en este navegador.");
+        updateSyncUI("local", "Guardado local", "Guardado localmente. Error nube: " + err.message);
+        if (!silent) {
+          alert("⚠️ No se pudo publicar directo a la nube: " + err.message + "\nLos cambios quedaron guardados en este navegador.");
+        }
+        return false;
       } finally {
+        isCloudSyncing = false;
         if (btn) {
           btn.disabled = false;
-          btn.innerHTML = originalText || "🚀 Publicar en Celulares";
+          btn.innerHTML = originalText || "☁️ Forzar Nube";
         }
       }
     }
@@ -1381,32 +1531,28 @@
     async function togglePlace(id, newStatus) {
       if (!isStaticHost) {
         try {
-          const res = await fetch("/api/admin/places/toggle", {
+          await fetch("/api/admin/places/toggle", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ id, active: newStatus })
           });
-          if (res.ok) {
-            loadPlaces();
-            return;
-          }
         } catch (e) {}
       }
       const p = allPlaces.find(x => x.id === id);
       if (p) p.active = newStatus ? 1 : 0;
       localStorage.setItem("bsas_places", JSON.stringify(allPlaces));
       loadPlaces();
+      scheduleAutoSync(`Lugar ${newStatus ? 'activado' : 'pausado'}: ${id}`);
     }
 
     async function deletePlace(id) {
-      if (!confirm("¿Seguro que querés borrar este lugar?")) return;
+      const p = allPlaces.find(x => x.id === id);
+      const placeName = p ? p.name : id;
+      if (!confirm(`¿Seguro que querés borrar permanentemente "${placeName}"?`)) return;
+
       if (!isStaticHost) {
         try {
-          const res = await fetch(`/api/admin/places/${id}`, { method: "DELETE" });
-          if (res.ok) {
-            loadPlaces();
-            return;
-          }
+          await fetch(`/api/admin/places/${id}`, { method: "DELETE" });
         } catch (e) {}
       }
 
@@ -1419,6 +1565,7 @@
       allPlaces = allPlaces.filter(x => x.id !== id);
       localStorage.setItem("bsas_places", JSON.stringify(allPlaces));
       loadPlaces();
+      scheduleAutoSync(`Eliminar lugar: ${placeName}`);
     }
 
     // ==================== CAMBIO DE PESTAÑAS DEL ADMIN ====================
@@ -1860,16 +2007,11 @@
 
       if (!isStaticHost) {
         try {
-          const res = await fetch("/api/admin/places", {
+          await fetch("/api/admin/places", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(payload)
           });
-          if (res.ok) {
-            closePlaceEditor();
-            loadPlaces();
-            return;
-          }
         } catch (err) {}
       }
 
@@ -1880,6 +2022,9 @@
 
       closePlaceEditor();
       loadPlaces();
+
+      // Sincronización 100% automática a todos los celulares
+      scheduleAutoSync(`Guardar lugar: ${payload.name}`);
     }
 
     async function loadAdminReviews() {
