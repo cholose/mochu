@@ -527,5 +527,5 @@ const APP_DATA = {
       "commission_usd": 1.5
     }
   ],
-  "version": "20261118_10"
+  "version": "20261118_11"
 };

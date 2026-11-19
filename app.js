@@ -1353,41 +1353,78 @@ function handleTransportClick(e, type) {
 // 9. Tango & Shows (Control VIP)
 function renderTangoList() {
   const container = document.getElementById("tango-list-container");
+  if (!container) return;
   const placesToRender = (state.places && state.places.length > 0) ? state.places : APP_DATA.places;
-  const tangos = placesToRender.filter(p => p.category === "tango");
+  const tangos = placesToRender.filter(p => p.category === "tango" && (p.active !== 0 && p.active !== false && p.active !== "0"));
   const t = APP_DATA.i18n[state.currentLang];
   const waiterName = state.waiterName || capitalize(state.waiterId);
 
-  container.innerHTML = tangos.map(item => {
-    const tip = item.tips[state.currentLang] || item.tips.es;
+  const isEn = state.currentLang === "en";
+  const isPt = state.currentLang === "pt";
+
+  const headerHtml = `
+    <div class="tango-header-box">
+      <div style="font-size:1.15rem; font-weight:800; color:#fff; margin-bottom:4px; display:flex; align-items:center; gap:8px;">
+        <span>💃</span> ${isEn ? "Tango Shows & Buenos Aires Nightlife" : (isPt ? "Cenas Show de Tango & Noite Portenha" : "Cenas Show de Tango & Noche Porteña")}
+      </div>
+      <p style="font-size:0.82rem; color:#cbd5e1; line-height:1.45; margin:0;">
+        ${isEn
+          ? "Top traditional and modern musical tango dinner shows handpicked by local waitstaff. Direct WhatsApp reservations with VIP hotel transfers and discounts."
+          : (isPt
+            ? "Os melhores espetáculos de tango tradicional e moderno selecionados pelos garçons. Reserva direta via WhatsApp com traslados e descontos exclusivos."
+            : "Los mejores espectáculos de tango tradicional y moderno seleccionados por los mozos. Reserva directa por WhatsApp con traslados y descuentos exclusivos.")}
+      </p>
+    </div>
+  `;
+
+  if (tangos.length === 0) {
+    container.innerHTML = headerHtml + `
+      <div style="text-align:center; padding:30px 16px; color:#94a3b8; font-size:0.9rem;">
+        No hay shows de tango disponibles por el momento.
+      </div>
+    `;
+    return;
+  }
+
+  const cardsHtml = tangos.map(item => {
+    const tip = (item.tips && (item.tips[state.currentLang] || item.tips.es)) || "";
     const waMsg = `Hola! Me interesa reservar el show de Tango en ${item.name} (${item.neighborhood}). Vengo recomendado por ${waiterName}. ¿Tienen disponibilidad para hoy o mañana?`;
     const waUrl = `https://wa.me/${APP_DATA.config.agencyWhatsApp}?text=${encodeURIComponent(waMsg)}`;
 
     return `
       <article class="card-item">
-        <img src="${item.image}" alt="${item.name}">
+        <div class="card-item-img-wrap">
+          <img src="${item.image}" alt="${item.name}" loading="lazy">
+        </div>
         <div class="card-body">
           <div class="card-title-row">
             <h3 class="card-title">${item.name}</h3>
-            <span class="sheet-badge">${t.tangoBadge}</span>
+            <span class="sheet-badge">${t.tangoBadge || 'Verificado'}</span>
           </div>
           <div class="sheet-meta">
             <span>📍 ${item.neighborhood}</span> • <span>${item.price}</span> • <span>${item.tag}</span>
           </div>
           <p class="card-desc">${tip}</p>
-          ${state.isVip ? `
-            <a href="${waUrl}" target="_blank" class="btn-whatsapp" onclick="trackClick('tango', '${item.id}')">
-              <span>💬</span> <span>${t.bookTangoBtn}</span>
-            </a>
-          ` : `
-            <button onclick="openUnlockModal()" class="btn-whatsapp" style="background:#f59e0b; color:#0f172a; font-weight:800; cursor:pointer;">
-              <span>🔒</span> <span>Desbloquear Descuentos con PIN</span>
+          <div class="tango-btn-row">
+            ${state.isVip ? `
+              <a href="${waUrl}" target="_blank" class="btn-whatsapp" onclick="trackClick('tango', '${item.id}')">
+                <span>💬</span> <span>${t.bookTangoBtn}</span>
+              </a>
+            ` : `
+              <button type="button" onclick="openUnlockModal()" class="btn-whatsapp" style="background:#f59e0b; color:#0f172a; font-weight:800; cursor:pointer;">
+                <span>🔒</span> <span>${isEn ? 'Unlock VIP Discounts' : (isPt ? 'Desbloquear com PIN' : 'Desbloquear con PIN')}</span>
+              </button>
+            `}
+            <button type="button" class="btn-tango-map" onclick="navigateToPlaceOnMap('${item.id}')" title="${isEn ? 'Show on Map' : (isPt ? 'Ver no mapa' : 'Ver en mapa')}">
+              <span>📍</span> <span>${isEn ? 'Map' : (isPt ? 'Mapa' : 'Mapa')}</span>
             </button>
-          `}
+          </div>
         </div>
       </article>
     `;
   }).join("");
+
+  container.innerHTML = headerHtml + `<div class="tango-cards-grid">${cardsHtml}</div>`;
 }
 
 // 10. Guía de Seguridad
