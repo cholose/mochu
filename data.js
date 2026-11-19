@@ -527,5 +527,16 @@ const APP_DATA = {
       "commission_usd": 1.5
     }
   ],
-  "version": "20261118_11"
+  "categories": [
+    { "id": "food", "name": "Parrillas & Carnes", "icon": "🥩", "color": "#ef4444" },
+    { "id": "pizzeria", "name": "Pizzerías & Bodegones", "icon": "🍕", "color": "#f97316" },
+    { "id": "tango", "name": "Tango & Shows", "icon": "💃", "color": "#a855f7" },
+    { "id": "cafes", "name": "Cafés Notables & Desayunos", "icon": "☕", "color": "#d97706" },
+    { "id": "bars", "name": "Bares & Coctelería", "icon": "🍸", "color": "#f59e0b" },
+    { "id": "shopping", "name": "Shoppings & Paseos", "icon": "🛍️", "color": "#06b6d4" },
+    { "id": "culture", "name": "Museos & Cultura", "icon": "🏛️", "color": "#3b82f6" },
+    { "id": "dessert", "name": "Heladerías & Postres", "icon": "🍦", "color": "#ec4899" },
+    { "id": "other", "name": "Otros Lugares", "icon": "⭐", "color": "#10b981" }
+  ],
+  "version": "20261118_12"
 };

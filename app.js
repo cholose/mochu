@@ -313,10 +313,6 @@ async function loadPlaces() {
   } catch (err) {
     const saved = localStorage.getItem("bsas_places");
     const deletedIds = new Set(JSON.parse(localStorage.getItem("bsas_deleted_places") || "[]"));
-    deletedIds.add("p_tifiamo");
-    deletedIds.add("p_valerio");
-    deletedIds.add("place_mwl1ksaa");
-    deletedIds.add("place_mwkv5zyi");
 
     const officialPlaces = (typeof APP_DATA !== "undefined" && APP_DATA.places) ? APP_DATA.places : [];
     const validOfficials = officialPlaces.filter(p => !deletedIds.has(p.id));
@@ -443,10 +439,6 @@ async function syncPlacesFromCloud(isSilent = true) {
 
         if (freshData.places && freshData.places.length > 0) {
           const deletedIds = new Set(JSON.parse(localStorage.getItem("bsas_deleted_places") || "[]"));
-          deletedIds.add("p_tifiamo");
-          deletedIds.add("p_valerio");
-          deletedIds.add("place_mwl1ksaa");
-          deletedIds.add("place_mwkv5zyi");
 
           const formatted = freshData.places
             .filter(p => !deletedIds.has(p.id))
@@ -1146,19 +1138,26 @@ async function loadCategories() {
       throw new Error("No backend");
     }
   } catch (e) {
-    const saved = localStorage.getItem("bsas_categories");
-    if (saved) {
-      try { state.categories = JSON.parse(saved); } catch(err) { state.categories = null; }
-    }
-    if (!state.categories || state.categories.length === 0) {
-      state.categories = [
-        { id: "food", name: "Parrillas & Carnes", icon: "🥩", color: "#ef4444" },
-        { id: "tango", name: "Tango & Shows", icon: "💃", color: "#a855f7" },
-        { id: "shopping", name: "Shoppings & Paseos", icon: "🛍️", color: "#06b6d4" },
-        { id: "bars", name: "Bares & Coctelería", icon: "🍸", color: "#f59e0b" },
-        { id: "cafes", name: "Cafés Notables", icon: "☕", color: "#d97706" },
-        { id: "culture", name: "Museos & Cultura", icon: "🏛️", color: "#3b82f6" }
-      ];
+    if (typeof APP_DATA !== "undefined" && APP_DATA.categories && APP_DATA.categories.length > 0) {
+      state.categories = APP_DATA.categories;
+    } else {
+      const saved = localStorage.getItem("bsas_categories");
+      if (saved) {
+        try { state.categories = JSON.parse(saved); } catch(err) { state.categories = null; }
+      }
+      if (!state.categories || state.categories.length === 0) {
+        state.categories = [
+          { id: "food", name: "Parrillas & Carnes", icon: "🥩", color: "#ef4444" },
+          { id: "pizzeria", name: "Pizzerías & Bodegones", icon: "🍕", color: "#f97316" },
+          { id: "tango", name: "Tango & Shows", icon: "💃", color: "#a855f7" },
+          { id: "cafes", name: "Cafés Notables & Desayunos", icon: "☕", color: "#d97706" },
+          { id: "bars", name: "Bares & Coctelería", icon: "🍸", color: "#f59e0b" },
+          { id: "shopping", name: "Shoppings & Paseos", icon: "🛍️", color: "#06b6d4" },
+          { id: "culture", name: "Museos & Cultura", icon: "🏛️", color: "#3b82f6" },
+          { id: "dessert", name: "Heladerías & Postres", icon: "🍦", color: "#ec4899" },
+          { id: "other", name: "Otros Lugares", icon: "⭐", color: "#10b981" }
+        ];
+      }
     }
   }
 

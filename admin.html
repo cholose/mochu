@@ -166,6 +166,31 @@
       flex-direction: column;
       gap: 10px;
     }
+    .admin-cat-chip {
+      background: #1e293b;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: #cbd5e1;
+      padding: 6px 12px;
+      border-radius: 999px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      transition: all 0.15s ease;
+    }
+    .admin-cat-chip:hover {
+      background: #334155;
+      color: #fff;
+    }
+    .admin-cat-chip.active {
+      background: #10b981;
+      border-color: #10b981;
+      color: #0f172a;
+      font-weight: 800;
+    }
     .place-row {
       display: flex;
       align-items: center;
@@ -400,9 +425,19 @@
         <!-- MAPA DEL DASHBOARD -->
         <div id="dashboard-admin-map" style="height:360px; width:100%; border-radius:12px; border:1px solid rgba(255,255,255,0.15); background:#1e293b; margin-bottom:16px;"></div>
 
-        <div class="section-title" style="margin-top:16px;">
-          <span style="font-size:0.95rem;">📋 Listado de Lugares Cargados</span>
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-top:20px; margin-bottom:8px;">
+          <div style="font-size:1rem; font-weight:700; color:#fff; display:flex; align-items:center; gap:8px;">
+            <span>📋 Lugares Organizados por Categoría</span>
+            <span id="places-total-badge" style="font-size:0.75rem; background:#334155; color:#38bdf8; padding:2px 8px; border-radius:999px;"></span>
+          </div>
+          <div style="font-size:0.75rem; color:#94a3b8;">
+            Filtrá por categoría para tener todo ordenado:
+          </div>
         </div>
+
+        <!-- Filtros Rápidos de Categoría -->
+        <div id="admin-category-chips-bar" style="display:flex; gap:6px; overflow-x:auto; padding:4px 0 12px 0; margin-bottom:12px; scrollbar-width:none; -webkit-overflow-scrolling:touch;"></div>
+
         <div class="places-list" id="places-container"></div>
       </div>
     </div>
@@ -567,8 +602,8 @@
             </select>
           </div>
           <div class="form-group">
-            <label>Barrio / Zona *</label>
-            <input type="text" id="form-neighborhood" class="input-field" required placeholder="ej. Palermo, San Telmo, Centro">
+            <label>Barrio / Zona</label>
+            <input type="text" id="form-neighborhood" class="input-field" placeholder="ej. Palermo, San Telmo, Centro (opcional)">
           </div>
         </div>
 
@@ -629,8 +664,8 @@
         </div>
 
         <div class="form-group">
-          <label>💡 Tip de Mozo (Consejo local para el turista) *</label>
-          <textarea id="form-tip-es" class="input-field" rows="3" required placeholder="Consejo honesto de mozo (ej: pedir el ojo de bife a punto, llegar temprano para no hacer fila)..."></textarea>
+          <label>💡 Tip de Mozo (Consejo local para el turista - Opcional)</label>
+          <textarea id="form-tip-es" class="input-field" rows="3" placeholder="Consejo honesto de mozo (ej: pedir el ojo de bife a punto, llegar temprano para no hacer fila)..."></textarea>
           <div style="font-size:0.75rem; color:#94a3b8; margin-top:3px;">
             ✍️ Escribilo acá en español. La app se encarga de traducirlo automáticamente cuando el turista cambia de idioma.
           </div>
@@ -727,11 +762,14 @@
 
     const DEFAULT_CATEGORIES = [
       { id: "food", name: "Parrillas & Carnes", icon: "🥩", color: "#ef4444" },
+      { id: "pizzeria", name: "Pizzerías & Bodegones", icon: "🍕", color: "#f97316" },
       { id: "tango", name: "Tango & Shows", icon: "💃", color: "#a855f7" },
-      { id: "shopping", name: "Shoppings & Paseos", icon: "🛍️", color: "#06b6d4" },
+      { id: "cafes", name: "Cafés Notables & Desayunos", icon: "☕", color: "#d97706" },
       { id: "bars", name: "Bares & Coctelería", icon: "🍸", color: "#f59e0b" },
-      { id: "cafes", name: "Cafés Notables", icon: "☕", color: "#d97706" },
-      { id: "culture", name: "Museos & Cultura", icon: "🏛️", color: "#3b82f6" }
+      { id: "shopping", name: "Shoppings & Paseos", icon: "🛍️", color: "#06b6d4" },
+      { id: "culture", name: "Museos & Cultura", icon: "🏛️", color: "#3b82f6" },
+      { id: "dessert", name: "Heladerías & Postres", icon: "🍦", color: "#ec4899" },
+      { id: "other", name: "Otros Lugares", icon: "⭐", color: "#10b981" }
     ];
 
     document.addEventListener("DOMContentLoaded", () => {
@@ -1449,10 +1487,6 @@ ${qrImageUrl}
         try { localList = JSON.parse(saved); } catch(e) { localList = []; }
       }
       const deletedIds = new Set(JSON.parse(localStorage.getItem("bsas_deleted_places") || "[]"));
-      deletedIds.add("p_tifiamo");
-      deletedIds.add("p_valerio");
-      deletedIds.add("place_mwl1ksaa");
-      deletedIds.add("place_mwkv5zyi");
 
       const officialPlaces = (typeof APP_DATA !== "undefined" && APP_DATA.places) ? APP_DATA.places : [];
 
@@ -1464,13 +1498,10 @@ ${qrImageUrl}
 
       const customLocal = localList.filter(p => {
         const name = (p.name || "").trim().toLowerCase();
-        return !officialIds.has(p.id) && !officialNames.has(name) && !deletedIds.has(p.id) && !name.includes("tifiamo") && !name.includes("valerio");
+        return !officialIds.has(p.id) && !officialNames.has(name) && !deletedIds.has(p.id);
       });
 
-      const combined = [...validOfficials, ...customLocal].filter(p => {
-        const name = (p.name || "").trim().toLowerCase();
-        return !name.includes("tifiamo") && !name.includes("valerio");
-      });
+      const combined = [...validOfficials, ...customLocal];
 
       allPlaces = combined.map(p => ({
         id: p.id,
@@ -1496,36 +1527,161 @@ ${qrImageUrl}
       } catch(e) {}
     }
 
+    let currentAdminCategoryFilter = "all";
+
+    function setAdminCategoryFilter(catId) {
+      currentAdminCategoryFilter = catId;
+      renderPlacesUI();
+    }
+
+    function getCategoryInfo(catId) {
+      const found = (allCategories || []).find(c => c.id === catId);
+      if (found) return found;
+      const def = DEFAULT_CATEGORIES.find(c => c.id === catId);
+      if (def) return def;
+      return { id: catId || "other", name: (catId || "Otro").toUpperCase(), icon: "📍", color: "#10b981" };
+    }
+
+    function renderAdminCategoryChips() {
+      const bar = document.getElementById("admin-category-chips-bar");
+      if (!bar) return;
+
+      const totalPlaces = (allPlaces || []).length;
+      const totalBadge = document.getElementById("places-total-badge");
+      if (totalBadge) totalBadge.textContent = `${totalPlaces} lugares`;
+
+      // Contar lugares por categoría
+      const counts = {};
+      (allPlaces || []).forEach(p => {
+        const c = p.category || "other";
+        counts[c] = (counts[c] || 0) + 1;
+      });
+
+      const allActive = (currentAdminCategoryFilter === "all");
+      let html = `
+        <button type="button" class="admin-cat-chip ${allActive ? 'active' : ''}" onclick="setAdminCategoryFilter('all')">
+          🗺️ Todos (${totalPlaces})
+        </button>
+      `;
+
+      (allCategories && allCategories.length > 0 ? allCategories : DEFAULT_CATEGORIES).forEach(c => {
+        const cnt = counts[c.id] || 0;
+        const isActive = (currentAdminCategoryFilter === c.id);
+        html += `
+          <button type="button" class="admin-cat-chip ${isActive ? 'active' : ''}" onclick="setAdminCategoryFilter('${c.id}')" style="${isActive ? `background:${c.color}; border-color:${c.color}; color:#fff;` : ''}">
+            ${c.icon} ${c.name} (${cnt})
+          </button>
+        `;
+      });
+
+      bar.innerHTML = html;
+    }
+
+    function renderPlaceRowHtml(p) {
+      const isAct = (p.active !== 0 && p.active !== false && p.active !== "0");
+      const cat = getCategoryInfo(p.category);
+      return `
+        <div class="place-row">
+          <div style="flex:1; min-width:0;">
+            <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:4px;">
+              <strong style="font-size:0.98rem; color:#fff;">${p.name}</strong>
+              <span style="background:${cat.color}22; color:${cat.color}; border:1px solid ${cat.color}55; padding:2px 8px; border-radius:6px; font-weight:700; font-size:0.75rem; white-space:nowrap;">
+                ${cat.icon} ${cat.name}
+              </span>
+              ${p.menu_url ? '<a href="' + p.menu_url + '" target="_blank" style="color:#10b981; font-size:0.75rem; text-decoration:none; background:rgba(16,185,129,0.15); padding:2px 8px; border-radius:4px; border:1px solid rgba(16,185,129,0.3); white-space:nowrap;">📖 Carta Online ↗</a>' : ''}
+            </div>
+            <div style="font-size:0.75rem; color:#94a3b8; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+              ${p.address ? '<span style="color:#38bdf8;">' + p.address + '</span> • ' : ''}
+              ${p.neighborhood || 'Buenos Aires'} • <span>${p.price || '$$'}</span> • <span>${p.tag || 'Recomendado'}</span>
+            </div>
+          </div>
+          <div style="display:flex; gap:6px; align-items:center; flex-shrink:0;">
+            <button type="button" class="toggle-active ${isAct ? 'on' : 'off'}" onclick="togglePlace('${p.id}', ${!isAct})">
+              ${isAct ? 'Activo' : 'Pausado'}
+            </button>
+            <button type="button" class="btn-action" style="padding:6px 10px;" onclick="editPlace('${p.id}')" title="Editar lugar">✏️</button>
+            <button type="button" class="btn-action btn-danger" style="padding:6px 10px;" onclick="deletePlace('${p.id}')" title="Eliminar lugar">🗑️</button>
+          </div>
+        </div>
+      `;
+    }
+
     function renderPlacesUI() {
+      renderAdminCategoryChips();
       const container = document.getElementById("places-container");
       if (!container) return;
+
       if (!allPlaces || allPlaces.length === 0) {
-        container.innerHTML = '<div style="color:#94a3b8; font-size:0.85rem;">No hay lugares cargados.</div>';
+        container.innerHTML = '<div style="color:#94a3b8; font-size:0.85rem; padding:20px; text-align:center;">No hay lugares cargados todavía. Tocá "+ Nuevo Lugar" para agregar el primero.</div>';
         return;
       }
 
-      container.innerHTML = allPlaces.map(p => {
-        const isAct = (p.active !== 0 && p.active !== false && p.active !== "0");
-        return `
-        <div class="place-row">
-          <div style="flex:1;">
-            <div style="font-weight:700; font-size:0.95rem;">
-              ${p.name}
-              ${p.menu_url ? '<a href="' + p.menu_url + '" target="_blank" style="color:#10b981; font-size:0.75rem; text-decoration:none; margin-left:8px; background:rgba(16,185,129,0.15); padding:2px 8px; border-radius:4px; border:1px solid rgba(16,185,129,0.3);">📖 Carta Online ↗</a>' : ''}
-            </div>
-            <div style="font-size:0.75rem; color:#94a3b8;">
-              ${p.address ? '<span style="color:#38bdf8;">' + p.address + '</span> • ' : ''}
-              ${p.neighborhood} • <strong>${(p.category || '').toUpperCase()}</strong> • ${p.price}
-            </div>
+      let filtered = allPlaces;
+      if (currentAdminCategoryFilter !== "all") {
+        filtered = allPlaces.filter(p => p.category === currentAdminCategoryFilter);
+      }
+
+      if (filtered.length === 0) {
+        const cat = getCategoryInfo(currentAdminCategoryFilter);
+        container.innerHTML = `
+          <div style="background:#1e293b; border:1px dashed rgba(255,255,255,0.15); border-radius:12px; padding:24px; text-align:center; color:#94a3b8;">
+            <div style="font-size:2rem; margin-bottom:6px;">${cat.icon}</div>
+            <div style="font-weight:700; color:#fff; font-size:1rem; margin-bottom:4px;">No hay lugares cargados en "${cat.name}"</div>
+            <div style="font-size:0.8rem; margin-bottom:14px;">¿Querés sumar el primer lugar en esta categoría?</div>
+            <button type="button" class="btn-action" onclick="openPlaceEditorWithCat('${cat.id}')">
+              + Agregar Lugar en ${cat.name}
+            </button>
           </div>
-          <button class="toggle-active ${isAct ? 'on' : 'off'}" onclick="togglePlace('${p.id}', ${!isAct})">
-            ${isAct ? 'Activo' : 'Pausado'}
-          </button>
-          <button class="btn-action" style="padding:6px 10px;" onclick="editPlace('${p.id}')">✏️</button>
-          <button class="btn-action btn-danger" style="padding:6px 10px;" onclick="deletePlace('${p.id}')">🗑️</button>
-        </div>
-      `;
-      }).join("");
+        `;
+        return;
+      }
+
+      // Si está en 'Todos', mostramos agrupado por categoría con subtítulo claro para que NADA se mezcle
+      if (currentAdminCategoryFilter === "all") {
+        const grouped = {};
+        filtered.forEach(p => {
+          const c = p.category || "other";
+          if (!grouped[c]) grouped[c] = [];
+          grouped[c].push(p);
+        });
+
+        let html = "";
+        Object.keys(grouped).forEach(catId => {
+          const cat = getCategoryInfo(catId);
+          const items = grouped[catId];
+          html += `
+            <div style="margin-bottom:18px;">
+              <div style="display:flex; justify-content:space-between; align-items:center; background:#1e293b; padding:8px 12px; border-radius:8px; margin-bottom:8px; border-left:4px solid ${cat.color};">
+                <div style="display:flex; align-items:center; gap:8px;">
+                  <span style="font-size:1.15rem;">${cat.icon}</span>
+                  <strong style="color:#fff; font-size:0.92rem;">${cat.name}</strong>
+                  <span style="font-size:0.72rem; color:#94a3b8; background:#0f172a; padding:2px 8px; border-radius:999px;">${items.length} ${items.length === 1 ? 'lugar' : 'lugares'}</span>
+                </div>
+                <button type="button" onclick="openPlaceEditorWithCat('${cat.id}')" style="background:none; border:none; color:#10b981; font-size:0.75rem; font-weight:700; cursor:pointer;">
+                  + Agregar acá
+                </button>
+              </div>
+              <div style="display:flex; flex-direction:column; gap:8px;">
+                ${items.map(p => renderPlaceRowHtml(p)).join("")}
+              </div>
+            </div>
+          `;
+        });
+        container.innerHTML = html;
+      } else {
+        const cat = getCategoryInfo(currentAdminCategoryFilter);
+        container.innerHTML = `
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+            <span style="font-size:0.85rem; color:#38bdf8;">Mostrando ${filtered.length} lugares en <strong>${cat.name}</strong>:</span>
+            <button type="button" class="btn-action" style="padding:4px 10px; font-size:0.75rem;" onclick="openPlaceEditorWithCat('${cat.id}')">
+              + Agregar en esta categoría
+            </button>
+          </div>
+          <div style="display:flex; flex-direction:column; gap:8px;">
+            ${filtered.map(p => renderPlaceRowHtml(p)).join("")}
+          </div>
+        `;
+      }
     }
 
     async function togglePlace(id, newStatus) {
@@ -1613,8 +1769,21 @@ ${qrImageUrl}
         try { allCategories = JSON.parse(saved); } catch(err) { allCategories = []; }
       }
       if (!allCategories || allCategories.length === 0) {
-        allCategories = DEFAULT_CATEGORIES;
+        allCategories = [...DEFAULT_CATEGORIES];
         localStorage.setItem("bsas_categories", JSON.stringify(allCategories));
+      } else {
+        // Asegurar que todas las categorías por defecto existan siempre
+        const existingIds = new Set(allCategories.map(c => c.id));
+        let added = false;
+        for (const defCat of DEFAULT_CATEGORIES) {
+          if (!existingIds.has(defCat.id)) {
+            allCategories.push(defCat);
+            added = true;
+          }
+        }
+        if (added) {
+          localStorage.setItem("bsas_categories", JSON.stringify(allCategories));
+        }
       }
     }
 
@@ -1928,7 +2097,18 @@ ${qrImageUrl}
       reader.readAsDataURL(file);
     }
 
+    function openPlaceEditorWithCat(catId) {
+      openPlaceEditor();
+      const selectEl = document.getElementById("form-category");
+      if (selectEl && catId) {
+        selectEl.value = catId;
+      }
+    }
+
     function openPlaceEditor(id = null, presetLat = null, presetLng = null) {
+      // Asegurar que las opciones de categorías existan y estén cargadas
+      renderCategoriesUI();
+
       document.getElementById("place-form").reset();
       document.getElementById("form-id").value = "";
       document.getElementById("editor-title").textContent = "Nuevo Lugar";
@@ -1944,19 +2124,19 @@ ${qrImageUrl}
           document.getElementById("form-id").value = p.id;
           document.getElementById("form-name").value = p.name;
           document.getElementById("form-address").value = p.address || "";
-          document.getElementById("form-category").value = p.category;
-          document.getElementById("form-neighborhood").value = p.neighborhood;
-          document.getElementById("form-price").value = p.price;
-          document.getElementById("form-tag").value = p.tag;
+          document.getElementById("form-category").value = p.category || "food";
+          document.getElementById("form-neighborhood").value = p.neighborhood || "";
+          document.getElementById("form-price").value = p.price || "$$";
+          document.getElementById("form-tag").value = p.tag || "Recomendado";
           document.getElementById("form-lat").value = p.lat;
           document.getElementById("form-lng").value = p.lng;
-          document.getElementById("form-image").value = p.image;
+          document.getElementById("form-image").value = p.image || "";
           document.getElementById("form-menu-url").value = p.menu_url || "";
           document.getElementById("form-tip-es").value = p.tip_es || (p.tips ? p.tips.es : "") || "";
           document.getElementById("form-indoor").checked = (p.is_indoor !== 0 && p.is_indoor !== "0");
 
-          initialLat = parseFloat(p.lat);
-          initialLng = parseFloat(p.lng);
+          initialLat = parseFloat(p.lat) || initialLat;
+          initialLng = parseFloat(p.lng) || initialLng;
           updateImagePreview();
         }
       } else {
@@ -1964,6 +2144,19 @@ ${qrImageUrl}
         document.getElementById("form-menu-url").value = "";
         document.getElementById("form-lat").value = initialLat.toFixed ? initialLat.toFixed(6) : initialLat;
         document.getElementById("form-lng").value = initialLng.toFixed ? initialLng.toFixed(6) : initialLng;
+        
+        // Asignar categoría por defecto (según filtro activo o primera categoría)
+        const catSelect = document.getElementById("form-category");
+        if (catSelect) {
+          if (currentAdminCategoryFilter && currentAdminCategoryFilter !== "all") {
+            catSelect.value = currentAdminCategoryFilter;
+          } else if (allCategories && allCategories.length > 0) {
+            catSelect.value = allCategories[0].id;
+          } else {
+            catSelect.value = "food";
+          }
+        }
+
         clearFormImage();
 
         if (presetLat && presetLng) {
@@ -1985,46 +2178,102 @@ ${qrImageUrl}
 
     async function savePlace(e) {
       e.preventDefault();
-      const id = document.getElementById("form-id").value || ("place_" + Date.now().toString(36));
-      const payload = {
-        id,
-        name: document.getElementById("form-name").value,
-        address: document.getElementById("form-address").value,
-        category: document.getElementById("form-category").value,
-        neighborhood: document.getElementById("form-neighborhood").value,
-        price: document.getElementById("form-price").value,
-        tag: document.getElementById("form-tag").value || "Recomendado",
-        lat: parseFloat(document.getElementById("form-lat").value),
-        lng: parseFloat(document.getElementById("form-lng").value),
-        image: document.getElementById("form-image").value || "https://images.unsplash.com/photo-1544025162-d76694265947?w=600",
-        menu_url: document.getElementById("form-menu-url").value.trim(),
-        tip_es: document.getElementById("form-tip-es").value.trim(),
-        tip_en: document.getElementById("form-tip-es").value.trim(),
-        tip_pt: document.getElementById("form-tip-es").value.trim(),
-        is_indoor: document.getElementById("form-indoor").checked ? 1 : 0,
-        active: 1
-      };
+      try {
+        const nameInput = document.getElementById("form-name");
+        const name = nameInput ? nameInput.value.trim() : "";
+        if (!name) {
+          alert("⚠️ Por favor ingresá el nombre del lugar.");
+          return;
+        }
 
-      if (!isStaticHost) {
-        try {
-          await fetch("/api/admin/places", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(payload)
-          });
-        } catch (err) {}
+        const idInput = document.getElementById("form-id");
+        const id = (idInput && idInput.value) ? idInput.value : ("place_" + Date.now().toString(36));
+
+        const catSelect = document.getElementById("form-category");
+        const category = (catSelect && catSelect.value) ? catSelect.value : "food";
+
+        const neighInput = document.getElementById("form-neighborhood");
+        const neighborhood = (neighInput && neighInput.value.trim()) ? neighInput.value.trim() : "Buenos Aires";
+
+        const addrInput = document.getElementById("form-address");
+        const address = addrInput ? addrInput.value.trim() : "";
+
+        const priceSelect = document.getElementById("form-price");
+        const price = priceSelect ? priceSelect.value : "$$";
+
+        const tagInput = document.getElementById("form-tag");
+        const tag = (tagInput && tagInput.value.trim()) ? tagInput.value.trim() : "Recomendado";
+
+        const rawLat = parseFloat(document.getElementById("form-lat").value);
+        const rawLng = parseFloat(document.getElementById("form-lng").value);
+        const lat = (!isNaN(rawLat) && isFinite(rawLat)) ? rawLat : -34.6037;
+        const lng = (!isNaN(rawLng) && isFinite(rawLng)) ? rawLng : -58.3816;
+
+        const imgInput = document.getElementById("form-image");
+        const image = (imgInput && imgInput.value.trim()) ? imgInput.value.trim() : "https://images.unsplash.com/photo-1544025162-d76694265947?w=600";
+
+        const menuInput = document.getElementById("form-menu-url");
+        const menu_url = menuInput ? menuInput.value.trim() : "";
+
+        const tipInput = document.getElementById("form-tip-es");
+        const tip_es = (tipInput && tipInput.value.trim()) ? tipInput.value.trim() : "Excelente lugar recomendado por la casa.";
+
+        const indoorCheck = document.getElementById("form-indoor");
+        const is_indoor = indoorCheck ? (indoorCheck.checked ? 1 : 0) : 1;
+
+        const payload = {
+          id,
+          name,
+          address,
+          category,
+          neighborhood,
+          price,
+          tag,
+          lat,
+          lng,
+          image,
+          menu_url,
+          tip_es,
+          tip_en: tip_es,
+          tip_pt: tip_es,
+          is_indoor,
+          active: 1
+        };
+
+        // 1. Guardar en SQLite si estamos con backend activo
+        if (!isStaticHost) {
+          try {
+            await fetch("/api/admin/places", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(payload)
+            });
+          } catch (err) {
+            console.warn("Aviso guardando en backend:", err);
+          }
+        }
+
+        // 2. Guardar en memoria y localStorage
+        const idx = allPlaces.findIndex(p => p.id === id);
+        if (idx >= 0) allPlaces[idx] = payload;
+        else allPlaces.unshift(payload);
+        localStorage.setItem("bsas_places", JSON.stringify(allPlaces));
+
+        // 3. Cerrar modal y refrescar la lista y mapa
+        closePlaceEditor();
+        renderPlacesUI();
+        renderDashboardMapMarkers();
+
+        // 4. Confirmación visual clara al usuario
+        const catInfo = getCategoryInfo(category);
+        alert(`🎉 ¡Lugar "${name}" guardado con éxito!\nCategoría: ${catInfo.icon} ${catInfo.name}`);
+
+        // 5. Sincronización automática con todos los celulares
+        scheduleAutoSync(`Guardar lugar: ${name}`);
+      } catch (err) {
+        console.error("Error al guardar lugar:", err);
+        alert("⚠️ Ocurrió un error al guardar: " + err.message);
       }
-
-      const idx = allPlaces.findIndex(p => p.id === id);
-      if (idx >= 0) allPlaces[idx] = payload;
-      else allPlaces.unshift(payload);
-      localStorage.setItem("bsas_places", JSON.stringify(allPlaces));
-
-      closePlaceEditor();
-      loadPlaces();
-
-      // Sincronización 100% automática a todos los celulares
-      scheduleAutoSync(`Guardar lugar: ${payload.name}`);
     }
 
     async function loadAdminReviews() {
