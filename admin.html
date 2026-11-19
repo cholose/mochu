@@ -422,21 +422,36 @@
           📍 <strong>Instrucciones:</strong> Hacé clic en cualquier calle del mapa para <strong>agregar un nuevo lugar</strong> en esa posición, o hacé clic en un <strong>pin existente</strong> para editarlo o cambiar sus datos.
         </div>
 
+        <!-- Filtro Rápido por Categoría (Controla Pines del Mapa y Lista) -->
+        <div style="background:#1e293b; border:1px solid rgba(255,255,255,0.1); border-radius:12px; padding:12px; margin-bottom:14px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:10px;">
+            <div style="font-size:0.88rem; font-weight:700; color:#fff; display:flex; align-items:center; gap:8px;">
+              <span>🏷️ Ver Pines por Categoría:</span>
+              <span id="admin-map-active-badge" style="font-size:0.8rem; background:#0f172a; padding:3px 10px; border-radius:999px; border:1px solid rgba(255,255,255,0.15); color:#38bdf8;">
+                🥩 Parrillas & Carnes
+              </span>
+            </div>
+            <span id="admin-map-pin-count" style="font-size:0.75rem; color:#94a3b8; background:#0f172a; padding:4px 10px; border-radius:6px; border:1px solid rgba(255,255,255,0.06);">
+              📍 Cargando pines...
+            </span>
+          </div>
+
+          <!-- Filtros Rápidos de Categoría -->
+          <div id="admin-category-chips-bar" style="display:flex; gap:6px; overflow-x:auto; padding:2px 0; scrollbar-width:none; -webkit-overflow-scrolling:touch;"></div>
+        </div>
+
         <!-- MAPA DEL DASHBOARD -->
         <div id="dashboard-admin-map" style="height:360px; width:100%; border-radius:12px; border:1px solid rgba(255,255,255,0.15); background:#1e293b; margin-bottom:16px;"></div>
 
-        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-top:20px; margin-bottom:8px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-top:20px; margin-bottom:10px;">
           <div style="font-size:1rem; font-weight:700; color:#fff; display:flex; align-items:center; gap:8px;">
-            <span>📋 Lugares Organizados por Categoría</span>
-            <span id="places-total-badge" style="font-size:0.75rem; background:#334155; color:#38bdf8; padding:2px 8px; border-radius:999px;"></span>
+            <span>📋 Listado de Lugares</span>
+            <span id="places-total-badge" style="font-size:0.75rem; background:#334155; color:#38bdf8; padding:2px 8px; border-radius:999px;">0 lugares</span>
           </div>
           <div style="font-size:0.75rem; color:#94a3b8;">
-            Filtrá por categoría para tener todo ordenado:
+            Filtrá tocando las categorías arriba o editá con ✏️
           </div>
         </div>
-
-        <!-- Filtros Rápidos de Categoría -->
-        <div id="admin-category-chips-bar" style="display:flex; gap:6px; overflow-x:auto; padding:4px 0 12px 0; margin-bottom:12px; scrollbar-width:none; -webkit-overflow-scrolling:touch;"></div>
 
         <div class="places-list" id="places-container"></div>
       </div>
@@ -1404,10 +1419,39 @@ ${qrImageUrl}
       try {
         dashboardMarkersLayer.clearLayers();
 
-        allPlaces.forEach(p => {
+        // Si se seleccionó una categoría específica (no 'all'), filtramos para NO saturar el mapa
+        const placesToDraw = (currentAdminCategoryFilter && currentAdminCategoryFilter !== "all")
+          ? (allPlaces || []).filter(p => p.category === currentAdminCategoryFilter)
+          : (allPlaces || []);
+
+        // Actualizar badges del panel del mapa
+        const catInfo = getCategoryInfo(currentAdminCategoryFilter);
+        const countEl = document.getElementById("admin-map-pin-count");
+        if (countEl) {
+          const catLabel = (currentAdminCategoryFilter === "all") ? "Todas las categorías" : catInfo.name;
+          countEl.innerHTML = `📍 <strong>${placesToDraw.length}</strong> ${placesToDraw.length === 1 ? 'pin visible' : 'pines visibles'} (${catLabel})`;
+        }
+
+        const badgeEl = document.getElementById("admin-map-active-badge");
+        if (badgeEl) {
+          if (currentAdminCategoryFilter === "all") {
+            badgeEl.textContent = "🗺️ Todas las categorías";
+            badgeEl.style.color = "#38bdf8";
+            badgeEl.style.borderColor = "rgba(56, 189, 248, 0.4)";
+          } else {
+            badgeEl.textContent = `${catInfo.icon} ${catInfo.name}`;
+            badgeEl.style.color = catInfo.color || "#10b981";
+            badgeEl.style.borderColor = (catInfo.color || "#10b981") + "66";
+          }
+        }
+
+        const latLngs = [];
+
+        placesToDraw.forEach(p => {
           if (!p.lat || !p.lng || isNaN(parseFloat(p.lat)) || isNaN(parseFloat(p.lng))) return;
           const lat = parseFloat(p.lat);
           const lng = parseFloat(p.lng);
+          latLngs.push([lat, lng]);
 
           const cat = allCategories ? allCategories.find(c => c.id === p.category) : null;
           const iconEmoji = cat ? cat.icon : "🥩";
@@ -1454,6 +1498,15 @@ ${qrImageUrl}
           marker.bindPopup(popupContent);
           dashboardMarkersLayer.addLayer(marker);
         });
+
+        // Auto-enfocar el mapa a los pines de la categoría seleccionada
+        if (dashboardMap && latLngs.length > 0) {
+          if (latLngs.length === 1) {
+            dashboardMap.panTo(latLngs[0]);
+          } else {
+            dashboardMap.fitBounds(L.latLngBounds(latLngs), { padding: [40, 40], maxZoom: 15 });
+          }
+        }
       } catch (err) {
         console.error("Error renderizando marcadores:", err);
       }
@@ -1527,11 +1580,12 @@ ${qrImageUrl}
       } catch(e) {}
     }
 
-    let currentAdminCategoryFilter = "all";
+    let currentAdminCategoryFilter = "food";
 
     function setAdminCategoryFilter(catId) {
       currentAdminCategoryFilter = catId;
       renderPlacesUI();
+      renderDashboardMapMarkers();
     }
 
     function getCategoryInfo(catId) {
@@ -1548,7 +1602,7 @@ ${qrImageUrl}
 
       const totalPlaces = (allPlaces || []).length;
       const totalBadge = document.getElementById("places-total-badge");
-      if (totalBadge) totalBadge.textContent = `${totalPlaces} lugares`;
+      if (totalBadge) totalBadge.textContent = `${totalPlaces} lugares totales`;
 
       // Contar lugares por categoría
       const counts = {};
@@ -1557,22 +1611,26 @@ ${qrImageUrl}
         counts[c] = (counts[c] || 0) + 1;
       });
 
-      const allActive = (currentAdminCategoryFilter === "all");
-      let html = `
-        <button type="button" class="admin-cat-chip ${allActive ? 'active' : ''}" onclick="setAdminCategoryFilter('all')">
-          🗺️ Todos (${totalPlaces})
-        </button>
-      `;
+      let html = "";
 
+      // Listar chips de cada categoría con su color distintivo
       (allCategories && allCategories.length > 0 ? allCategories : DEFAULT_CATEGORIES).forEach(c => {
         const cnt = counts[c.id] || 0;
         const isActive = (currentAdminCategoryFilter === c.id);
         html += `
-          <button type="button" class="admin-cat-chip ${isActive ? 'active' : ''}" onclick="setAdminCategoryFilter('${c.id}')" style="${isActive ? `background:${c.color}; border-color:${c.color}; color:#fff;` : ''}">
+          <button type="button" class="admin-cat-chip ${isActive ? 'active' : ''}" onclick="setAdminCategoryFilter('${c.id}')" style="${isActive ? `background:${c.color}; border-color:${c.color}; color:#fff; box-shadow:0 3px 10px ${c.color}66;` : ''}">
             ${c.icon} ${c.name} (${cnt})
           </button>
         `;
       });
+
+      // Opción 'Todos'
+      const allActive = (currentAdminCategoryFilter === "all");
+      html += `
+        <button type="button" class="admin-cat-chip ${allActive ? 'active' : ''}" onclick="setAdminCategoryFilter('all')">
+          🗺️ Todos (${totalPlaces})
+        </button>
+      `;
 
       bar.innerHTML = html;
     }
@@ -2258,6 +2316,9 @@ ${qrImageUrl}
         if (idx >= 0) allPlaces[idx] = payload;
         else allPlaces.unshift(payload);
         localStorage.setItem("bsas_places", JSON.stringify(allPlaces));
+
+        // Enfocar la categoría del lugar guardado para que aparezca de inmediato en el mapa
+        currentAdminCategoryFilter = category;
 
         // 3. Cerrar modal y refrescar la lista y mapa
         closePlaceEditor();
