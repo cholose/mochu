@@ -127,7 +127,7 @@ const APP_DATA = {
     },
     {
       "id": "p3",
-      "category": "food",
+      "category": "pizzeria",
       "name": "Pizzería Güerrin",
       "neighborhood": "Calle Corrientes",
       "address": "",
@@ -343,6 +343,166 @@ const APP_DATA = {
         "es": "Domingos de tradición criolla. Jineteadas, asado al asador, empanadas y peñas folclóricas. Experiencia 100% auténtica.",
         "en": "Sundays of Argentine gaucho tradition. Open-fire barbecue, folklore dances and crafts. 100% authentic cultural immersion.",
         "pt": "Domingos de tradição gaúcha argentina. Churrasco no fogo de chão, danças folclóricas e comida típica autêntica."
+      }
+    },
+    {
+      "id": "cult_planetario",
+      "category": "culture",
+      "name": "Planetario Galileo Galilei",
+      "neighborhood": "Palermo (Bosques)",
+      "address": "Av. Sarmiento y Belisario Roldán",
+      "lat": -34.5697,
+      "lng": -58.4116,
+      "price": "$",
+      "tag": "Imperdible / Show Domo",
+      "image": "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=600&auto=format&fit=crop&q=80",
+      "is_indoor": 1,
+      "active": 1,
+      "menu_url": "",
+      "tips": {
+        "es": "Ícono arquitectónico en los Bosques de Palermo. De noche se ilumina con colores y los fines de semana hay shows astronómicos en su domo 360°.",
+        "en": "Architectural icon in the Palermo Woods. Illuminated with vibrant lights at night, featuring immersive 360° dome astronomy shows on weekends.",
+        "pt": "Ícone arquitetônico nos Bosques de Palermo. À noite se ilumina com cores e nos fins de semana oferece shows astronômicos em sua cúpula 360°."
+      }
+    },
+    {
+      "id": "cult_malba",
+      "category": "culture",
+      "name": "MALBA - Museo de Arte Latinoamericano",
+      "neighborhood": "Palermo Chico",
+      "address": "Av. Figueroa Alcorta 3415",
+      "lat": -34.5771,
+      "lng": -58.4032,
+      "price": "$$",
+      "tag": "Frida Kahlo & Arte Moderno",
+      "image": "https://images.unsplash.com/photo-1565008447742-97f6f38c985c?w=600&auto=format&fit=crop&q=80",
+      "is_indoor": 1,
+      "active": 1,
+      "menu_url": "",
+      "tips": {
+        "es": "El museo de arte contemporáneo más importante de la ciudad. Obras maestras de Frida Kahlo, Diego Rivera y Tarsila do Amaral. Miércoles entrada con 50% de descuento.",
+        "en": "The most important contemporary art museum in the city. Masterpieces by Frida Kahlo, Diego Rivera, and Tarsila do Amaral. 50% off admission on Wednesdays.",
+        "pt": "O museu de arte contemporânea mais importante da cidade. Obras-primas de Frida Kahlo, Diego Rivera e Tarsila do Amaral. Às quartas-feiras tem 50% de desconto."
+      }
+    },
+    {
+      "id": "cult_mnba",
+      "category": "culture",
+      "name": "Museo Nacional de Bellas Artes (MNBA)",
+      "neighborhood": "Recoleta",
+      "address": "Av. del Libertador 1473",
+      "lat": -34.5839,
+      "lng": -58.393,
+      "price": "Gratis",
+      "tag": "Entrada Libre / Clásico",
+      "image": "https://images.unsplash.com/photo-1582555172866-f73bb12a2ab3?w=600&auto=format&fit=crop&q=80",
+      "is_indoor": 1,
+      "active": 1,
+      "menu_url": "",
+      "tips": {
+        "es": "Una de las mayores colecciones de arte público de América Latina (Goya, Van Gogh, Monet, Rodin y maestros argentinos). Entrada libre y gratuita.",
+        "en": "One of Latin America's largest public art collections (Goya, Van Gogh, Monet, Rodin, and Argentine masters). Free admission for all visitors.",
+        "pt": "Uma das maiores coleções de arte pública da América Latina (Goya, Van Gogh, Monet, Rodin e mestres argentinos). Entrada livre e gratuita."
+      }
+    },
+    {
+      "id": "cult_teatro_colon",
+      "category": "culture",
+      "name": "Teatro Colón",
+      "neighborhood": "San Nicolás / Centro",
+      "address": "Cerrito 628",
+      "lat": -34.6011,
+      "lng": -58.3831,
+      "price": "$$$",
+      "tag": "Acústica Top Mundial",
+      "image": "https://images.unsplash.com/photo-1514306191717-452ec28c7814?w=600&auto=format&fit=crop&q=80",
+      "is_indoor": 1,
+      "active": 1,
+      "menu_url": "",
+      "tips": {
+        "es": "Entre los 5 mejores teatros de ópera del mundo por su acústica perfecta. Hacé la visita guiada diaria para conocer la Sala Principal y el Salón Dorado.",
+        "en": "Ranked among the world's top 5 opera houses for its acoustics. Take the daily guided tour to marvel at the Main Auditorium and the Golden Hall.",
+        "pt": "Entre os 5 melhores teatros de ópera do mundo por sua acústica perfeita. Faça a visita guiada diária para conhecer a Sala Principal e o Salão Dourado."
+      }
+    },
+    {
+      "id": "pizz_el_cuartito",
+      "category": "pizzeria",
+      "name": "Pizzería El Cuartito",
+      "neighborhood": "Tribunales / Centro",
+      "address": "Talcahuano 937",
+      "lat": -34.5997,
+      "lng": -58.3872,
+      "price": "$",
+      "tag": "Fugazzeta Rellena Mítica",
+      "image": "https://images.unsplash.com/photo-1534308983496-4fabb1a015ee?w=600&auto=format&fit=crop&q=80",
+      "is_indoor": 1,
+      "active": 1,
+      "menu_url": "",
+      "tips": {
+        "es": "Fundada en 1934, llena de camisetas de fútbol y fotos históricas autografiadas. Pedite una porción de fugazzeta rellena bien caliente.",
+        "en": "Founded in 1934, covered with vintage football jerseys and boxing memorabilia. Their stuffed onion-cheese 'fugazzeta' is legendary.",
+        "pt": "Fundada em 1934, repleta de camisas de futebol e fotos históricas autografadas. Peça a clássica fatia de 'fugazzeta rellena' bem quentinha."
+      }
+    },
+    {
+      "id": "post_cadore",
+      "category": "dessert",
+      "name": "Heladería Cadore",
+      "neighborhood": "Calle Corrientes / Centro",
+      "address": "Av. Corrientes 1612",
+      "lat": -34.6046,
+      "lng": -58.3897,
+      "price": "$",
+      "tag": "Top Mundial Dulce de Leche",
+      "image": "https://images.unsplash.com/photo-1501443762994-82bd5dace89a?w=600&auto=format&fit=crop&q=80",
+      "is_indoor": 1,
+      "active": 1,
+      "menu_url": "",
+      "tips": {
+        "es": "Elegida entre las 10 mejores heladerías del planeta por National Geographic. El helado de Dulce de Leche tradicional se elabora con cocción artesanal de 14 horas.",
+        "en": "Ranked among the world's top 10 ice cream parlors by National Geographic. Their traditional Dulce de Leche takes 14 hours of slow artisanal cooking.",
+        "pt": "Eleita entre as 10 melhores sorveterias do planeta pela National Geographic. O sorvete de Doce de Leite tradicional é cozido artesanalmente por 14 horas."
+      }
+    },
+    {
+      "id": "bar_floreria_atlantico",
+      "category": "bars",
+      "name": "Florería Atlántico",
+      "neighborhood": "Retiro",
+      "address": "Arroyo 872",
+      "lat": -34.5913,
+      "lng": -58.3792,
+      "price": "$$$",
+      "tag": "Speakeasy #1 Secreto",
+      "image": "https://images.unsplash.com/photo-1514933651103-005eec06c04b?w=600&auto=format&fit=crop&q=80",
+      "is_indoor": 1,
+      "active": 1,
+      "menu_url": "",
+      "tips": {
+        "es": "Entrás por una florería real sobre calle Arroyo y bajás por la puerta de una heladera industrial hacia un bar oculto subterráneo inspirado en los inmigrantes.",
+        "en": "Enter through a real flower shop on Arroyo St, walk through a walk-in cooler door into an underground cocktail haven inspired by immigrant history.",
+        "pt": "Você entra por uma floricultura real na rua Arroyo e desce pela porta de uma geladeira frigorífica até um bar secreto subterrâneo premiado mundialmente."
+      }
+    },
+    {
+      "id": "cafe_la_ideal",
+      "category": "cafes",
+      "name": "Confitería La Ideal",
+      "neighborhood": "Microcentro",
+      "address": "Suipacha 384",
+      "lat": -34.6039,
+      "lng": -58.3797,
+      "price": "$$",
+      "tag": "Patrimonio Restaurado 1912",
+      "image": "https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=600&auto=format&fit=crop&q=80",
+      "is_indoor": 1,
+      "active": 1,
+      "menu_url": "",
+      "tips": {
+        "es": "Joya de la Belle Époque porteña inaugurada en 1912 y restaurada a nuevo con vitrales franceses, mármoles y una pastelería de primer nivel.",
+        "en": "Belle Époque architectural masterpiece founded in 1912, newly restored with French stained glass, marble columns, and top-tier pastries.",
+        "pt": "Obra-prima da Belle Époque portenha inaugurada em 1912 e restaurada com vitrais franceses, mármores e confeitaria de primeiro nível."
       }
     }
   ],
@@ -676,5 +836,5 @@ const APP_DATA = {
       "color": "#10b981"
     }
   ],
-  "version": "20261118_1795166204219"
+  "version": "20261120_02"
 };
