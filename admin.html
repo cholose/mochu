@@ -362,8 +362,8 @@
       <div style="display:flex; align-items:center; gap:10px;">
         <span id="sync-icon" style="font-size:1.3rem;">⚡</span>
         <div>
-          <div id="sync-status-title" style="font-weight:700; font-size:0.85rem; color:#38bdf8;">Sincronización Automática con Celulares</div>
-          <div id="sync-status-desc" style="font-size:0.75rem; color:#94a3b8;">Cada lugar, cambio o mozo que guardás se publica automáticamente en la nube sin tocar ningún botón.</div>
+          <div id="sync-status-title" style="font-weight:700; font-size:0.85rem; color:#38bdf8;">Conexión Cloud GitHub (Token cholose Activo)</div>
+          <div id="sync-status-desc" style="font-size:0.75rem; color:#94a3b8;">Cada lugar que agregás o editás se publica automáticamente en GitHub sin que tengas que pegar ningún token.</div>
         </div>
       </div>
       <div style="display:flex; gap:8px; align-items:center;">
@@ -1363,7 +1363,7 @@ ${qrImageUrl}
 
         updateSyncUI("success", "Sincronizado", `¡Éxito! ${reason} publicado en la nube.`);
         if (!silent) {
-          alert("🎉 ¡Éxito! Los lugares se publicaron en la nube.\nEn unos segundos estarán disponibles en todos los celulares del mundo.");
+          alert(`🎉 ¡Éxito! Se actualizaron ${formatted.length} lugares en GitHub (cholose/mochu).\nToken verificado. Los cambios ya están disponibles en los celulares.`);
         }
         return true;
       } catch (err) {
