@@ -12,7 +12,7 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 
   <!-- App Styles -->
-  <link rel="stylesheet" href="style.css?v=20261120_01">
+  <link rel="stylesheet" href="style.css?v=20261120_03">
   <style>
     .activation-overlay {
       position: fixed;
@@ -120,6 +120,59 @@
     </div>
   </div>
 
+  <!-- MODAL: TUTORIAL / PRIMERA VEZ (TOUR GUIADO) -->
+  <div class="activation-overlay" id="onboarding-tour-modal" style="display:none;">
+    <div class="activation-card tour-card" style="max-width:420px; padding:24px 20px;">
+      
+      <!-- Barra superior del modal -->
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+        <span id="tour-step-badge" style="font-size:0.75rem; background:rgba(99,102,241,0.2); color:#a5b4fc; border:1px solid rgba(99,102,241,0.4); padding:3px 10px; border-radius:999px; font-weight:700;">
+          Paso 1 de 5
+        </span>
+        <button type="button" onclick="closeOnboardingTour()" style="background:none; border:none; color:#94a3b8; font-size:1.2rem; cursor:pointer; padding:2px 8px;">✕</button>
+      </div>
+
+      <!-- Icono y Contenido del Paso -->
+      <div id="tour-slide-container" style="min-height:190px; display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center;">
+        <div id="tour-step-icon" style="font-size:3.2rem; margin-bottom:10px; filter:drop-shadow(0 4px 12px rgba(0,0,0,0.4)); animation:popIn 0.3s ease;">
+          🗺️
+        </div>
+        <h3 id="tour-step-title" style="font-size:1.15rem; color:#fff; font-weight:800; margin-bottom:8px;">
+          Mapa en Vivo y Cómo Llegar
+        </h3>
+        <p id="tour-step-desc" style="font-size:0.86rem; color:#cbd5e1; line-height:1.55; margin:0 6px;">
+          Tocá cualquier pin en el mapa para ver fotos reales, cartas con precios y pedir un Uber o DiDi directo a la puerta.
+        </p>
+      </div>
+
+      <!-- Indicadores de puntos (dots) -->
+      <div id="tour-dots-bar" style="display:flex; justify-content:center; gap:6px; margin:16px 0 14px 0;">
+        <span class="tour-dot active"></span>
+        <span class="tour-dot"></span>
+        <span class="tour-dot"></span>
+        <span class="tour-dot"></span>
+        <span class="tour-dot"></span>
+      </div>
+
+      <!-- Botones de Navegación -->
+      <div style="display:flex; gap:8px;">
+        <button type="button" id="btn-tour-prev" class="btn-transport" style="background:#334155; flex:1; padding:10px; font-weight:700; border:none; display:none;" onclick="prevTourStep()">
+          ← Anterior
+        </button>
+        <button type="button" id="btn-tour-next" class="btn-transport" style="background:#6366f1; flex:2; padding:10px; font-weight:800; border:none;" onclick="nextTourStep()">
+          Siguiente →
+        </button>
+      </div>
+
+      <div style="margin-top:12px; text-align:center;">
+        <button type="button" onclick="closeOnboardingTour()" style="background:none; border:none; color:#94a3b8; font-size:0.75rem; cursor:pointer; text-decoration:underline;">
+          Omitir tutorial y empezar a explorar
+        </button>
+      </div>
+
+    </div>
+  </div>
+
   <!-- MODAL: CALCULADORA DE PROPINA Y CAMBIO DE DIVISAS -->
   <div class="modal-overlay" id="tip-calc-modal">
     <div class="auth-card calc-card">
@@ -212,6 +265,7 @@
       <h1 id="lbl-title">📍 BsAs Local Guide</h1>
       <div class="subtitle" id="lbl-subtitle">Recomendaciones reales de mozos</div>
       <div id="waiter-tag" class="waiter-badge" style="display:none;"></div>
+      <button id="btn-header-tour" class="btn-tour-pill" onclick="openOnboardingTour()">👋 <span id="lbl-btn-tour">¿Primera vez?</span></button>
       <button id="btn-header-calc" class="btn-calc-pill" onclick="openTipCalculator()">💵 <span id="lbl-btn-calc">Propina & Divisas</span></button>
       <button id="btn-header-unlock" class="btn-unlock-pill" onclick="openUnlockModal()">🔑 Desbloquear VIP</button>
       <div id="pass-tag" class="vip-active-pill" style="display:none;"></div>
@@ -540,7 +594,7 @@
   </div>
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <script src="data.js?v=20261120_01"></script>
-  <script src="app.js?v=20261120_01"></script>
+  <script src="data.js?v=20261120_03"></script>
+  <script src="app.js?v=20261120_03"></script>
 </body>
 </html>

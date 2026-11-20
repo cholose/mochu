@@ -46,6 +46,15 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   // Cargar lugares
   await loadPlaces();
+
+  // Auto-lanzar el tour guiado la primera vez que un turista entra a la app
+  setTimeout(() => {
+    try {
+      if (!localStorage.getItem("bsas_tour_completed")) {
+        openOnboardingTour();
+      }
+    } catch(e) {}
+  }, 1200);
 });
 
 // 1. Seguimiento del Mozo (?m=isaias)
@@ -79,6 +88,156 @@ async function initWaiterTracking() {
   const banner = document.getElementById("activation-waiter-banner");
   if (banner) {
     banner.textContent = `👨‍🍳 ${state.waiterName}`;
+  }
+}
+
+// ==================== TOUR DE PRIMERA VEZ (TUTORIAL GUIADO) ====================
+const ONBOARDING_STEPS = [
+  {
+    icon: "🗺️",
+    badge: { es: "Paso 1 de 5", en: "Step 1 of 5", pt: "Passo 1 de 5" },
+    title: {
+      es: "Mapa en Vivo y Cómo Llegar",
+      en: "Live Map & Direct Rides",
+      pt: "Mapa ao Vivo e Como Chegar"
+    },
+    desc: {
+      es: "Tocá cualquier pin en el mapa para ver fotos reales, cartas con precios actualizados y pedir un Uber o DiDi directo a la puerta.",
+      en: "Tap any pin on the map to see authentic photos, menus with current prices, and request an Uber or DiDi straight to the entrance.",
+      pt: "Toque em qualquer pin no mapa para ver fotos reais, cardápios com preços atualizados e pedir um Uber ou DiDi direto até a porta."
+    }
+  },
+  {
+    icon: "🥩",
+    badge: { es: "Paso 2 de 5", en: "Step 2 of 5", pt: "Passo 2 de 5" },
+    title: {
+      es: "Categorías para Cada Momento",
+      en: "Categories for Every Mood",
+      pt: "Categorias para Cada Momento"
+    },
+    desc: {
+      es: "Filtrá al instante entre las mejores Parrillas, Pizzerías históricas, Shows de Tango, Cafés notables, Museos y Heladerías de la ciudad.",
+      en: "Filter in one tap between the best Steakhouses, classic Pizzerias, Tango Shows, Historic Cafes, Museums, and world-class Gelatos.",
+      pt: "Filtre com um toque entre as melhores Churrascarias, Pizzarias históricas, Shows de Tango, Cafés notáveis, Museus e Sorveterias."
+    }
+  },
+  {
+    icon: "☔",
+    badge: { es: "Paso 3 de 5", en: "Step 3 of 5", pt: "Passo 3 de 5" },
+    title: {
+      es: "Día de Lluvia y Zonas Seguras",
+      en: "Rainy Days & Safe Zones",
+      pt: "Dia de Chuva e Áreas Seguras"
+    },
+    desc: {
+      es: "¿El clima no acompaña? Activá el botón 'Día de Lluvia' para ver planes 100% bajo techo. También contás con el mapa de zonas turísticas seguras.",
+      en: "Rain outside? Tap 'Día de Lluvia' to highlight 100% covered indoor plans. You can also view safe, tourist-friendly walking areas.",
+      pt: "Tempo chuvoso? Ative o botão 'Día de Lluvia' para planos 100% cobertos. Conte também com o mapa de áreas seguras recomendadas."
+    }
+  },
+  {
+    icon: "💵",
+    badge: { es: "Paso 4 de 5", en: "Step 4 of 5", pt: "Passo 4 de 5" },
+    title: {
+      es: "Propina y Divisas en Argentina",
+      en: "Tipping & Currency Converter",
+      pt: "Gorjeta e Câmbio na Argentina"
+    },
+    desc: {
+      es: "En Buenos Aires la propina habitual es del 10%. Tocá el botón 'Propina & Divisas' arriba para calcular el monto exacto y convertir a dólares o reales.",
+      en: "Standard tipping in Buenos Aires is 10%. Tap 'Propina & Divisas' at the top to calculate the exact tip and convert your bill to USD or BRL.",
+      pt: "Em Buenos Aires a gorjeta habitual é de 10%. Toque em 'Propina & Divisas' no topo para calcular o valor exato e converter para dólares ou reais."
+    }
+  },
+  {
+    icon: "👨‍🍳",
+    badge: { es: "Paso 5 de 5", en: "Step 5 of 5", pt: "Passo 5 de 5" },
+    title: {
+      es: "Tips de Mozos y Pase VIP",
+      en: "Waiter Tips & VIP Pass",
+      pt: "Dicas de Garçons e Passe VIP"
+    },
+    desc: {
+      es: "Tu mozo anfitrión te comparte secretos gastronómicos locales que no están en Google. Con el Pase VIP desbloqueás todos los tips y descuentos.",
+      en: "Your host waiter shares local insider secrets not found on Google. Unlock the VIP Pass to access all tips and exclusive tango discounts.",
+      pt: "Seu garçom anfitrião compartilha segredos locais que não estão no Google. Com o Passe VIP você desbloqueia todas as dicas e descontos exclusivos."
+    }
+  }
+];
+
+let currentTourStep = 0;
+
+function openOnboardingTour() {
+  currentTourStep = 0;
+  renderTourStep();
+  const modal = document.getElementById("onboarding-tour-modal");
+  if (modal) modal.style.display = "flex";
+}
+
+function closeOnboardingTour(markCompleted = true) {
+  const modal = document.getElementById("onboarding-tour-modal");
+  if (modal) modal.style.display = "none";
+  if (markCompleted) {
+    try { localStorage.setItem("bsas_tour_completed", "true"); } catch(e) {}
+  }
+}
+
+function renderTourStep() {
+  const step = ONBOARDING_STEPS[currentTourStep];
+  if (!step) return;
+  const lang = state.currentLang || "es";
+
+  const badgeEl = document.getElementById("tour-step-badge");
+  if (badgeEl) badgeEl.textContent = step.badge[lang] || step.badge.es;
+
+  const iconEl = document.getElementById("tour-step-icon");
+  if (iconEl) iconEl.textContent = step.icon;
+
+  const titleEl = document.getElementById("tour-step-title");
+  if (titleEl) titleEl.textContent = step.title[lang] || step.title.es;
+
+  const descEl = document.getElementById("tour-step-desc");
+  if (descEl) descEl.textContent = step.desc[lang] || step.desc.es;
+
+  // Actualizar dots
+  const dots = document.querySelectorAll("#tour-dots-bar .tour-dot");
+  dots.forEach((dot, idx) => {
+    dot.classList.toggle("active", idx === currentTourStep);
+  });
+
+  // Botón Anterior
+  const prevBtn = document.getElementById("btn-tour-prev");
+  if (prevBtn) {
+    prevBtn.style.display = currentTourStep === 0 ? "none" : "block";
+    prevBtn.textContent = lang === "en" ? "← Back" : (lang === "pt" ? "← Voltar" : "← Anterior");
+  }
+
+  // Botón Siguiente / Finalizar
+  const nextBtn = document.getElementById("btn-tour-next");
+  if (nextBtn) {
+    if (currentTourStep === ONBOARDING_STEPS.length - 1) {
+      nextBtn.textContent = lang === "en" ? "🚀 Start Exploring!" : (lang === "pt" ? "🚀 Começar a Explorar!" : "🚀 ¡Empezar a Explorar!");
+      nextBtn.style.background = "#10b981";
+    } else {
+      nextBtn.textContent = lang === "en" ? "Next →" : (lang === "pt" ? "Próximo →" : "Siguiente →");
+      nextBtn.style.background = "#6366f1";
+    }
+  }
+}
+
+function nextTourStep() {
+  if (currentTourStep < ONBOARDING_STEPS.length - 1) {
+    currentTourStep++;
+    renderTourStep();
+  } else {
+    closeOnboardingTour(true);
+  }
+}
+
+function prevTourStep() {
+  if (currentTourStep > 0) {
+    currentTourStep--;
+    renderTourStep();
   }
 }
 
@@ -655,6 +814,14 @@ function updateUITranslations() {
   // Header buttons
   const btnCalc = document.getElementById("lbl-btn-calc");
   if (btnCalc && t.btnCalc) btnCalc.textContent = t.btnCalc;
+
+  const btnTour = document.getElementById("lbl-btn-tour");
+  if (btnTour) {
+    btnTour.textContent = state.currentLang === "en" ? "First time?" : (state.currentLang === "pt" ? "Primeira vez?" : "¿Primera vez?");
+  }
+  if (document.getElementById("onboarding-tour-modal") && document.getElementById("onboarding-tour-modal").style.display === "flex") {
+    renderTourStep();
+  }
 
   const rainyLbl = document.getElementById("lbl-rainy-toggle");
   if (rainyLbl && t.rainyFilter) rainyLbl.textContent = t.rainyFilter;
