@@ -6,6 +6,26 @@ const APP_DATA = {
   },
   "places": [
     {
+      "id": "place_mworlt8b",
+      "category": "food",
+      "name": "Tilo",
+      "neighborhood": "aguero",
+      "address": "aguero 2298",
+      "lat": -34.586567,
+      "lng": -58.400397,
+      "price": "$$",
+      "tag": "Recomendado por juan",
+      "image": "https://images.unsplash.com/photo-1544025162-d76694265947?w=600",
+      "menu_url": "",
+      "is_indoor": 1,
+      "active": 1,
+      "tips": {
+        "es": "para dos bueno (Recomendado por juan)",
+        "en": "para dos bueno (Recomendado por juan)",
+        "pt": "para dos bueno (Recomendado por juan)"
+      }
+    },
+    {
       "id": "place_mworkbsq",
       "category": "food",
       "name": "VALeRIO",
@@ -656,5 +676,5 @@ const APP_DATA = {
       "color": "#10b981"
     }
   ],
-  "version": "20261118_1795166135508"
+  "version": "20261118_1795166204219"
 };
