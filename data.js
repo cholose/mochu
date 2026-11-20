@@ -356,9 +356,9 @@ const APP_DATA = {
       "price": "$",
       "tag": "Imperdible / Show Domo",
       "image": "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=600&auto=format&fit=crop&q=80",
+      "menu_url": "",
       "is_indoor": 1,
       "active": 1,
-      "menu_url": "",
       "tips": {
         "es": "Ícono arquitectónico en los Bosques de Palermo. De noche se ilumina con colores y los fines de semana hay shows astronómicos en su domo 360°.",
         "en": "Architectural icon in the Palermo Woods. Illuminated with vibrant lights at night, featuring immersive 360° dome astronomy shows on weekends.",
@@ -376,9 +376,9 @@ const APP_DATA = {
       "price": "$$",
       "tag": "Frida Kahlo & Arte Moderno",
       "image": "https://images.unsplash.com/photo-1565008447742-97f6f38c985c?w=600&auto=format&fit=crop&q=80",
+      "menu_url": "",
       "is_indoor": 1,
       "active": 1,
-      "menu_url": "",
       "tips": {
         "es": "El museo de arte contemporáneo más importante de la ciudad. Obras maestras de Frida Kahlo, Diego Rivera y Tarsila do Amaral. Miércoles entrada con 50% de descuento.",
         "en": "The most important contemporary art museum in the city. Masterpieces by Frida Kahlo, Diego Rivera, and Tarsila do Amaral. 50% off admission on Wednesdays.",
@@ -396,9 +396,9 @@ const APP_DATA = {
       "price": "Gratis",
       "tag": "Entrada Libre / Clásico",
       "image": "https://images.unsplash.com/photo-1582555172866-f73bb12a2ab3?w=600&auto=format&fit=crop&q=80",
+      "menu_url": "",
       "is_indoor": 1,
       "active": 1,
-      "menu_url": "",
       "tips": {
         "es": "Una de las mayores colecciones de arte público de América Latina (Goya, Van Gogh, Monet, Rodin y maestros argentinos). Entrada libre y gratuita.",
         "en": "One of Latin America's largest public art collections (Goya, Van Gogh, Monet, Rodin, and Argentine masters). Free admission for all visitors.",
@@ -416,9 +416,9 @@ const APP_DATA = {
       "price": "$$$",
       "tag": "Acústica Top Mundial",
       "image": "https://images.unsplash.com/photo-1514306191717-452ec28c7814?w=600&auto=format&fit=crop&q=80",
+      "menu_url": "",
       "is_indoor": 1,
       "active": 1,
-      "menu_url": "",
       "tips": {
         "es": "Entre los 5 mejores teatros de ópera del mundo por su acústica perfecta. Hacé la visita guiada diaria para conocer la Sala Principal y el Salón Dorado.",
         "en": "Ranked among the world's top 5 opera houses for its acoustics. Take the daily guided tour to marvel at the Main Auditorium and the Golden Hall.",
@@ -436,9 +436,9 @@ const APP_DATA = {
       "price": "$",
       "tag": "Fugazzeta Rellena Mítica",
       "image": "https://images.unsplash.com/photo-1534308983496-4fabb1a015ee?w=600&auto=format&fit=crop&q=80",
+      "menu_url": "",
       "is_indoor": 1,
       "active": 1,
-      "menu_url": "",
       "tips": {
         "es": "Fundada en 1934, llena de camisetas de fútbol y fotos históricas autografiadas. Pedite una porción de fugazzeta rellena bien caliente.",
         "en": "Founded in 1934, covered with vintage football jerseys and boxing memorabilia. Their stuffed onion-cheese 'fugazzeta' is legendary.",
@@ -456,9 +456,9 @@ const APP_DATA = {
       "price": "$",
       "tag": "Top Mundial Dulce de Leche",
       "image": "https://images.unsplash.com/photo-1501443762994-82bd5dace89a?w=600&auto=format&fit=crop&q=80",
+      "menu_url": "",
       "is_indoor": 1,
       "active": 1,
-      "menu_url": "",
       "tips": {
         "es": "Elegida entre las 10 mejores heladerías del planeta por National Geographic. El helado de Dulce de Leche tradicional se elabora con cocción artesanal de 14 horas.",
         "en": "Ranked among the world's top 10 ice cream parlors by National Geographic. Their traditional Dulce de Leche takes 14 hours of slow artisanal cooking.",
@@ -476,9 +476,9 @@ const APP_DATA = {
       "price": "$$$",
       "tag": "Speakeasy #1 Secreto",
       "image": "https://images.unsplash.com/photo-1514933651103-005eec06c04b?w=600&auto=format&fit=crop&q=80",
+      "menu_url": "",
       "is_indoor": 1,
       "active": 1,
-      "menu_url": "",
       "tips": {
         "es": "Entrás por una florería real sobre calle Arroyo y bajás por la puerta de una heladera industrial hacia un bar oculto subterráneo inspirado en los inmigrantes.",
         "en": "Enter through a real flower shop on Arroyo St, walk through a walk-in cooler door into an underground cocktail haven inspired by immigrant history.",
@@ -496,9 +496,9 @@ const APP_DATA = {
       "price": "$$",
       "tag": "Patrimonio Restaurado 1912",
       "image": "https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=600&auto=format&fit=crop&q=80",
+      "menu_url": "",
       "is_indoor": 1,
       "active": 1,
-      "menu_url": "",
       "tips": {
         "es": "Joya de la Belle Époque porteña inaugurada en 1912 y restaurada a nuevo con vitrales franceses, mármoles y una pastelería de primer nivel.",
         "en": "Belle Époque architectural masterpiece founded in 1912, newly restored with French stained glass, marble columns, and top-tier pastries.",
@@ -778,6 +778,13 @@ const APP_DATA = {
       "alias": "isaias.mozo.mp",
       "pin": "1234",
       "commission_usd": 1.5
+    },
+    {
+      "id": "nico",
+      "name": "nico",
+      "alias": "10.cholo",
+      "pin": "1234",
+      "commission_usd": 1.5
     }
   ],
   "categories": [
@@ -836,5 +843,5 @@ const APP_DATA = {
       "color": "#10b981"
     }
   ],
-  "version": "20261120_02"
+  "version": "20261118_1795175070878"
 };
