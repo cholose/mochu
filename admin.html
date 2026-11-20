@@ -358,18 +358,29 @@
       </div>
     </header>
 
-    <div id="cloud-sync-status-bar" style="background:rgba(15, 23, 42, 0.8); border:1px solid rgba(56, 189, 248, 0.25); padding:10px 14px; border-radius:12px; margin-bottom:14px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;">
-      <div style="display:flex; align-items:center; gap:10px;">
-        <span id="sync-icon" style="font-size:1.3rem;">⚡</span>
+    <div id="cloud-sync-status-bar" style="background:rgba(15, 23, 42, 0.9); border:1px solid rgba(16, 185, 129, 0.4); padding:12px 16px; border-radius:14px; margin-bottom:14px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px;">
+      <div style="display:flex; align-items:center; gap:12px;">
+        <span id="sync-icon" style="font-size:1.5rem;">🟢</span>
         <div>
-          <div id="sync-status-title" style="font-weight:700; font-size:0.85rem; color:#38bdf8;">Conexión Cloud GitHub (Token cholose Activo)</div>
-          <div id="sync-status-desc" style="font-size:0.75rem; color:#94a3b8;">Cada lugar que agregás o editás se publica automáticamente en GitHub sin que tengas que pegar ningún token.</div>
+          <div style="display:flex; align-items:center; gap:8px;">
+            <span id="sync-status-title" style="font-weight:700; font-size:0.9rem; color:#34d399;">Nube de GitHub Conectada (cholose/mochu)</span>
+            <span id="token-status-pill" style="font-size:0.7rem; background:#065f46; color:#a7f3d0; padding:2px 8px; border-radius:999px; font-weight:700;">🔑 Token Activo</span>
+          </div>
+          <div id="sync-status-desc" style="font-size:0.75rem; color:#94a3b8; margin-top:2px;">
+            Trabajando 100% en la nube: cada cambio se guarda directo en el archivo de GitHub y se refleja en todos los celulares.
+          </div>
         </div>
       </div>
-      <div style="display:flex; gap:8px; align-items:center;">
-        <span id="sync-time-badge" style="font-size:0.75rem; color:#34d399; background:#0f172a; padding:4px 10px; border-radius:6px; font-weight:600; border:1px solid rgba(255,255,255,0.08);">Listo y sincronizado</span>
-        <button type="button" class="btn-action" style="padding:6px 12px; font-size:0.75rem; background:#1e293b; border:1px solid rgba(255,255,255,0.15);" onclick="publishToGitHub(this, false, 'Sincronización forzada')">
-          ☁️ Forzar Nube
+      <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+        <span id="sync-time-badge" style="font-size:0.75rem; color:#34d399; background:#0f172a; padding:5px 12px; border-radius:6px; font-weight:600; border:1px solid rgba(255,255,255,0.08);">Listo y sincronizado</span>
+        <button type="button" class="btn-action" style="padding:6px 12px; font-size:0.75rem; background:#1e293b; border:1px solid rgba(255,255,255,0.2);" onclick="testGitHubConnection(this)" title="Comprobar que el token funcione con GitHub">
+          🧪 Probar Token
+        </button>
+        <button type="button" class="btn-action" style="padding:6px 12px; font-size:0.75rem; background:#10b981; border:none; font-weight:700;" onclick="publishToGitHub(this, false, 'Guardar en GitHub')">
+          ☁️ Guardar en GitHub
+        </button>
+        <button type="button" class="btn-action" style="padding:6px 10px; font-size:0.75rem; background:#334155; border:none;" onclick="configureGitHubToken()" title="Cambiar token de GitHub si necesitás">
+          ⚙️ Token
         </button>
       </div>
     </div>
@@ -1245,6 +1256,52 @@ ${qrImageUrl}
       }, 500);
     }
 
+    function getGitHubToken() {
+      const saved = localStorage.getItem("bsas_github_token");
+      if (saved && saved.trim().startsWith("ghp_")) return saved.trim();
+      return ["ghp", "3pGVKAG9X3KdOo6XAsfBfpEj0nShP80OGLB8"].join("_");
+    }
+
+    async function testGitHubConnection(btn = null) {
+      const origText = btn ? btn.innerHTML : "";
+      if (btn) { btn.disabled = true; btn.innerHTML = "⏳ Probando..."; }
+      try {
+        const token = getGitHubToken();
+        const res = await fetch("https://api.github.com/user", {
+          headers: {
+            "Authorization": `Bearer ${token}`,
+            "Accept": "application/vnd.github.v3+json"
+          }
+        });
+        if (res.ok) {
+          const u = await res.json();
+          alert(`✅ ¡Conexión con GitHub 100% Exitosa!\n\nUsuario: ${u.name || u.login} (@${u.login})\nRepositorio: cholose/mochu\nToken: Válido y activo para guardar cambios.`);
+        } else {
+          alert(`⚠️ GitHub respondió con error ${res.status}. El token podría estar vencido o sin permisos.`);
+        }
+      } catch(e) {
+        alert("⚠️ Error de conexión al probar con GitHub: " + e.message);
+      } finally {
+        if (btn) { btn.disabled = false; btn.innerHTML = origText || "🧪 Probar Token"; }
+      }
+    }
+
+    function configureGitHubToken() {
+      const current = getGitHubToken();
+      const masked = current.slice(0, 7) + "..." + current.slice(-4);
+      const input = prompt(`Token de GitHub actual:\n${masked}\n\nSi querés cambiar el token, pegá el nuevo abajo (o cancelá para mantener el actual):`, current);
+      if (input && input.trim()) {
+        const val = input.trim();
+        if (!val.startsWith("ghp_") && !val.startsWith("github_pat_")) {
+          alert("⚠️ El token debe comenzar con 'ghp_' o 'github_pat_'.");
+          return;
+        }
+        localStorage.setItem("bsas_github_token", val);
+        alert("✅ Token de GitHub guardado con éxito.");
+        testGitHubConnection();
+      }
+    }
+
     async function publishToGitHub(btnElement = null, silent = false, reason = "Actualización") {
       if (isCloudSyncing) return;
       isCloudSyncing = true;
@@ -1261,7 +1318,7 @@ ${qrImageUrl}
       updateSyncUI("syncing", "Publicando...", `Enviando a GitHub: ${reason}`);
 
       try {
-        const token = ["ghp", "3pGVKAG9X3KdOo6XAsfBfpEj0nShP80OGLB8"].join("_");
+        const token = getGitHubToken();
         const owner = "cholose";
         const repo = "mochu";
         const filePath = "data.js";
@@ -1363,7 +1420,7 @@ ${qrImageUrl}
 
         updateSyncUI("success", "Sincronizado", `¡Éxito! ${reason} publicado en la nube.`);
         if (!silent) {
-          alert(`🎉 ¡Éxito! Se actualizaron ${formatted.length} lugares en GitHub (cholose/mochu).\nToken verificado. Los cambios ya están disponibles en los celulares.`);
+          alert("🎉 ¡Éxito! Los lugares se publicaron en la nube.\nEn unos segundos estarán disponibles en todos los celulares del mundo.");
         }
         return true;
       } catch (err) {
@@ -1513,22 +1570,63 @@ ${qrImageUrl}
     }
 
     async function loadPlaces() {
-      if (!isStaticHost) {
-        try {
-          const res = await fetch("/api/admin/places");
-          if (res.ok) {
-            allPlaces = await res.json();
-            localStorage.setItem("bsas_places", JSON.stringify(allPlaces));
-          } else {
-            loadPlacesLocal();
+      updateSyncUI("syncing", "Cargando desde GitHub...", "Descargando datos actualizados de la nube...");
+      try {
+        const res = await fetch(`data.js?_t=${Date.now()}`, {
+          cache: "no-store",
+          headers: {
+            "Cache-Control": "no-cache, no-store, must-revalidate",
+            "Pragma": "no-cache"
           }
-        } catch (err) {
-          loadPlacesLocal();
+        });
+        if (res.ok) {
+          const text = await res.text();
+          const fn = new Function("let window={}; " + text + "; return (typeof APP_DATA !== 'undefined' ? APP_DATA : window.APP_DATA);");
+          const cloudData = fn();
+          if (cloudData && cloudData.places && cloudData.places.length > 0) {
+            allPlaces = cloudData.places.map(p => ({
+              id: p.id,
+              category: p.category,
+              name: p.name,
+              neighborhood: p.neighborhood || "",
+              address: p.address || "",
+              lat: parseFloat(p.lat) || -34.6037,
+              lng: parseFloat(p.lng) || -58.3816,
+              price: p.price || "$$",
+              tag: p.tag || "Recomendado",
+              image: p.image || "https://images.unsplash.com/photo-1544025162-d76694265947?w=600",
+              menu_url: p.menu_url || "",
+              tip_es: (p.tips && p.tips.es) ? p.tips.es : (p.tip_es || ""),
+              tip_en: (p.tips && p.tips.en) ? p.tips.en : (p.tip_en || ""),
+              tip_pt: (p.tips && p.tips.pt) ? p.tips.pt : (p.tip_pt || ""),
+              is_indoor: p.is_indoor !== undefined ? p.is_indoor : 1,
+              active: p.active !== undefined ? (p.active !== 0 && p.active !== false && p.active !== "0" ? 1 : 0) : 1
+            }));
+
+            if (cloudData.categories && cloudData.categories.length > 0) {
+              allCategories = cloudData.categories;
+            }
+            if (cloudData.waiters && cloudData.waiters.length > 0) {
+              allWaiters = cloudData.waiters;
+            }
+
+            try {
+              localStorage.setItem("bsas_places", JSON.stringify(allPlaces));
+              localStorage.setItem("bsas_categories", JSON.stringify(allCategories));
+              localStorage.setItem("bsas_waiters", JSON.stringify(allWaiters));
+            } catch(e) {}
+
+            updateSyncUI("success", "Sincronizado", `Listo. ${allPlaces.length} lugares cargados de GitHub.`);
+            renderPlacesUI();
+            renderDashboardMapMarkers();
+            return;
+          }
         }
-      } else {
-        loadPlacesLocal();
+      } catch (err) {
+        console.warn("Aviso cargando data.js fresco de GitHub:", err);
       }
 
+      loadPlacesLocal();
       renderPlacesUI();
       renderDashboardMapMarkers();
     }

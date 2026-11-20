@@ -5,7 +5,7 @@ echo ========================================================
 echo   SINCRONIZANDO Y SUBIENDO A GITHUB: cholose/mochu
 echo ========================================================
 echo.
-echo 1. Sincronizando lugares de la base de datos hacia data.js...
+echo 1. Sincronizando lugares hacia data.js...
 node sync-data.js
 echo.
 echo 2. Descargando ultimos cambios de GitHub...
@@ -15,7 +15,7 @@ echo 3. Preparando archivos modificados...
 git add .
 git commit -m "Actualizar lugares y fotos para celulares y GitHub Pages"
 echo.
-echo 4. Subiendo a GitHub con conexion segura...
+echo 4. Subiendo a GitHub con conexion segura directa...
 powershell -Command "$p = -join ('ghp','_','3pGVKAG9X3KdOo6XAsfBfpEj0nShP80OGLB8'); git push \"https://${p}@github.com/cholose/mochu.git\" main"
 echo.
 if %errorlevel% equ 0 (
@@ -26,7 +26,10 @@ if %errorlevel% equ 0 (
     echo ========================================================
 ) else (
     echo ========================================================
-    echo   Hubo un aviso al subir. Revisa tu conexion a Internet.
+    echo   Si te dio error 403 (Permission denied), ve a:
+    echo   Panel de Control ^> Administrador de credenciales
+    echo   ^> Credenciales de Windows ^> y busca "git:https://github.com"
+    echo   para quitar la cuenta vieja y poner "cholose".
     echo ========================================================
 )
 echo.

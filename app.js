@@ -283,54 +283,26 @@ async function activateTestMode() {
 
 // 3. Carga de lugares
 async function loadPlaces() {
-  // 1. Si estamos con backend (Node.js en localhost o red local)
+  // TRABAJAR SOLO CON GITHUB: Cargar siempre data.js fresco sin caché
   try {
-    const res = await fetch("/api/places");
-    if (res.ok) {
-      const dbPlaces = await res.json();
-      state.places = dbPlaces.map(p => ({
-        id: p.id,
-        category: p.category,
-        name: p.name,
-        address: p.address || "",
-        neighborhood: p.neighborhood,
-        lat: p.lat,
-        lng: p.lng,
-        price: p.price,
-        tag: p.tag,
-        image: p.image,
-        menu_url: p.menu_url || "",
-        is_indoor: p.is_indoor ?? 1,
-        tips: {
-          es: p.tip_es,
-          en: p.tip_en,
-          pt: p.tip_pt
-        }
-      }));
-      localStorage.setItem("bsas_places", JSON.stringify(state.places));
-      renderMarkers();
-      renderTangoList();
-      initContinuousCloudSync();
-      return;
-    }
-  } catch (err) {
-    // Modo estático (GitHub Pages)
-  }
-
-  // 2. Modo estático (GitHub Pages): buscar SIEMPRE data.js fresco inmediatamente
-  try {
-    const freshRes = await fetch(`data.js?_t=${Date.now()}`, {
+    const res = await fetch(`data.js?_t=${Date.now()}`, {
       cache: "no-store",
       headers: {
         "Cache-Control": "no-cache, no-store, must-revalidate",
         "Pragma": "no-cache"
       }
     });
-    if (freshRes.ok) {
-      const text = await freshRes.text();
+    if (res.ok) {
+      const text = await res.text();
       const fn = new Function("let window={}; " + text + "; return (typeof APP_DATA !== 'undefined' ? APP_DATA : window.APP_DATA);");
       const freshData = fn();
       if (freshData && freshData.places && freshData.places.length > 0) {
+        if (freshData.categories && freshData.categories.length > 0) {
+          APP_DATA.categories = freshData.categories;
+        }
+        if (freshData.waiters && freshData.waiters.length > 0) {
+          APP_DATA.waiters = freshData.waiters;
+        }
         state.places = freshData.places.map(p => ({
           id: p.id,
           category: p.category,
@@ -344,6 +316,7 @@ async function loadPlaces() {
           image: p.image || "https://images.unsplash.com/photo-1544025162-d76694265947?w=600",
           menu_url: p.menu_url || "",
           is_indoor: p.is_indoor !== undefined ? (p.is_indoor === 1 || p.is_indoor === true ? 1 : 0) : 1,
+          active: p.active !== undefined ? (p.active !== 0 && p.active !== false && p.active !== "0" ? 1 : 0) : 1,
           tips: p.tips ? p.tips : {
             es: p.tip_es || "",
             en: p.tip_en || p.tip_es || "",
@@ -360,10 +333,10 @@ async function loadPlaces() {
       }
     }
   } catch (err) {
-    console.warn("Aviso cargando data.js en vivo:", err);
+    console.warn("Aviso cargando data.js de GitHub:", err);
   }
 
-  // 3. Fallback a APP_DATA cargado estáticamente
+  // Fallback si no hay conexión
   const officialPlaces = (typeof APP_DATA !== "undefined" && APP_DATA.places) ? APP_DATA.places : [];
   state.places = officialPlaces.map(p => ({
     id: p.id,
@@ -378,6 +351,7 @@ async function loadPlaces() {
     image: p.image || "https://images.unsplash.com/photo-1544025162-d76694265947?w=600",
     menu_url: p.menu_url || "",
     is_indoor: p.is_indoor !== undefined ? (p.is_indoor === 1 || p.is_indoor === true ? 1 : 0) : 1,
+    active: p.active !== undefined ? (p.active !== 0 && p.active !== false && p.active !== "0" ? 1 : 0) : 1,
     tips: p.tips ? p.tips : {
       es: p.tip_es || "",
       en: p.tip_en || p.tip_es || "",
