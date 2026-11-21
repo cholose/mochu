@@ -12,7 +12,7 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 
   <!-- App Styles -->
-  <link rel="stylesheet" href="style.css?v=20261121_01">
+  <link rel="stylesheet" href="style.css?v=20261121_02">
   <style>
     .activation-overlay {
       position: fixed;
@@ -75,48 +75,112 @@
 </head>
 <body>
 
-  <!-- MODAL DE DESBLOQUEO VIP (PIN DEL MOZO O MERCADO PAGO) -->
+  <!-- MODAL DE DESBLOQUEO VIP (TERMINAL DE COBRO MERCADO PAGO $1.000 ARS) -->
   <div class="activation-overlay" id="unlock-modal" style="display:none;">
-    <div class="activation-card">
-      <div style="font-size:1.8rem; margin-bottom:4px;">🔑</div>
-      <h2 style="font-size:1.25rem; margin-bottom:4px;" id="lbl-unlock-title">Desbloqueo VIP</h2>
+    <div class="activation-card" style="max-width:440px; padding:22px 18px;">
       
-      <div class="service-banner">
-        <div style="font-size:0.75rem; color:#94a3b8;" id="lbl-unlock-hosted">ATENDIDO POR TU MOZO:</div>
-        <div style="font-size:1.1rem; font-weight:700; color:#f59e0b;" id="activation-waiter-banner">👨‍🍳 Isaias</div>
-      </div>
+      <!-- ESTADO 1: FORMULARIO DE COBRO CON MERCADO PAGO -->
+      <div id="unlock-view-checkout">
+        <div style="font-size:2rem; margin-bottom:4px;">🎟️</div>
+        <h2 style="font-size:1.3rem; margin-bottom:4px;" id="lbl-unlock-title">Pase Turista VIP (21 Días)</h2>
+        <div style="font-size:0.8rem; color:#94a3b8; margin-bottom:12px;">Acceso ilimitado a todos los tips locales, Uber/DiDi directos y descuentos</div>
 
-      <ul class="service-benefits">
-        <li id="lbl-unlock-b1">✅ <strong>Tips Secretos del Mozo</strong> en todas las parrillas y paseos.</li>
-        <li id="lbl-unlock-b2">✅ <strong>Acceso directo a Uber y DiDi</strong> con destinos listos.</li>
-        <li id="lbl-unlock-b3">✅ <strong>Descuentos exclusivos</strong> en cenas shows de Tango.</li>
-      </ul>
-
-      <!-- Opción 1: Ingreso con PIN -->
-      <div style="background:#0f172a; border:1px solid rgba(245,158,11,0.3); border-radius:12px; padding:14px; margin-bottom:12px;">
-        <div style="font-size:0.8rem; color:#f59e0b; font-weight:700; margin-bottom:8px;" id="lbl-unlock-question">
-          ¿Le pagaste a tu mozo en efectivo o propina?
+        <div class="service-banner" style="margin-bottom:12px;">
+          <div style="font-size:0.75rem; color:#94a3b8;" id="lbl-unlock-hosted">ATENDIDO POR TU MOZO:</div>
+          <div style="font-size:1.1rem; font-weight:700; color:#f59e0b;" id="activation-waiter-banner">👨‍🍳 Isaias</div>
         </div>
-        <input type="text" id="input-pin-name" class="input-pass" placeholder="Tu Nombre (ej. Sarah o John)">
-        <input type="password" id="input-pin-code" class="input-pass" placeholder="Ingresá el PIN de 4 dígitos" maxlength="6" style="text-align:center; font-size:1.25rem; letter-spacing:4px; font-weight:bold;">
-        <button type="button" onclick="submitTouristPin()" class="btn-transport" id="btn-unlock-pin-submit" style="background:#f59e0b; color:#0f172a; font-weight:800; width:100%; padding:12px; border:none; cursor:pointer;">
-          🔓 Desbloquear con PIN
+
+        <!-- Tarjeta de Importe y Terminal de Cobro -->
+        <div style="background:linear-gradient(135deg, rgba(0,158,227,0.15), rgba(15,23,42,0.9)); border:1.5px solid #009ee3; border-radius:14px; padding:14px; margin-bottom:14px; text-align:center;">
+          <div style="font-size:0.75rem; color:#38bdf8; font-weight:700; text-transform:uppercase; letter-spacing:1px;">Terminal de Cobro Oficial</div>
+          <div style="font-size:2rem; font-weight:900; color:#fff; margin:4px 0;">
+            <span style="font-size:1.2rem; color:#009ee3;">$</span>1.000 <span style="font-size:0.85rem; color:#94a3b8; font-weight:normal;">ARS</span>
+          </div>
+          <div style="display:inline-flex; align-items:center; gap:6px; background:#009ee3; color:#fff; font-size:0.75rem; font-weight:800; padding:3px 10px; border-radius:999px;">
+            💙 Mercado Pago
+          </div>
+          <div style="font-size:0.8rem; color:#cbd5e1; margin-top:8px;">
+            Alias para transferir: <strong id="mp-alias-display" style="color:#f59e0b; font-size:0.95rem; font-family:monospace;">10.cholo</strong>
+          </div>
+        </div>
+
+        <ul class="service-benefits" style="margin-bottom:14px; text-align:left;">
+          <li>✅ <strong>Tips Secretos del Mozo</strong> en parrillas, bodegones y heladerías.</li>
+          <li>✅ <strong>Acceso directo a Uber y DiDi</strong> con destinos listos.</li>
+          <li>✅ <strong>Descuentos exclusivos</strong> en cenas shows de Tango.</li>
+          <li>✅ <strong>Vigencia completa:</strong> 21 días corridos sin límites.</li>
+        </ul>
+
+        <!-- Formulario del Turista -->
+        <div style="background:#0f172a; border:1px solid rgba(255,255,255,0.1); border-radius:12px; padding:12px; margin-bottom:12px; text-align:left;">
+          <label style="font-size:0.78rem; color:#cbd5e1; font-weight:700; display:block; margin-bottom:4px;">
+            👤 Tu Nombre y Apellido *
+          </label>
+          <input type="text" id="input-pin-name" class="input-pass" placeholder="ej. Sarah Miller o Juan Gómez" style="margin-bottom:10px;">
+
+          <label style="font-size:0.78rem; color:#cbd5e1; font-weight:700; display:block; margin-bottom:4px;">
+            📱 Tu Celular / WhatsApp (para activar tu cuenta) *
+          </label>
+          <input type="tel" id="input-tourist-phone" class="input-pass" placeholder="ej. 11 2345 6789 o +54 9 11..." style="margin-bottom:4px;">
+        </div>
+
+        <!-- Botón de Cobro Mercado Pago -->
+        <button type="button" onclick="payWithMercadoPago()" class="btn-transport" id="btn-unlock-mp" style="background:#009ee3; color:#fff; width:100%; padding:13px; font-size:1rem; cursor:pointer; border:none; margin-bottom:10px; font-weight:800; border-radius:10px; box-shadow:0 4px 14px rgba(0,158,227,0.4); display:flex; align-items:center; justify-content:center; gap:8px;">
+          <span>💙</span> Ir a Pagar $1.000 en Mercado Pago
+        </button>
+
+        <!-- Desplegable Opcional: Pago en Efectivo con Mozo -->
+        <details style="margin-bottom:10px; text-align:left; background:rgba(255,255,255,0.02); border-radius:8px; padding:6px 10px; border:1px solid rgba(255,255,255,0.06);">
+          <summary style="font-size:0.78rem; color:#94a3b8; cursor:pointer; font-weight:600;">
+            ¿Le pagaste en efectivo a tu mozo en la mesa? Ingresar PIN
+          </summary>
+          <div style="padding-top:8px;">
+            <input type="password" id="input-pin-code" class="input-pass" placeholder="PIN de 4 dígitos de tu mozo" maxlength="6" style="text-align:center; font-size:1.1rem; letter-spacing:4px; font-weight:bold; margin-bottom:6px;">
+            <button type="button" onclick="submitTouristPin()" class="btn-transport" style="background:#f59e0b; color:#0f172a; font-weight:800; width:100%; padding:10px; border:none; cursor:pointer; font-size:0.85rem;">
+              🔓 Validar PIN del Mozo
+            </button>
+          </div>
+        </details>
+
+        <button type="button" onclick="closeUnlockModal()" class="btn-transport" id="btn-unlock-close" style="background:transparent; color:#94a3b8; border:none; font-size:0.8rem; cursor:pointer; text-decoration:underline; width:100%;">
+          Continuar en modo básico gratuito
         </button>
       </div>
 
-      <!-- Opción 2: Mercado Pago -->
-      <button type="button" onclick="payWithMercadoPago()" class="btn-transport" id="btn-unlock-mp" style="background:#009ee3; width:100%; padding:11px; font-size:0.9rem; cursor:pointer; border:none; margin-bottom:8px; font-weight:700;">
-        💙 Pagar con Mercado Pago
-      </button>
+      <!-- ESTADO 2: ESPERA DE CONFIRMACIÓN DEL PAGO -->
+      <div id="unlock-view-pending" style="display:none; text-align:center;">
+        <div style="font-size:2.4rem; margin-bottom:6px;">⏳</div>
+        <h2 style="font-size:1.25rem; color:#f59e0b; margin-bottom:4px;">¡Solicitud de Pase Iniciada!</h2>
+        <p style="font-size:0.85rem; color:#cbd5e1; margin-bottom:14px; line-height:1.4;">
+          Para activar tu cuenta, realizá la transferencia o pago de <strong>$1.000 ARS</strong> por Mercado Pago.
+        </p>
 
-      <!-- Opción 3: Modo Prueba -->
-      <button type="button" onclick="activateTestMode()" class="btn-transport" id="btn-unlock-test" style="background:#334155; width:100%; padding:8px; font-size:0.75rem; border:1px dashed #64748b; color:#cbd5e1; cursor:pointer; margin-bottom:8px;">
-        🧪 Modo Prueba (Activar gratis para testear)
-      </button>
+        <div style="background:#0f172a; border:1px solid rgba(245,158,11,0.4); border-radius:12px; padding:12px; margin-bottom:14px; text-align:left;">
+          <div style="font-size:0.75rem; color:#94a3b8;">DATOS PARA EL PAGO:</div>
+          <div style="font-size:0.9rem; color:#fff; margin-top:4px;">
+            💰 <strong>Importe:</strong> $1.000 ARS
+          </div>
+          <div style="font-size:0.9rem; color:#fff; margin-top:2px;">
+            💙 <strong>Alias Mercado Pago:</strong> <strong style="color:#38bdf8; font-family:monospace;">10.cholo</strong>
+          </div>
+          <div style="font-size:0.8rem; color:#cbd5e1; margin-top:6px; padding-top:6px; border-top:1px solid rgba(255,255,255,0.08);">
+            🔖 <strong>Tu Código de Pase:</strong> <span id="pending-pass-code-display" style="color:#f59e0b; font-weight:bold; font-family:monospace;">PASE-0000</span>
+          </div>
+        </div>
 
-      <button type="button" onclick="closeUnlockModal()" class="btn-transport" id="btn-unlock-close" style="background:transparent; color:#94a3b8; border:none; font-size:0.8rem; cursor:pointer; text-decoration:underline;">
-        Cerrar y seguir en modo básico
-      </button>
+        <button type="button" onclick="sendPaymentReceiptViaWhatsApp()" class="btn-transport" style="background:#25d366; color:#0f172a; width:100%; padding:12px; font-size:0.92rem; font-weight:800; border:none; cursor:pointer; margin-bottom:8px; display:flex; align-items:center; justify-content:center; gap:8px;">
+          <span>💬</span> Enviar Comprobante por WhatsApp
+        </button>
+
+        <button type="button" onclick="checkPassStatusOnline(true)" class="btn-transport" style="background:#1e293b; border:1px solid #38bdf8; color:#38bdf8; width:100%; padding:10px; font-size:0.88rem; font-weight:700; cursor:pointer; margin-bottom:8px;">
+          🔄 Ya pagué, verificar si me activaron
+        </button>
+
+        <button type="button" onclick="resetPassCheckout()" class="btn-transport" style="background:transparent; color:#94a3b8; border:none; font-size:0.78rem; text-decoration:underline; cursor:pointer;">
+          ← Volver a cargar mis datos o reintentar
+        </button>
+      </div>
+
     </div>
   </div>
 
@@ -594,7 +658,7 @@
   </div>
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <script src="data.js?v=20261121_01"></script>
-  <script src="app.js?v=20261121_01"></script>
+  <script src="data.js?v=20261121_02"></script>
+  <script src="app.js?v=20261121_02"></script>
 </body>
 </html>

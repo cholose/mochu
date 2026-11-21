@@ -241,53 +241,158 @@ function prevTourStep() {
   }
 }
 
-// 2. Control de Estado VIP / Pase 21 Días (Modo Freemium)
-async function checkOrPromptPass() {
-  const passId = localStorage.getItem("bsas_pass_id");
-  let deviceToken = localStorage.getItem("bsas_device_token");
+// 2. Control de Estado VIP / Pase 21 Días con Terminal de Cobro Mercado Pago ($1.000 ARS)
+async function savePassToGitHubCloud(pass) {
+  try {
+    const token = getGitHubAuthToken();
+    const owner = "cholose";
+    const repo = "mochu";
+    const path = "passes.json";
 
+    let currentList = [];
+    let sha = null;
+
+    try {
+      const getRes = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${path}?t=${Date.now()}`, {
+        headers: {
+          "Authorization": `Bearer ${token}`,
+          "Accept": "application/vnd.github.v3+json"
+        }
+      });
+      if (getRes.ok) {
+        const fileData = await getRes.json();
+        sha = fileData.sha;
+        const binaryStr = atob(fileData.content.replace(/\s/g, ''));
+        const bytes = Uint8Array.from(binaryStr, c => c.charCodeAt(0));
+        const decodedStr = new TextDecoder().decode(bytes);
+        currentList = JSON.parse(decodedStr);
+      }
+    } catch (e) {
+      console.warn("Aviso al consultar passes.json en GitHub:", e);
+    }
+
+    const updatedList = [pass, ...currentList.filter(p => p && p.id !== pass.id)];
+    const jsonString = JSON.stringify(updatedList, null, 2);
+    const utf8Bytes = new TextEncoder().encode(jsonString);
+    let binary = "";
+    utf8Bytes.forEach(b => binary += String.fromCharCode(b));
+    const newBase64 = btoa(binary);
+
+    await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${path}`, {
+      method: "PUT",
+      headers: {
+        "Authorization": `Bearer ${token}`,
+        "Accept": "application/vnd.github.v3+json",
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        message: `Solicitud de pase de ${pass.tourist_name} (${pass.status || 'pending'})`,
+        content: newBase64,
+        sha: sha || undefined
+      })
+    });
+  } catch (err) {
+    console.warn("Aviso guardando pase en GitHub:", err);
+  }
+}
+
+async function checkOrPromptPass() {
+  let deviceToken = localStorage.getItem("bsas_device_token");
   if (!deviceToken) {
     deviceToken = "dev_" + Math.random().toString(36).substring(2, 12);
     localStorage.setItem("bsas_device_token", deviceToken);
   }
 
-  if (!passId) {
-    state.isVip = false;
-    updateVipUI();
-    return;
+  const passId = localStorage.getItem("bsas_pass_id");
+  let globalPasses = [];
+
+  // 1. Cargar desde passes.json fresco de GitHub Pages
+  try {
+    const res = await fetch(`passes.json?_t=${Date.now()}`, { cache: "no-store" });
+    if (res.ok) {
+      const data = await res.json();
+      if (Array.isArray(data)) {
+        globalPasses = data;
+      }
+    }
+  } catch (e) {}
+
+  // 2. Fallback con APP_DATA.tourists
+  if (!globalPasses || globalPasses.length === 0) {
+    if (typeof APP_DATA !== "undefined" && Array.isArray(APP_DATA.tourists)) {
+      globalPasses = APP_DATA.tourists;
+    }
   }
 
-  try {
-    const res = await fetch(`/api/check-pass?passId=${passId}&deviceToken=${deviceToken}`);
-    const data = await res.json();
+  // 3. Fallback con localStorage
+  const localList = JSON.parse(localStorage.getItem("bsas_tourists_passes") || "[]");
+  const mergedMap = new Map();
+  globalPasses.forEach(p => { if (p && p.id) mergedMap.set(p.id, p); });
+  localList.forEach(p => { if (p && p.id && !mergedMap.has(p.id)) mergedMap.set(p.id, p); });
+  const allKnownPasses = Array.from(mergedMap.values());
 
-    if (data.valid) {
-      state.pass = data;
+  // Buscar el pase de este celular
+  let myPass = null;
+  if (passId) {
+    myPass = allKnownPasses.find(p => p.id === passId);
+  }
+  if (!myPass && deviceToken) {
+    myPass = allKnownPasses.find(p => p.device_token === deviceToken);
+  }
+
+  const now = Date.now();
+  if (myPass) {
+    const isActive = (myPass.status === "active" || myPass.is_active === 1) && (!myPass.expires_at || myPass.expires_at > now);
+    if (isActive) {
       state.isVip = true;
-      updateVipUI();
+      state.pass = myPass;
+      localStorage.setItem("bsas_pass_id", myPass.id);
+      localStorage.setItem("bsas_pass_status", "active");
+    } else if (myPass.status === "pending_payment") {
+      state.isVip = false;
+      state.pass = myPass;
+      localStorage.setItem("bsas_pass_id", myPass.id);
+      localStorage.setItem("bsas_pass_status", "pending_payment");
     } else {
       state.isVip = false;
-      localStorage.removeItem("bsas_pass_id");
-      updateVipUI();
+      state.pass = myPass;
+      localStorage.setItem("bsas_pass_status", "expired");
     }
-  } catch (err) {
+  } else {
     state.isVip = false;
-    updateVipUI();
+    state.pass = null;
   }
+
+  updateVipUI();
 }
 
 function updateVipUI() {
   const unlockBtn = document.getElementById("btn-header-unlock");
   const passTag = document.getElementById("pass-tag");
 
+  const now = Date.now();
   if (state.isVip) {
     if (unlockBtn) unlockBtn.style.display = "none";
     if (passTag) {
-      passTag.textContent = `⭐ VIP Activo (${state.pass ? state.pass.daysRemaining : 21}d)`;
+      const daysLeft = (state.pass && state.pass.expires_at) 
+        ? Math.max(1, Math.ceil((state.pass.expires_at - now) / 86400000)) 
+        : 21;
+      passTag.textContent = `⭐ VIP Activo (${daysLeft}d)`;
       passTag.style.display = "inline-block";
     }
   } else {
-    if (unlockBtn) unlockBtn.style.display = "inline-flex";
+    if (unlockBtn) {
+      unlockBtn.style.display = "inline-flex";
+      const isPending = state.pass && state.pass.status === "pending_payment";
+      unlockBtn.textContent = isPending ? "⏳ Pase Pendiente ($1.000)" : "⭐ Activar Guía ($1.000)";
+      if (isPending) {
+        unlockBtn.style.background = "#f59e0b";
+        unlockBtn.style.color = "#0f172a";
+      } else {
+        unlockBtn.style.background = "";
+        unlockBtn.style.color = "";
+      }
+    }
     if (passTag) passTag.style.display = "none";
   }
 
@@ -295,173 +400,272 @@ function updateVipUI() {
 }
 
 function openUnlockModal() {
-  document.getElementById("unlock-modal").style.display = "flex";
-  setTimeout(() => {
-    const pinInput = document.getElementById("input-pin-code");
-    if (pinInput) pinInput.focus();
-  }, 100);
+  const modal = document.getElementById("unlock-modal");
+  if (!modal) return;
+  modal.style.display = "flex";
+
+  const isPending = state.pass && state.pass.status === "pending_payment";
+  const viewCheckout = document.getElementById("unlock-view-checkout");
+  const viewPending = document.getElementById("unlock-view-pending");
+
+  if (isPending && viewPending && viewCheckout) {
+    viewCheckout.style.display = "none";
+    viewPending.style.display = "block";
+    const codeEl = document.getElementById("pending-pass-code-display");
+    if (codeEl) codeEl.textContent = state.pass.id;
+  } else {
+    if (viewCheckout) viewCheckout.style.display = "block";
+    if (viewPending) viewPending.style.display = "none";
+
+    // Auto-completar datos guardados
+    const savedName = localStorage.getItem("bsas_tourist_name") || "";
+    const savedPhone = localStorage.getItem("bsas_tourist_phone") || "";
+    const nameInput = document.getElementById("input-pin-name");
+    const phoneInput = document.getElementById("input-tourist-phone");
+    if (nameInput && savedName) nameInput.value = savedName;
+    if (phoneInput && savedPhone) phoneInput.value = savedPhone;
+
+    // Actualizar banner de alias si está configurado
+    const aliasEl = document.getElementById("mp-alias-display");
+    if (aliasEl && typeof APP_DATA !== "undefined" && APP_DATA.config && APP_DATA.config.mpAlias) {
+      aliasEl.textContent = APP_DATA.config.mpAlias;
+    }
+  }
 }
 
 function closeUnlockModal() {
-  document.getElementById("unlock-modal").style.display = "none";
+  const modal = document.getElementById("unlock-modal");
+  if (modal) modal.style.display = "none";
 }
 
-function recordLocalPass(touristName, waiterId, paymentMethod = "PIN / Efectivo") {
-  try {
-    const list = JSON.parse(localStorage.getItem("bsas_tourists_passes") || "[]");
-    const now = Date.now();
-    const newEntry = {
-      id: "pass_" + Date.now().toString(36) + "_" + Math.random().toString(36).slice(2, 6),
-      tourist_name: touristName || "Turista VIP",
-      tourist_contact: "Mesa / Local",
-      waiter_id: waiterId || "isaias",
-      payment_method: paymentMethod,
-      amount_paid_usd: 3.0,
-      created_at: now,
-      expires_at: now + (21 * 86400000),
-      is_active: 1
-    };
-    list.unshift(newEntry);
-    localStorage.setItem("bsas_tourists_passes", JSON.stringify(list));
-  } catch(e) {}
+function resetPassCheckout() {
+  const viewCheckout = document.getElementById("unlock-view-checkout");
+  const viewPending = document.getElementById("unlock-view-pending");
+  if (viewCheckout) viewCheckout.style.display = "block";
+  if (viewPending) viewPending.style.display = "none";
 }
 
-// Desbloquear con PIN del Mozo
-async function submitTouristPin() {
-  const pin = document.getElementById("input-pin-code").value.trim();
-  const name = document.getElementById("input-pin-name").value.trim() || "Turista VIP";
-  const deviceToken = localStorage.getItem("bsas_device_token");
+// 1. INICIAR PAGO CON MERCADO PAGO ($1.000 ARS)
+async function payWithMercadoPago() {
+  const nameInput = document.getElementById("input-pin-name");
+  const phoneInput = document.getElementById("input-tourist-phone");
 
-  if (!pin) {
-    alert("Por favor ingresá el PIN de 4 dígitos que te dio tu mozo.");
+  const name = nameInput ? nameInput.value.trim() : "";
+  const phone = phoneInput ? phoneInput.value.trim() : "";
+
+  if (!name) {
+    alert("Por favor ingresá tu Nombre y Apellido para identificar tu pase.");
+    if (nameInput) nameInput.focus();
     return;
   }
 
+  if (!phone) {
+    alert("Por favor ingresá tu número de Celular o WhatsApp para enviarte la confirmación del pase.");
+    if (phoneInput) phoneInput.focus();
+    return;
+  }
+
+  const deviceToken = localStorage.getItem("bsas_device_token") || ("dev_" + Math.random().toString(36).substring(2, 10));
+  localStorage.setItem("bsas_device_token", deviceToken);
+  localStorage.setItem("bsas_tourist_name", name);
+  localStorage.setItem("bsas_tourist_phone", phone);
+
+  // Generar ID único de pase
+  const passId = "pass_mp_" + Date.now().toString(36).toUpperCase();
+  const priceArs = (typeof APP_DATA !== "undefined" && APP_DATA.config && APP_DATA.config.passPriceArs) ? APP_DATA.config.passPriceArs : 1000;
+
+  const newPass = {
+    id: passId,
+    device_token: deviceToken,
+    tourist_name: name,
+    tourist_contact: phone,
+    waiter_id: state.waiterId || "cholo",
+    payment_method: "Mercado Pago",
+    amount_paid_ars: priceArs,
+    amount_paid_usd: 1.0,
+    status: "pending_payment",
+    created_at: Date.now(),
+    is_active: 0
+  };
+
+  // Guardar estado localmente
+  localStorage.setItem("bsas_pass_id", passId);
+  localStorage.setItem("bsas_pass_status", "pending_payment");
+  const localList = JSON.parse(localStorage.getItem("bsas_tourists_passes") || "[]");
+  localList.unshift(newPass);
+  localStorage.setItem("bsas_tourists_passes", JSON.stringify(localList));
+
+  state.pass = newPass;
+  state.isVip = false; // NO se activa hasta que pague y sea confirmado
+  updateVipUI();
+
+  // Guardar en la nube (passes.json de GitHub)
+  savePassToGitHubCloud(newPass);
+
+  // Notificar backend local si estuviera corriendo
   try {
-    const res = await fetch("/api/unlock-pin", {
+    fetch("/api/pay-service", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        pin,
+        passId,
         name,
-        waiterId: state.waiterId,
-        deviceToken
-      })
-    });
-    if (res.ok) {
-      const data = await res.json();
-      if (data.success) {
-        localStorage.setItem("bsas_pass_id", data.passId);
-        recordLocalPass(name, state.waiterId, "PIN Mozo (Efectivo)");
-        state.pass = data;
-        state.isVip = true;
-        closeUnlockModal();
-        updateVipUI();
-        if (state.selectedPlace) {
-          updateModalContent(state.selectedPlace);
-        }
-        alert(`🎉 ¡Excelente ${name}! Tu acceso VIP ha sido desbloqueado por 21 días.`);
-        return;
-      } else {
-        alert(data.error || "PIN incorrecto. Pedile el PIN a tu mozo.");
-        return;
-      }
-    }
-  } catch (e) {
-    // Si estamos en GitHub Pages o modo offline
-  }
-
-  // Fallback para GitHub Pages (PIN 1234)
-  if (pin === "1234") {
-    const fakePass = {
-      passId: "pass_ghp_" + Date.now(),
-      waiterId: state.waiterId || "isaias",
-      touristName: name,
-      daysLeft: 21
-    };
-    localStorage.setItem("bsas_pass_id", fakePass.passId);
-    recordLocalPass(name, state.waiterId, "PIN Mozo (Efectivo)");
-    state.pass = fakePass;
-    state.isVip = true;
-    closeUnlockModal();
-    updateVipUI();
-    if (state.selectedPlace) {
-      updateModalContent(state.selectedPlace);
-    }
-    alert(`🎉 ¡Excelente ${name}! Tu acceso VIP ha sido desbloqueado por 21 días.`);
-  } else {
-    alert("PIN incorrecto. Recordá que por defecto es 1234.");
-  }
-}
-
-// Pago con Mercado Pago
-async function payWithMercadoPago() {
-  const name = document.getElementById("input-pin-name").value.trim() || "Turista Amigo";
-  const deviceToken = localStorage.getItem("bsas_device_token");
-
-  try {
-    const res = await fetch("/api/pay-service", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        name,
-        waiterId: state.waiterId,
-        deviceToken
-      })
-    });
-    const data = await res.json();
-
-    if (data.success) {
-      localStorage.setItem("bsas_pass_id", data.passId);
-      recordLocalPass(name, state.waiterId, "Mercado Pago");
-      state.pass = data;
-      state.isVip = true;
-      closeUnlockModal();
-      updateVipUI();
-      if (state.selectedPlace) updateModalContent(state.selectedPlace);
-
-      if (data.mpLink) {
-        window.open(data.mpLink, "_blank");
-      }
-      alert(`¡Gracias ${name}! Tu guía VIP ha sido desbloqueada.`);
-    }
-  } catch (e) {
-    recordLocalPass(name, state.waiterId, "Mercado Pago");
-    alert("Error al conectar con Mercado Pago.");
-  }
-}
-
-// Activación rápida en Modo Prueba (para testear sin pagar)
-async function activateTestMode() {
-  const name = document.getElementById("input-pin-name").value.trim() || "Tester";
-  const deviceToken = localStorage.getItem("bsas_device_token");
-
-  try {
-    const res = await fetch("/api/pay-service", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        name,
-        waiterId: state.waiterId,
+        contact: phone,
+        waiterId: state.waiterId || "cholo",
         deviceToken,
-        isTest: true
+        amountArs: priceArs
       })
-    });
-    const data = await res.json();
-    if (data.success) {
-      localStorage.setItem("bsas_pass_id", data.passId);
-      state.pass = data;
-      state.isVip = true;
-      closeUnlockModal();
-      updateVipUI();
-      if (state.selectedPlace) updateModalContent(state.selectedPlace);
-      alert(`🧪 ¡Modo Prueba VIP activado para ${name}!`);
+    }).catch(() => {});
+  } catch(e) {}
+
+  // Abrir la terminal de cobro de Mercado Pago
+  const mpUrl = (typeof APP_DATA !== "undefined" && APP_DATA.config && APP_DATA.config.mpLink && APP_DATA.config.mpLink.startsWith("http"))
+    ? APP_DATA.config.mpLink
+    : "https://link.mercadopago.com.ar";
+  
+  window.open(mpUrl, "_blank");
+
+  // Cambiar modal al estado de espera
+  const viewCheckout = document.getElementById("unlock-view-checkout");
+  const viewPending = document.getElementById("unlock-view-pending");
+  if (viewCheckout) viewCheckout.style.display = "none";
+  if (viewPending) {
+    viewPending.style.display = "block";
+    const codeEl = document.getElementById("pending-pass-code-display");
+    if (codeEl) codeEl.textContent = passId;
+  }
+}
+
+// 2. ENVIAR COMPROBANTE POR WHATSAPP AL ADMINISTRADOR
+function sendPaymentReceiptViaWhatsApp() {
+  const pass = state.pass;
+  const name = (pass && pass.tourist_name) ? pass.tourist_name : (localStorage.getItem("bsas_tourist_name") || "Turista");
+  const phone = (pass && pass.tourist_contact) ? pass.tourist_contact : (localStorage.getItem("bsas_tourist_phone") || "");
+  const passId = (pass && pass.id) ? pass.id : (localStorage.getItem("bsas_pass_id") || "PASE-MP");
+
+  const targetWa = (typeof APP_DATA !== "undefined" && APP_DATA.config && APP_DATA.config.agencyWhatsApp)
+    ? APP_DATA.config.agencyWhatsApp
+    : "5491122334455";
+
+  let cleanTarget = targetWa.replace(/\D/g, "");
+  if (cleanTarget.startsWith("0")) cleanTarget = cleanTarget.slice(1);
+  if (cleanTarget.length === 10) cleanTarget = "549" + cleanTarget;
+
+  const msg = `👋 ¡Hola! Acabo de transferir los $1.000 ARS por Mercado Pago para activar mi Pase Turista VIP (21 Días).\n\n👤 Nombre: *${name}*\n📱 Celular: *${phone}*\n🏷️ Código de Activación: *${passId}*\n💙 Terminal: Mercado Pago (Alias: 10.cholo)\n\nAdjunto el comprobante para que puedan activar mi acceso. ¡Muchas gracias!`;
+
+  const waUrl = cleanTarget 
+    ? `https://wa.me/${cleanTarget}?text=${encodeURIComponent(msg)}`
+    : `https://wa.me/?text=${encodeURIComponent(msg)}`;
+
+  window.open(waUrl, "_blank");
+}
+
+// 3. CONSULTAR ESTADO DEL PASE EN TIEMPO REAL
+async function checkPassStatusOnline(isManualClick = false) {
+  const passId = localStorage.getItem("bsas_pass_id") || (state.pass ? state.pass.id : null);
+  const deviceToken = localStorage.getItem("bsas_device_token");
+
+  if (!passId && !deviceToken) {
+    if (isManualClick) alert("No tenés ninguna solicitud de pase pendiente.");
+    return;
+  }
+
+  let foundPass = null;
+
+  try {
+    const res = await fetch(`passes.json?_t=${Date.now()}`, { cache: "no-store" });
+    if (res.ok) {
+      const passes = await res.json();
+      if (Array.isArray(passes)) {
+        foundPass = passes.find(p => p.id === passId || (deviceToken && p.device_token === deviceToken));
+      }
     }
-  } catch (e) {
+  } catch (e) {}
+
+  const now = Date.now();
+  if (foundPass && (foundPass.status === "active" || foundPass.is_active === 1) && (!foundPass.expires_at || foundPass.expires_at > now)) {
     state.isVip = true;
+    state.pass = foundPass;
+    localStorage.setItem("bsas_pass_id", foundPass.id);
+    localStorage.setItem("bsas_pass_status", "active");
     closeUnlockModal();
     updateVipUI();
+    if (state.selectedPlace) updateModalContent(state.selectedPlace);
+    alert(`🎉 ¡Excelente ${foundPass.tourist_name || ''}! Tu pago de $1.000 fue confirmado y tu Pase VIP está 100% ACTIVO por 21 días.`);
+    return;
   }
+
+  if (isManualClick) {
+    alert(`⏳ Tu solicitud (${passId}) sigue en estado 'Pendiente de Pago'.\n\nApenas el administrador verifique el ingreso de los $1.000 en Mercado Pago, se activará automáticamente.\n\nPodés tocar el botón verde para enviarle tu comprobante por WhatsApp y agilizar la activación.`);
+  }
+}
+
+// 4. DESBLOQUEO POR PIN DEL MOZO (PARA PAGO EN EFECTIVO EN LA MESA)
+async function submitTouristPin() {
+  const pinInput = document.getElementById("input-pin-code");
+  const nameInput = document.getElementById("input-pin-name");
+  const phoneInput = document.getElementById("input-tourist-phone");
+
+  const pin = pinInput ? pinInput.value.trim() : "";
+  const name = nameInput ? nameInput.value.trim() : "";
+  const phone = phoneInput ? phoneInput.value.trim() : "";
+
+  if (!name) {
+    alert("Por favor ingresá tu nombre.");
+    return;
+  }
+  if (!pin) {
+    alert("Por favor ingresá el PIN de 4 dígitos de tu mozo.");
+    return;
+  }
+
+  // Validar contra mozos reales registrados en APP_DATA
+  const waiters = (typeof APP_DATA !== "undefined" && Array.isArray(APP_DATA.waiters)) ? APP_DATA.waiters : [];
+  const matchedWaiter = waiters.find(w => String(w.pin).trim() === pin);
+
+  if (!matchedWaiter) {
+    alert("⚠️ PIN incorrecto. Por favor pedile el PIN de activación a tu mozo en la mesa.");
+    return;
+  }
+
+  const deviceToken = localStorage.getItem("bsas_device_token") || ("dev_" + Math.random().toString(36).substring(2, 10));
+  const now = Date.now();
+  const passId = "pass_pin_" + Date.now().toString(36).toUpperCase();
+
+  const newPass = {
+    id: passId,
+    device_token: deviceToken,
+    tourist_name: name,
+    tourist_contact: phone || "Mesa / Local",
+    waiter_id: matchedWaiter.id,
+    payment_method: `Efectivo en Mesa (${matchedWaiter.name})`,
+    amount_paid_ars: 1000,
+    amount_paid_usd: 1.0,
+    status: "active",
+    created_at: now,
+    activated_at: now,
+    expires_at: now + (21 * 86400000),
+    is_active: 1
+  };
+
+  localStorage.setItem("bsas_pass_id", passId);
+  localStorage.setItem("bsas_pass_status", "active");
+  localStorage.setItem("bsas_tourist_name", name);
+
+  const localList = JSON.parse(localStorage.getItem("bsas_tourists_passes") || "[]");
+  localList.unshift(newPass);
+  localStorage.setItem("bsas_tourists_passes", JSON.stringify(localList));
+
+  state.pass = newPass;
+  state.isVip = true;
+  closeUnlockModal();
+  updateVipUI();
+  if (state.selectedPlace) updateModalContent(state.selectedPlace);
+
+  // Guardar en la nube
+  savePassToGitHubCloud(newPass);
+
+  alert(`🎉 ¡Excelente ${name}! Tu acceso VIP fue activado por 21 días por tu mozo ${matchedWaiter.name}.`);
 }
 
 // 3. Carga de lugares
