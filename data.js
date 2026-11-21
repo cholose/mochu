@@ -752,7 +752,7 @@ const APP_DATA = {
       "user_name": "Alessandro & Giulia",
       "user_country": "🇮🇹 Italia",
       "rating": 5,
-      "comment": "Un'acustica leggendaria e una bellezza che lascia senza fiato. Vale ogni singolo centesimo la visita guidata in inglese o spagnolo.",
+      "comment": "Un'acustica leggendaria e una belleza che lascia senza fiato. Vale ogni singolo centesimo la visita guidata in inglese o spagnolo.",
       "photo_data": "",
       "waiter_id": "isaias",
       "created_at": 1763000000000
@@ -782,5 +782,29 @@ const APP_DATA = {
       "created_at": 1762800000000
     }
   ],
-  "version": "20261120_04"
+  "tourists": [
+    {
+      "id": "pass_7d23cfe5fbdc",
+      "tourist_name": "Juan",
+      "tourist_contact": "3577",
+      "waiter_id": "isaias",
+      "payment_method": "Efectivo al Mozo",
+      "amount_paid_usd": 3.0,
+      "created_at": 1794533347195,
+      "expires_at": 1796347747195,
+      "is_active": 1
+    },
+    {
+      "id": "pass_39f61d2dbf66",
+      "tourist_name": "Barby",
+      "tourist_contact": "145632897",
+      "waiter_id": "isaias",
+      "payment_method": "Mercado Pago",
+      "amount_paid_usd": 3.0,
+      "created_at": 1794533466441,
+      "expires_at": 1796347866441,
+      "is_active": 1
+    }
+  ],
+  "version": "20261120_05"
 };

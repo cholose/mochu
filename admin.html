@@ -11,8 +11,8 @@
   <!-- Leaflet CSS y JS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <script src="data.js?v=20261120_04"></script>
-  <link rel="stylesheet" href="style.css?v=20261120_04">
+  <script src="data.js?v=20261120_05"></script>
+  <link rel="stylesheet" href="style.css?v=20261120_05">
 
   <style>
     body {
@@ -416,6 +416,10 @@
       <button class="admin-tab-btn" data-tab="tab-admin-waiters" onclick="switchAdminTab('tab-admin-waiters')">
         <span>👨‍🍳</span> Mozos & Cobros
       </button>
+      <button class="admin-tab-btn" data-tab="tab-admin-tourists" onclick="switchAdminTab('tab-admin-tourists')">
+        <span>🎫</span> Usuarios & Pases
+        <span id="tab-tourists-counter" class="tab-badge" style="display:none;">0</span>
+      </button>
     </div>
 
     <!-- PESTAÑA 1: LUGARES & MAPA -->
@@ -532,6 +536,83 @@
         </p>
         <div id="waiters-container"></div>
       </div>
+    </div>
+
+    <!-- PESTAÑA 5: USUARIOS & PASES VIP -->
+    <div id="tab-admin-tourists" class="admin-tab-content">
+      <div class="admin-card">
+        <div class="section-title">
+          <div style="display:flex; align-items:center; gap:8px;">
+            <span>🎫 Turistas Registrados & Pases VIP</span>
+            <span id="tourists-active-count-badge" style="font-size:0.75rem; background:#1e293b; color:#10b981; padding:2px 8px; border-radius:999px; font-weight:700;"></span>
+          </div>
+          <div style="display:flex; gap:8px;">
+            <button class="btn-action" style="background:#10b981; font-weight:700;" onclick="openNewTouristModal()">➕ Activar Turista</button>
+            <button class="btn-action btn-secondary" onclick="loadAdminTourists()">🔄 Actualizar</button>
+          </div>
+        </div>
+        <p style="font-size:0.8rem; color:#94a3b8; margin-bottom:14px;">
+          Acá ves a todos los usuarios/turistas que adquirieron el Pase VIP (por Mercado Pago, PayPal, Prex, Lemon o en efectivo con su mozo). Podés verificar sus cobros, ver qué mozo los atendió o renovarles el acceso.
+        </p>
+
+        <!-- Métricas Rápidas de Turistas -->
+        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(140px, 1fr)); gap:10px; margin-bottom:16px;">
+          <div style="background:#0f172a; border:1px solid rgba(255,255,255,0.08); border-radius:10px; padding:10px; text-align:center;">
+            <div id="tourists-stat-total" style="font-size:1.3rem; font-weight:800; color:#38bdf8;">0</div>
+            <div style="font-size:0.72rem; color:#94a3b8;">Total Turistas</div>
+          </div>
+          <div style="background:#0f172a; border:1px solid rgba(255,255,255,0.08); border-radius:10px; padding:10px; text-align:center;">
+            <div id="tourists-stat-active" style="font-size:1.3rem; font-weight:800; color:#34d399;">0</div>
+            <div style="font-size:0.72rem; color:#94a3b8;">Pases Activos</div>
+          </div>
+          <div style="background:#0f172a; border:1px solid rgba(255,255,255,0.08); border-radius:10px; padding:10px; text-align:center;">
+            <div id="tourists-stat-revenue" style="font-size:1.3rem; font-weight:800; color:#f59e0b;">$0 USD</div>
+            <div style="font-size:0.72rem; color:#94a3b8;">Recaudación ($3 c/u)</div>
+          </div>
+        </div>
+
+        <div id="admin-tourists-container"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal para Registrar / Activar Turista Manualmente -->
+  <div class="modal-overlay" id="admin-tourist-modal">
+    <div class="bottom-sheet" style="max-width:440px;">
+      <div class="sheet-handle"></div>
+      <h2 style="font-size:1.2rem; margin-bottom:14px;">➕ Activar Pase VIP a Turista</h2>
+      <form onsubmit="saveAdminTourist(event)">
+        <div class="form-group">
+          <label>Nombre del Turista *</label>
+          <input type="text" id="tourist-name" class="input-field" required placeholder="ej. John Smith o Sarah">
+        </div>
+        <div class="form-group">
+          <label>País / WhatsApp de Contacto</label>
+          <input type="text" id="tourist-contact" class="input-field" placeholder="ej. 🇺🇸 USA (+1 555-1234)">
+        </div>
+        <div class="form-group">
+          <label>Mozo que lo atendió *</label>
+          <select id="tourist-waiter-id" class="input-field"></select>
+        </div>
+        <div class="form-group">
+          <label>Medio de Cobro</label>
+          <select id="tourist-payment-method" class="input-field">
+            <option value="Mercado Pago" selected>💙 Mercado Pago (Transferencia / Link)</option>
+            <option value="PayPal">🅿️ PayPal (Dólares / Tarjeta Internacional)</option>
+            <option value="Prex">💜 Prex</option>
+            <option value="Lemon Cash">🍋 Lemon Cash</option>
+            <option value="Efectivo al Mozo">💵 Efectivo en Mesa al Mozo</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Días de Validez</label>
+          <input type="number" id="tourist-days" class="input-field" value="21" min="1" max="365">
+        </div>
+        <div style="display:flex; gap:10px; margin-top:14px; margin-bottom:20px;">
+          <button type="submit" class="btn-action" style="flex:1; padding:12px; background:#10b981;">Activar y Sincronizar</button>
+          <button type="button" class="btn-action btn-secondary" onclick="closeAdminTouristModal()">Cancelar</button>
+        </div>
+      </form>
     </div>
   </div>
 
@@ -828,6 +909,7 @@
   <script>
     let allPlaces = [];
     let allWaiters = [];
+    let allTourists = [];
     let dashboardMap = null;
     let dashboardMarkersLayer = null;
     let editorMiniMap = null;
@@ -877,6 +959,7 @@
       try { loadMpConfig(); } catch(e) {}
       try { loadAdminReviews(); } catch(e) {}
       try { await loadAdminSuggestions(); } catch(e) { console.warn("Error sugerencias:", e); }
+      try { await loadAdminTourists(); } catch(e) { console.warn("Error turistas:", e); }
 
       // 2. Inicializar mapa
       try { initDashboardMap(); } catch(e) { console.warn("Error mapa:", e); }
@@ -919,8 +1002,9 @@
       const totalPayoutUsd = waiters.reduce((sum, w) => sum + (w.pending_payout_usd || 0), 0);
       const totalPayoutArs = waiters.reduce((sum, w) => sum + (w.pending_payout_ars || 0), 0);
 
-      document.getElementById("stat-passes").textContent = totalSales;
-      document.getElementById("stat-revenue").textContent = `$${(totalSales * 4.99).toFixed(2)} USD`;
+      const touristCount = (allTourists && allTourists.length > 0) ? allTourists.length : totalSales;
+      document.getElementById("stat-passes").textContent = touristCount;
+      document.getElementById("stat-revenue").textContent = `$${(touristCount * 3.00).toFixed(2)} USD`;
       document.getElementById("stat-pending").textContent = `$${totalPayoutUsd} USD (~$${totalPayoutArs.toLocaleString('es-AR')} ARS)`;
     }
 
@@ -1527,6 +1611,9 @@ ${qrImageUrl}
             }
             if (allReviews && allReviews.length > 0) {
               appDataObj.reviews = allReviews;
+            }
+            if (allTourists && allTourists.length > 0) {
+              appDataObj.tourists = allTourists;
             }
             appDataObj.version = "20261118_" + Date.now();
             updatedContent = '// Base de datos de lugares, traducciones y tips para Buenos Aires\nconst APP_DATA = ' + JSON.stringify(appDataObj, null, 2) + ';\n';
@@ -2943,6 +3030,223 @@ ${qrImageUrl}
           inMemory.status = status;
         }
       }
+    }
+
+    // ==================== GESTIÓN DE TURISTAS Y PASES VIP ====================
+    async function loadAdminTourists() {
+      const container = document.getElementById("admin-tourists-container");
+      if (!container) return;
+      container.innerHTML = '<div style="color:#94a3b8; font-size:0.85rem;">Cargando usuarios...</div>';
+
+      try {
+        let tourists = [];
+        if (!isStaticHost) {
+          try {
+            const res = await fetch("/api/admin/passes");
+            if (res.ok) {
+              tourists = await res.json();
+            }
+          } catch(e) {}
+        }
+
+        if (!tourists || tourists.length === 0) {
+          // 1. Cargar desde APP_DATA.tourists en data.js
+          const base = (typeof APP_DATA !== "undefined" && Array.isArray(APP_DATA.tourists)) ? APP_DATA.tourists : [];
+          // 2. Cargar desde localStorage
+          const saved = localStorage.getItem("bsas_tourists_passes");
+          const local = saved ? JSON.parse(saved) : [];
+          const map = new Map();
+          base.forEach(t => map.set(t.id, t));
+          local.forEach(t => map.set(t.id, { ...(map.get(t.id) || {}), ...t }));
+          tourists = Array.from(map.values());
+        }
+
+        allTourists = tourists;
+        localStorage.setItem("bsas_tourists_passes", JSON.stringify(allTourists));
+        renderAdminTouristsUI();
+      } catch (err) {
+        container.innerHTML = '<div style="color:#ef4444; font-size:0.85rem;">Error al cargar turistas: ' + err.message + '</div>';
+      }
+    }
+
+    function renderAdminTouristsUI() {
+      const container = document.getElementById("admin-tourists-container");
+      const totalEl = document.getElementById("tourists-stat-total");
+      const activeEl = document.getElementById("tourists-stat-active");
+      const revenueEl = document.getElementById("tourists-stat-revenue");
+      const badgeEl = document.getElementById("tourists-active-count-badge");
+      const tabBadge = document.getElementById("tab-tourists-counter");
+
+      if (!container) return;
+
+      const now = Date.now();
+      const activeTourists = allTourists.filter(t => (t.expires_at ? t.expires_at > now : true) && t.is_active !== 0);
+      const totalRevenueUsd = allTourists.reduce((sum, t) => sum + (parseFloat(t.amount_paid_usd) || 3.0), 0);
+
+      if (totalEl) totalEl.textContent = allTourists.length;
+      if (activeEl) activeEl.textContent = activeTourists.length;
+      if (revenueEl) revenueEl.textContent = `$${totalRevenueUsd.toFixed(2)} USD`;
+      if (badgeEl) badgeEl.textContent = `${activeTourists.length} Activos`;
+      if (tabBadge) {
+        tabBadge.textContent = activeTourists.length;
+        tabBadge.style.display = activeTourists.length > 0 ? "inline-block" : "none";
+      }
+
+      const statPassesEl = document.getElementById("stat-passes");
+      if (statPassesEl) statPassesEl.textContent = activeTourists.length;
+
+      if (!allTourists || allTourists.length === 0) {
+        container.innerHTML = `
+          <div style="color:#94a3b8; font-size:0.85rem; padding:16px; text-align:center; background:rgba(255,255,255,0.02); border-radius:10px;">
+            Aún no hay turistas registrados. Podés activar uno manualmente con el botón verde "+ Activar Turista".
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = allTourists.map(t => {
+        const isExpired = t.expires_at ? t.expires_at <= now : false;
+        const daysLeft = t.expires_at ? Math.max(0, Math.ceil((t.expires_at - now) / 86400000)) : 21;
+        const createdDate = new Date(t.created_at || now).toLocaleDateString("es-AR", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" });
+        const waiter = (allWaiters && allWaiters.find(w => w.id === t.waiter_id)) || { name: t.waiter_id || "isaias" };
+        const statusBadge = isExpired
+          ? `<span style="background:#ef4444; color:#fff; font-size:0.7rem; font-weight:700; padding:2px 8px; border-radius:999px;">🔴 Vencido</span>`
+          : `<span style="background:#065f46; color:#a7f3d0; font-size:0.7rem; font-weight:700; padding:2px 8px; border-radius:999px;">🟢 Activo (${daysLeft}d restantes)</span>`;
+        
+        let payBadge = "💙 Mercado Pago";
+        const pm = (t.payment_method || "").toLowerCase();
+        if (pm.includes("paypal")) payBadge = "🅿️ PayPal ($3 USD)";
+        else if (pm.includes("prex")) payBadge = "💜 Prex";
+        else if (pm.includes("lemon")) payBadge = "🍋 Lemon Cash";
+        else if (pm.includes("efectivo") || pm.includes("mesa") || pm.includes("pin")) payBadge = "💵 Efectivo al Mozo";
+
+        return `
+          <div style="background:#0f172a; border:1px solid rgba(255,255,255,0.08); border-radius:12px; padding:14px; margin-bottom:10px; display:flex; flex-direction:column; gap:8px;">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:8px;">
+              <div>
+                <div style="font-weight:700; color:#fff; font-size:1.05rem; display:flex; align-items:center; gap:8px;">
+                  👤 ${t.tourist_name || t.touristName || 'Turista'}
+                  ${statusBadge}
+                </div>
+                <div style="font-size:0.8rem; color:#94a3b8; margin-top:2px;">
+                  📱 Contacto: <strong style="color:#38bdf8;">${t.tourist_contact || t.touristContact || 'No especificado'}</strong>
+                </div>
+              </div>
+              <div style="display:flex; gap:6px;">
+                <button class="btn-action btn-secondary" style="padding:4px 10px; font-size:0.75rem;" onclick="renewAdminTourist('${t.id}')" title="Renovar pase por 21 días más">
+                  🔄 Renovar
+                </button>
+                <button class="btn-action btn-danger" style="padding:4px 10px; font-size:0.75rem;" onclick="deleteAdminTourist('${t.id}')" title="Eliminar registro">
+                  🗑️
+                </button>
+              </div>
+            </div>
+
+            <div style="display:flex; gap:12px; flex-wrap:wrap; font-size:0.8rem; background:rgba(255,255,255,0.03); padding:8px 12px; border-radius:8px;">
+              <div>👨‍🍳 Atendido por: <strong style="color:#f59e0b;">${waiter.name}</strong></div>
+              <div>💳 Pago: <strong style="color:#38bdf8;">${payBadge}</strong></div>
+              <div>💰 Monto: <strong style="color:#34d399;">$${parseFloat(t.amount_paid_usd || 3).toFixed(2)} USD</strong></div>
+              <div>📅 Alta: <span style="color:#94a3b8;">${createdDate}</span></div>
+            </div>
+          </div>
+        `;
+      }).join("");
+    }
+
+    function openNewTouristModal() {
+      const waiterSelect = document.getElementById("tourist-waiter-id");
+      if (waiterSelect) {
+        waiterSelect.innerHTML = allWaiters.map(w => `<option value="${w.id}">${w.name} (?m=${w.id})</option>`).join("");
+      }
+      document.getElementById("tourist-name").value = "";
+      document.getElementById("tourist-contact").value = "";
+      document.getElementById("tourist-days").value = "21";
+      document.getElementById("admin-tourist-modal").classList.add("active");
+    }
+
+    function closeAdminTouristModal() {
+      document.getElementById("admin-tourist-modal").classList.remove("active");
+    }
+
+    async function saveAdminTourist(e) {
+      e.preventDefault();
+      const name = document.getElementById("tourist-name").value.trim();
+      const contact = document.getElementById("tourist-contact").value.trim() || "Turista Amigo";
+      const waiterId = document.getElementById("tourist-waiter-id").value || "isaias";
+      const paymentMethod = document.getElementById("tourist-payment-method").value;
+      const days = parseInt(document.getElementById("tourist-days").value, 10) || 21;
+
+      const now = Date.now();
+      const expiresAt = now + (days * 86400000);
+      const newTourist = {
+        id: "pass_" + Date.now().toString(36) + "_" + Math.random().toString(36).slice(2, 6),
+        tourist_name: name,
+        tourist_contact: contact,
+        waiter_id: waiterId,
+        payment_method: paymentMethod,
+        amount_paid_usd: 3.0,
+        created_at: now,
+        expires_at: expiresAt,
+        is_active: 1
+      };
+
+      if (!isStaticHost) {
+        try {
+          await fetch("/api/admin/passes", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(newTourist)
+          });
+        } catch(e) {}
+      }
+
+      allTourists.unshift(newTourist);
+      localStorage.setItem("bsas_tourists_passes", JSON.stringify(allTourists));
+
+      // Acreditar comisión al mozo
+      const waiter = allWaiters.find(w => w.id === waiterId);
+      if (waiter) {
+        waiter.total_sales = (waiter.total_sales || 0) + 1;
+        waiter.pending_payout_usd = (waiter.pending_payout_usd || 0) + 1.5;
+        waiter.pending_payout_ars = Math.round(waiter.pending_payout_usd * 1200);
+        localStorage.setItem("bsas_waiters", JSON.stringify(allWaiters));
+        renderWaitersUI();
+      }
+
+      closeAdminTouristModal();
+      renderAdminTouristsUI();
+      loadStats();
+
+      // Sincronizar automáticamente a GitHub
+      scheduleAutoSync(`Activar Turista: ${name}`);
+      alert(`🎉 ¡Pase VIP activado con éxito para ${name} por ${days} días!\nComisión de $1.50 USD acreditada al mozo ${waiter ? waiter.name : waiterId}.`);
+    }
+
+    async function renewAdminTourist(passId) {
+      const t = allTourists.find(x => x.id === passId);
+      if (!t) return;
+      if (!confirm(`¿Renovar el Pase VIP de ${t.tourist_name || 'este turista'} por 21 días más?`)) return;
+
+      const now = Date.now();
+      const baseTime = (t.expires_at && t.expires_at > now) ? t.expires_at : now;
+      t.expires_at = baseTime + (21 * 86400000);
+      t.is_active = 1;
+
+      localStorage.setItem("bsas_tourists_passes", JSON.stringify(allTourists));
+      renderAdminTouristsUI();
+      scheduleAutoSync(`Renovar Turista: ${t.tourist_name}`);
+      alert(`✅ Pase renovado por 21 días más para ${t.tourist_name}.`);
+    }
+
+    async function deleteAdminTourist(passId) {
+      const t = allTourists.find(x => x.id === passId);
+      if (!confirm(`¿Eliminar el registro de ${t ? t.tourist_name : 'este turista'}?`)) return;
+
+      allTourists = allTourists.filter(x => x.id !== passId);
+      localStorage.setItem("bsas_tourists_passes", JSON.stringify(allTourists));
+      renderAdminTouristsUI();
+      loadStats();
+      scheduleAutoSync("Eliminar registro de turista");
     }
   </script>
 </body>

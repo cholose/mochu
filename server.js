@@ -700,6 +700,39 @@ const server = http.createServer(async (req, res) => {
     }
   }
 
+  // Listar pases de turistas para admin
+  if (pathname === "/api/admin/passes" && method === "GET") {
+    const passes = db.prepare(`
+      SELECT p.*, w.name as waiter_name 
+      FROM passes p 
+      LEFT JOIN waiters w ON p.waiter_id = w.id 
+      ORDER BY p.created_at DESC
+    `).all();
+    return sendJSON(res, 200, passes);
+  }
+
+  // Activar pase manualmente
+  if (pathname === "/api/admin/passes" && method === "POST") {
+    try {
+      const data = await parseBody(req);
+      const id = data.id || ("pass_" + crypto.randomBytes(6).toString("hex"));
+      const name = (data.tourist_name || data.name || "Turista VIP").trim();
+      const contact = (data.tourist_contact || data.contact || "").trim();
+      const waiterId = (data.waiter_id || data.waiterId || "isaias").trim();
+      const now = Date.now();
+      const expiresAt = data.expires_at || (now + 21 * 86400000);
+
+      db.prepare(`
+        INSERT INTO passes (id, device_token, tourist_name, tourist_contact, waiter_id, amount_paid_usd, created_at, expires_at, is_active)
+        VALUES (?, ?, ?, ?, ?, 3.00, ?, ?, 1)
+      `).run(id, "manual_" + id, name, contact, waiterId, now, expiresAt);
+
+      return sendJSON(res, 200, { success: true, id });
+    } catch(e) {
+      return sendJSON(res, 400, { error: e.message });
+    }
+  }
+
   // Lugares en Admin
   if (pathname === "/api/admin/places" && method === "GET") {
     const places = db.prepare("SELECT * FROM places ORDER BY created_at DESC").all();

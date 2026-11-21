@@ -306,6 +306,26 @@ function closeUnlockModal() {
   document.getElementById("unlock-modal").style.display = "none";
 }
 
+function recordLocalPass(touristName, waiterId, paymentMethod = "PIN / Efectivo") {
+  try {
+    const list = JSON.parse(localStorage.getItem("bsas_tourists_passes") || "[]");
+    const now = Date.now();
+    const newEntry = {
+      id: "pass_" + Date.now().toString(36) + "_" + Math.random().toString(36).slice(2, 6),
+      tourist_name: touristName || "Turista VIP",
+      tourist_contact: "Mesa / Local",
+      waiter_id: waiterId || "isaias",
+      payment_method: paymentMethod,
+      amount_paid_usd: 3.0,
+      created_at: now,
+      expires_at: now + (21 * 86400000),
+      is_active: 1
+    };
+    list.unshift(newEntry);
+    localStorage.setItem("bsas_tourists_passes", JSON.stringify(list));
+  } catch(e) {}
+}
+
 // Desbloquear con PIN del Mozo
 async function submitTouristPin() {
   const pin = document.getElementById("input-pin-code").value.trim();
@@ -332,6 +352,7 @@ async function submitTouristPin() {
       const data = await res.json();
       if (data.success) {
         localStorage.setItem("bsas_pass_id", data.passId);
+        recordLocalPass(name, state.waiterId, "PIN Mozo (Efectivo)");
         state.pass = data;
         state.isVip = true;
         closeUnlockModal();
@@ -359,6 +380,7 @@ async function submitTouristPin() {
       daysLeft: 21
     };
     localStorage.setItem("bsas_pass_id", fakePass.passId);
+    recordLocalPass(name, state.waiterId, "PIN Mozo (Efectivo)");
     state.pass = fakePass;
     state.isVip = true;
     closeUnlockModal();
@@ -391,6 +413,7 @@ async function payWithMercadoPago() {
 
     if (data.success) {
       localStorage.setItem("bsas_pass_id", data.passId);
+      recordLocalPass(name, state.waiterId, "Mercado Pago");
       state.pass = data;
       state.isVip = true;
       closeUnlockModal();
@@ -403,6 +426,7 @@ async function payWithMercadoPago() {
       alert(`¡Gracias ${name}! Tu guía VIP ha sido desbloqueada.`);
     }
   } catch (e) {
+    recordLocalPass(name, state.waiterId, "Mercado Pago");
     alert("Error al conectar con Mercado Pago.");
   }
 }

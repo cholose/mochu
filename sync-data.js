@@ -58,6 +58,20 @@ try {
             commission_usd: w.commission_usd || 1.5
           }));
         }
+        const sqlitePasses = db.prepare("SELECT * FROM passes ORDER BY created_at DESC").all();
+        if (sqlitePasses && sqlitePasses.length > 0) {
+          appData.tourists = sqlitePasses.map(p => ({
+            id: p.id,
+            tourist_name: p.tourist_name,
+            tourist_contact: p.tourist_contact || "",
+            waiter_id: p.waiter_id,
+            payment_method: p.amount_paid_usd > 0 ? "Cobro Confirmado" : "Prueba",
+            amount_paid_usd: p.amount_paid_usd || 3.0,
+            created_at: p.created_at,
+            expires_at: p.expires_at,
+            is_active: p.is_active !== undefined ? p.is_active : 1
+          }));
+        }
       } catch(e) {}
       appData.version = "20261120_" + Date.now();
       fs.writeFileSync(dataJsPath, '// Base de datos de lugares, traducciones y tips para Buenos Aires\nconst APP_DATA = ' + JSON.stringify(appData, null, 2) + ';\n', 'utf8');
