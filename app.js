@@ -1747,6 +1747,7 @@ async function submitReview() {
 
   localStorage.setItem("bsas_tourist_name", userName);
 
+  let backendOk = false;
   try {
     const res = await fetch("/api/reviews", {
       method: "POST",
@@ -1764,20 +1765,18 @@ async function submitReview() {
     if (res.ok) {
       const data = await res.json();
       if (data && data.success) {
-        alert("🎉 ¡Muchas gracias por compartir tu experiencia y foto!");
-        closeReviewForm();
-        await loadPlaceReviews(state.selectedPlace.id);
-        return;
+        backendOk = true;
       }
     }
   } catch (err) {
     // Modo GitHub Pages o sin backend
   }
 
-  // Fallback local en navegador
+  // Guardar en almacenamiento local siempre para asegurar visibilidad inmediata
   const localReview = {
     id: "rev_" + Date.now(),
     place_id: state.selectedPlace.id,
+    place_name: state.selectedPlace.name,
     user_name: userName,
     user_country: userCountry,
     rating: state.newReviewRating || 5,
@@ -1790,9 +1789,31 @@ async function submitReview() {
   savedReviews.unshift(localReview);
   localStorage.setItem("bsas_reviews", JSON.stringify(savedReviews));
 
-  alert("🎉 ¡Muchas gracias por compartir tu experiencia y foto!");
   closeReviewForm();
   await loadPlaceReviews(state.selectedPlace.id);
+
+  // Armar link de WhatsApp para enviar al Mozo / Admin
+  const waiter = (typeof APP_DATA !== "undefined" && Array.isArray(APP_DATA.waiters))
+    ? APP_DATA.waiters.find(w => w.id === state.waiterId)
+    : null;
+  const rawPhone = (waiter && waiter.phone) ? waiter.phone : "";
+  let cleanPhone = rawPhone.replace(/\D/g, "");
+  if (cleanPhone.startsWith("0")) cleanPhone = cleanPhone.slice(1);
+  if (cleanPhone.length === 10) cleanPhone = "549" + cleanPhone;
+
+  const starsStr = "★".repeat(state.newReviewRating || 5);
+  const waMsg = `👋 ¡Hola! Acabo de dejar una opinión en BsAs Local Guide sobre *${state.selectedPlace.name}*:\n\n⭐ Calificación: ${starsStr}\n👤 Turista: ${userName} (${userCountry})\n💬 Comentario: "${comment}"`;
+  const waUrl = cleanPhone 
+    ? `https://wa.me/${cleanPhone}?text=${encodeURIComponent(waMsg)}` 
+    : `https://wa.me/?text=${encodeURIComponent(waMsg)}`;
+
+  const promptMsg = cleanPhone
+    ? `🎉 ¡Muchas gracias por compartir tu experiencia!\nTu opinión ya se puede ver en la app.\n\n¿Deseas enviarle tu reseña a tu mozo por WhatsApp para que la apruebe y destaque en la guía?`
+    : `🎉 ¡Muchas gracias por compartir tu experiencia!\nTu opinión ya se puede ver en la app.\n\n¿Deseas compartir tu reseña por WhatsApp con el mozo o administrador?`;
+
+  if (confirm(promptMsg)) {
+    window.open(waUrl, "_blank");
+  }
 }
 
 async function loadPlaceReviews(placeId) {
@@ -1812,8 +1833,19 @@ async function loadPlaceReviews(placeId) {
       throw new Error("No backend");
     }
   } catch (err) {
+    // 1. Cargar reseñas globales de data.js
+    const globalReviews = (typeof APP_DATA !== "undefined" && Array.isArray(APP_DATA.reviews))
+      ? APP_DATA.reviews.filter(r => r.place_id === placeId)
+      : [];
+    // 2. Cargar reseñas locales enviadas en este dispositivo
     const saved = JSON.parse(localStorage.getItem("bsas_reviews") || "[]");
-    reviews = saved.filter(r => r.place_id === placeId);
+    const localReviews = saved.filter(r => r.place_id === placeId);
+
+    // Unir sin duplicados (dando prioridad a lo local más reciente)
+    const map = new Map();
+    localReviews.forEach(r => map.set(r.id, r));
+    globalReviews.forEach(r => { if (!map.has(r.id)) map.set(r.id, r); });
+    reviews = Array.from(map.values());
   }
   state.currentPlaceReviews = reviews;
 
@@ -1832,14 +1864,14 @@ async function loadPlaceReviews(placeId) {
   }
 
   container.innerHTML = reviews.map(r => {
-    const dateStr = new Date(r.created_at).toLocaleDateString("es-AR", { day: "2-digit", month: "2-digit", year: "numeric" });
-    const stars = "★".repeat(r.rating) + "☆".repeat(5 - r.rating);
+    const dateStr = new Date(r.created_at || Date.now()).toLocaleDateString("es-AR", { day: "2-digit", month: "2-digit", year: "numeric" });
+    const stars = "★".repeat(r.rating || 5) + "☆".repeat(Math.max(0, 5 - (r.rating || 5)));
     return `
       <div class="review-item-card">
         <div class="review-item-header">
           <div class="review-author">
             <span>👤 ${r.user_name}</span>
-            <span style="font-size:0.75rem; color:#94a3b8; font-weight:normal;">(${r.user_country})</span>
+            <span style="font-size:0.75rem; color:#94a3b8; font-weight:normal;">(${r.user_country || 'Turista'})</span>
           </div>
           <div class="review-stars">${stars}</div>
         </div>

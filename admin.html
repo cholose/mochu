@@ -11,8 +11,8 @@
   <!-- Leaflet CSS y JS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <script src="data.js?v=20261117_9"></script>
-  <link rel="stylesheet" href="style.css?v=20261117_9">
+  <script src="data.js?v=20261120_04"></script>
+  <link rel="stylesheet" href="style.css?v=20261120_04">
 
   <style>
     body {
@@ -489,11 +489,17 @@
     <div id="tab-admin-reviews" class="admin-tab-content">
       <div class="admin-card">
         <div class="section-title">
-          <span>💬 Reseñas y Fotos de Turistas</span>
-          <button class="btn-action btn-secondary" onclick="loadAdminReviews()">🔄 Actualizar</button>
+          <div style="display:flex; align-items:center; gap:8px;">
+            <span>💬 Reseñas y Fotos de Turistas</span>
+            <span id="reviews-total-count" style="font-size:0.75rem; background:#1e293b; color:#38bdf8; padding:2px 8px; border-radius:999px; font-weight:700;"></span>
+          </div>
+          <div style="display:flex; gap:8px;">
+            <button class="btn-action" style="background:#10b981; font-weight:700;" onclick="openNewReviewModal()">➕ Agregar Reseña</button>
+            <button class="btn-action btn-secondary" onclick="loadAdminReviews()">🔄 Actualizar</button>
+          </div>
         </div>
         <p style="font-size:0.8rem; color:#94a3b8; margin-bottom:14px;">
-          Revisá las fotos y comentarios que dejan los turistas en los restaurantes y shows. Podés eliminar cualquier comentario inadecuado o spam con un solo clic.
+          Revisá, agregá o gestioná las opiniones y fotos que ven los turistas en la guía. Todas las reseñas se sincronizan automáticamente con GitHub Pages y los celulares de los usuarios.
         </p>
         <div id="admin-reviews-container"></div>
       </div>
@@ -533,11 +539,17 @@
   <div class="modal-overlay" id="waiter-modal">
     <div class="bottom-sheet" style="max-width:440px;">
       <div class="sheet-handle"></div>
-      <h2 style="font-size:1.2rem; margin-bottom:14px;">Registrar Mozo & Alias</h2>
+      <h2 id="waiter-modal-title" style="font-size:1.2rem; margin-bottom:14px;">Registrar Mozo & Alias</h2>
       <form onsubmit="saveWaiter(event)">
+        <input type="hidden" id="w-edit-id" value="">
         <div class="form-group">
           <label>Nombre del Mozo *</label>
           <input type="text" id="w-name" class="input-field" required placeholder="ej. Isaias">
+        </div>
+        <div class="form-group">
+          <label>Celular / WhatsApp del Mozo *</label>
+          <input type="tel" id="w-phone" class="input-field" required placeholder="ej. 11 2345 6789 o +54 9 11 2345-6789">
+          <small style="color:#94a3b8; font-size:0.75rem;">Para enviarle automáticamente su QR, PIN y link de atención a su WhatsApp.</small>
         </div>
         <div class="form-group">
           <label>Alias de Mercado Pago / CVU *</label>
@@ -554,6 +566,48 @@
         <div style="display:flex; gap:10px; margin-top:14px; margin-bottom:20px;">
           <button type="submit" class="btn-action" style="flex:1; padding:12px;">Guardar Mozo</button>
           <button type="button" class="btn-action btn-secondary" onclick="closeWaiterModal()">Cancelar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal para Agregar Reseña en Admin -->
+  <div class="modal-overlay" id="admin-review-modal">
+    <div class="bottom-sheet" style="max-width:480px;">
+      <div class="sheet-handle"></div>
+      <h2 style="font-size:1.2rem; margin-bottom:14px;">➕ Agregar Reseña de Turista</h2>
+      <form onsubmit="saveAdminReview(event)">
+        <div class="form-group">
+          <label>Lugar *</label>
+          <select id="rev-place-id" class="input-field" required></select>
+        </div>
+        <div class="form-group">
+          <label>Nombre del Turista *</label>
+          <input type="text" id="rev-user-name" class="input-field" required placeholder="ej. Sarah & David o Lucas">
+        </div>
+        <div class="form-group">
+          <label>País / Origen</label>
+          <input type="text" id="rev-user-country" class="input-field" value="🇺🇸 USA" placeholder="ej. 🇺🇸 USA, 🇧🇷 Brasil, 🇦🇷 Argentina">
+        </div>
+        <div class="form-group">
+          <label>Puntuación</label>
+          <select id="rev-rating" class="input-field">
+            <option value="5" selected>★★★★★ (5 estrellas - Excelente)</option>
+            <option value="4">★★★★☆ (4 estrellas - Muy bueno)</option>
+            <option value="3">★★★☆☆ (3 estrellas - Bueno)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Comentario / Opinión *</label>
+          <textarea id="rev-comment" class="input-field" rows="3" required placeholder="Escribí lo que comentó el turista..."></textarea>
+        </div>
+        <div class="form-group">
+          <label>Link de Foto (opcional)</label>
+          <input type="text" id="rev-photo" class="input-field" placeholder="https://images.unsplash.com/...">
+        </div>
+        <div style="display:flex; gap:10px; margin-top:14px; margin-bottom:20px;">
+          <button type="submit" class="btn-action" style="flex:1; padding:12px; background:#10b981;">Guardar y Sincronizar</button>
+          <button type="button" class="btn-action btn-secondary" onclick="closeAdminReviewModal()">Cancelar</button>
         </div>
       </form>
     </div>
@@ -926,13 +980,51 @@
         try { allWaiters = JSON.parse(saved); } catch(err) { allWaiters = []; }
       }
       if (!allWaiters || allWaiters.length === 0) {
-        allWaiters = DEFAULT_WAITERS;
+        if (typeof APP_DATA !== "undefined" && Array.isArray(APP_DATA.waiters) && APP_DATA.waiters.length > 0) {
+          allWaiters = APP_DATA.waiters.map(w => ({
+            id: w.id,
+            name: w.name,
+            phone: w.phone || "",
+            alias: w.alias || "",
+            pin: w.pin || "1234",
+            commission_usd: w.commission_usd || 1.5,
+            total_sales: w.total_sales || 0,
+            pending_payout_usd: w.pending_payout_usd || 0,
+            pending_payout_ars: w.pending_payout_ars || 0
+          }));
+        } else {
+          allWaiters = DEFAULT_WAITERS;
+        }
+        localStorage.setItem("bsas_waiters", JSON.stringify(allWaiters));
+      } else if (typeof APP_DATA !== "undefined" && Array.isArray(APP_DATA.waiters)) {
+        // Enriquecer mozos existentes con phone de data.js si no lo tenían
+        APP_DATA.waiters.forEach(dw => {
+          const match = allWaiters.find(w => w.id === dw.id);
+          if (match && !match.phone && dw.phone) {
+            match.phone = dw.phone;
+          } else if (!match) {
+            allWaiters.push({ ...dw, total_sales: 0, pending_payout_usd: 0, pending_payout_ars: 0 });
+          }
+        });
         localStorage.setItem("bsas_waiters", JSON.stringify(allWaiters));
       }
     }
 
+    function formatPhoneForWhatsApp(raw) {
+      if (!raw) return "";
+      let digits = String(raw).replace(/\D/g, "");
+      if (!digits) return "";
+      if (digits.startsWith("0")) digits = digits.slice(1);
+      if (digits.length === 10) {
+        digits = "549" + digits;
+      } else if (digits.startsWith("54") && !digits.startsWith("549") && (digits.length === 12 || digits.length === 11)) {
+        digits = "549" + digits.slice(2);
+      }
+      return digits;
+    }
+
     function getWaiterShareDetails(waiterId, waiterName = "") {
-      const w = (allWaiters && allWaiters.find(x => x.id === waiterId)) || { id: waiterId, name: waiterName || waiterId, pin: "1234", alias: "" };
+      const w = (allWaiters && allWaiters.find(x => x.id === waiterId)) || { id: waiterId, name: waiterName || waiterId, pin: "1234", alias: "", phone: "" };
       const isGH = window.location.hostname.endsWith("github.io");
       let fullUrl = "";
       if (isGH) {
@@ -960,8 +1052,11 @@ ${qrImageUrl}
 
 ¡Muchos éxitos con las propinas! 🚀`;
 
-      const waUrl = `https://wa.me/?text=${encodeURIComponent(waMsg)}`;
-      return { w, fullUrl, qrImageUrl, waMsg, waUrl };
+      const cleanPhone = formatPhoneForWhatsApp(w.phone);
+      const waUrl = cleanPhone
+        ? `https://wa.me/${cleanPhone}?text=${encodeURIComponent(waMsg)}`
+        : `https://wa.me/?text=${encodeURIComponent(waMsg)}`;
+      return { w, fullUrl, qrImageUrl, waMsg, waUrl, cleanPhone };
     }
 
     function renderWaitersUI() {
@@ -978,13 +1073,22 @@ ${qrImageUrl}
             <div>
               <strong style="font-size:1.05rem;">👨‍🍳 ${w.name}</strong> 
               <span style="font-size:0.75rem; color:#94a3b8; margin-left:6px;">(?m=${w.id})</span>
+              <div style="font-size:0.8rem; color:#38bdf8; margin-top:3px;">
+                📱 WhatsApp: <strong>${w.phone || 'No registrado'}</strong>
+              </div>
             </div>
-            <div style="display:flex; gap:8px; flex-wrap:wrap;">
+            <div style="display:flex; gap:6px; flex-wrap:wrap; align-items:center;">
               <button class="btn-action btn-qr" onclick="openQrModal('${w.id}', '${w.name}')">
                 📱 Ver QR
               </button>
               <button class="btn-action" style="background:#25D366; color:#ffffff; font-weight:700; display:flex; align-items:center; gap:5px;" onclick="sendWaiterQrWa('${w.id}')">
                 <span>💬</span> WhatsApp
+              </button>
+              <button class="btn-action btn-secondary" style="padding:6px 10px;" onclick="openWaiterModal('${w.id}')" title="Editar mozo y celular">
+                ✏️
+              </button>
+              <button class="btn-action btn-danger" style="padding:6px 10px;" onclick="deleteWaiter('${w.id}')" title="Eliminar mozo">
+                🗑️
               </button>
             </div>
           </div>
@@ -1028,6 +1132,9 @@ ${qrImageUrl}
       const waBtn = document.getElementById("btn-share-qr-wa");
       if (waBtn) {
         waBtn.href = details.waUrl;
+        waBtn.innerHTML = details.cleanPhone 
+          ? `<span>💬</span> Enviar QR a ${details.w.name} (${details.w.phone})`
+          : `<span>💬</span> Enviar QR y Link por WhatsApp`;
       }
 
       document.getElementById("qr-modal").classList.add("active");
@@ -1079,22 +1186,55 @@ ${qrImageUrl}
       }
     }
 
-    function openWaiterModal() {
+    function openWaiterModal(waiterId = null) {
+      const title = document.getElementById("waiter-modal-title");
+      if (waiterId && typeof waiterId === "string") {
+        const w = allWaiters.find(x => x.id === waiterId);
+        if (w) {
+          if (title) title.textContent = `Editar Mozo: ${w.name}`;
+          document.getElementById("w-edit-id").value = w.id;
+          document.getElementById("w-name").value = w.name || "";
+          document.getElementById("w-phone").value = w.phone || "";
+          document.getElementById("w-alias").value = w.alias || "";
+          document.getElementById("w-pin").value = w.pin || "1234";
+          document.getElementById("w-commission").value = w.commission_usd || w.commissionUsd || 1.5;
+        }
+      } else {
+        if (title) title.textContent = "Registrar Mozo & Alias";
+        document.getElementById("w-edit-id").value = "";
+        document.getElementById("w-name").value = "";
+        document.getElementById("w-phone").value = "";
+        document.getElementById("w-alias").value = "";
+        document.getElementById("w-pin").value = "1234";
+        document.getElementById("w-commission").value = "1.5";
+      }
       document.getElementById("waiter-modal").classList.add("active");
     }
+
     function closeWaiterModal() {
       document.getElementById("waiter-modal").classList.remove("active");
     }
 
+    function deleteWaiter(waiterId) {
+      const w = allWaiters.find(x => x.id === waiterId);
+      if (!confirm(`¿Estás seguro de que deseas eliminar al mozo "${w ? w.name : waiterId}"?`)) return;
+      allWaiters = allWaiters.filter(x => x.id !== waiterId);
+      localStorage.setItem("bsas_waiters", JSON.stringify(allWaiters));
+      renderWaitersUI();
+      scheduleAutoSync("Eliminar Mozo: " + waiterId);
+    }
+
     async function saveWaiter(e) {
       e.preventDefault();
+      const editId = document.getElementById("w-edit-id") ? document.getElementById("w-edit-id").value : "";
       const name = document.getElementById("w-name").value.trim();
+      const phone = document.getElementById("w-phone").value.trim();
       const alias = document.getElementById("w-alias").value.trim();
       const pin = document.getElementById("w-pin").value || "1234";
       const commissionUsd = parseFloat(document.getElementById("w-commission").value) || 1.5;
-      const id = name.toLowerCase().replace(/\s+/g, "_");
+      const id = editId || name.toLowerCase().replace(/\s+/g, "_");
 
-      const payload = { id, name, alias, pin, commissionUsd };
+      const payload = { id, name, phone, alias, pin, commissionUsd };
 
       if (!isStaticHost) {
         try {
@@ -1107,12 +1247,15 @@ ${qrImageUrl}
       }
 
       const idx = allWaiters.findIndex(w => w.id === id);
-      if (idx >= 0) allWaiters[idx] = { ...allWaiters[idx], ...payload };
-      else allWaiters.push({ ...payload, total_sales: 0, pending_payout_usd: 0, pending_payout_ars: 0 });
+      if (idx >= 0) {
+        allWaiters[idx] = { ...allWaiters[idx], ...payload };
+      } else {
+        allWaiters.push({ ...payload, total_sales: 0, pending_payout_usd: 0, pending_payout_ars: 0 });
+      }
       localStorage.setItem("bsas_waiters", JSON.stringify(allWaiters));
 
       closeWaiterModal();
-      loadWaiters();
+      renderWaitersUI();
 
       // Sincronización automática a la nube
       scheduleAutoSync("Guardar Mozo: " + name);
@@ -1120,7 +1263,8 @@ ${qrImageUrl}
       // Abrir QR del mozo y ofrecer enviar por WhatsApp
       openQrModal(id, name);
       setTimeout(() => {
-        if (confirm(`¡Mozo "${name}" guardado con éxito!\n\n¿Querés abrir WhatsApp ahora para enviarle su link, PIN y código QR?`)) {
+        const dest = phone ? `a su WhatsApp (${phone})` : "por WhatsApp";
+        if (confirm(`¡Mozo "${name}" guardado con éxito!\n\n¿Querés abrir WhatsApp ahora para enviarle su link, PIN y código QR ${dest}?`)) {
           sendWaiterQrWa(id);
         }
       }, 300);
@@ -1372,6 +1516,7 @@ ${qrImageUrl}
               appDataObj.waiters = allWaiters.map(w => ({
                 id: w.id,
                 name: w.name,
+                phone: w.phone || "",
                 alias: w.alias || "",
                 pin: w.pin || "1234",
                 commission_usd: w.commission_usd || 1.5
@@ -1379,6 +1524,9 @@ ${qrImageUrl}
             }
             if (allCategories && allCategories.length > 0) {
               appDataObj.categories = allCategories;
+            }
+            if (allReviews && allReviews.length > 0) {
+              appDataObj.reviews = allReviews;
             }
             appDataObj.version = "20261118_" + Date.now();
             updatedContent = '// Base de datos de lugares, traducciones y tips para Buenos Aires\nconst APP_DATA = ' + JSON.stringify(appDataObj, null, 2) + ';\n';
@@ -2435,8 +2583,11 @@ ${qrImageUrl}
       }
     }
 
+    let allReviews = [];
+
     async function loadAdminReviews() {
       const container = document.getElementById("admin-reviews-container");
+      const countBadge = document.getElementById("reviews-total-count");
       if (!container) return;
       container.innerHTML = '<div style="color:#94a3b8; font-size:0.85rem;">Cargando opiniones...</div>';
 
@@ -2447,24 +2598,36 @@ ${qrImageUrl}
             const res = await fetch("/api/admin/reviews");
             if (res.ok) {
               reviews = await res.json();
-              localStorage.setItem("bsas_reviews", JSON.stringify(reviews));
-            } else {
-              reviews = loadReviewsLocal();
             }
-          } catch (err) {
-            reviews = loadReviewsLocal();
-          }
-        } else {
-          reviews = loadReviewsLocal();
+          } catch (err) {}
         }
 
         if (!reviews || reviews.length === 0) {
-          container.innerHTML = '<div style="color:#94a3b8; font-size:0.85rem;">Aún no hay comentarios subidos por turistas.</div>';
+          // 1. Cargar desde APP_DATA.reviews de data.js
+          const base = (typeof APP_DATA !== "undefined" && Array.isArray(APP_DATA.reviews)) ? APP_DATA.reviews : [];
+          // 2. Cargar desde localStorage
+          const saved = localStorage.getItem("bsas_reviews");
+          const local = saved ? JSON.parse(saved) : [];
+          const map = new Map();
+          base.forEach(r => map.set(r.id, r));
+          local.forEach(r => map.set(r.id, { ...(map.get(r.id) || {}), ...r }));
+          reviews = Array.from(map.values());
+        }
+
+        allReviews = reviews;
+        localStorage.setItem("bsas_reviews", JSON.stringify(allReviews));
+
+        if (countBadge) {
+          countBadge.textContent = `${allReviews.length} opiniones`;
+        }
+
+        if (!allReviews || allReviews.length === 0) {
+          container.innerHTML = '<div style="color:#94a3b8; font-size:0.85rem; padding:16px; text-align:center;">Aún no hay comentarios. ¡Tocá en "+ Agregar Reseña" para sumar una!</div>';
           return;
         }
 
-        container.innerHTML = reviews.map(r => {
-          const dateStr = new Date(r.created_at).toLocaleDateString("es-AR", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" });
+        container.innerHTML = allReviews.map(r => {
+          const dateStr = new Date(r.created_at || Date.now()).toLocaleDateString("es-AR", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" });
           const stars = "★".repeat(r.rating || 5) + "☆".repeat(Math.max(0, 5 - (r.rating || 5)));
           return `
             <div style="background:#0f172a; border:1px solid rgba(255,255,255,0.08); border-radius:12px; padding:14px; margin-bottom:12px; display:flex; flex-direction:column; gap:8px;">
@@ -2475,7 +2638,7 @@ ${qrImageUrl}
                   </div>
                   <div style="font-size:0.8rem; color:#38bdf8; margin-top:2px;">
                     📍 Lugar: <strong>${r.place_name || r.place_id}</strong>
-                    ${r.waiter_name ? ` • 👨‍🍳 Mozo: <strong>${r.waiter_name}</strong>` : ''}
+                    ${r.waiter_id ? ` • 👨‍🍳 Mozo: <strong>${r.waiter_id}</strong>` : ''}
                   </div>
                 </div>
                 <button class="btn-action btn-danger" style="padding:4px 10px; font-size:0.75rem;" onclick="deleteAdminReview('${r.id}')">
@@ -2499,28 +2662,59 @@ ${qrImageUrl}
           `;
         }).join("");
       } catch (e) {
-        container.innerHTML = '<div style="color:#ef4444; font-size:0.85rem;">Error al cargar opiniones.</div>';
+        container.innerHTML = '<div style="color:#ef4444; font-size:0.85rem;">Error al cargar opiniones: ' + e.message + '</div>';
       }
     }
 
-    function loadReviewsLocal() {
-      const saved = localStorage.getItem("bsas_reviews");
-      if (saved) {
-        try { return JSON.parse(saved); } catch(e) { return []; }
+    function openNewReviewModal() {
+      const select = document.getElementById("rev-place-id");
+      if (select) {
+        select.innerHTML = allPlaces.map(p => `<option value="${p.id}">${p.name} (${p.neighborhood || ''})</option>`).join("");
       }
-      const initial = [
-        {
-          id: "rev_1",
-          place_name: "Parrilla Don Julio",
-          user_name: "Sarah & David",
-          user_country: "🇺🇸 USA",
-          rating: 5,
-          comment: "Incredible steak! Mozo Isaias recommended arriving early and we got in without line.",
-          created_at: Date.now() - 86400000
-        }
-      ];
-      localStorage.setItem("bsas_reviews", JSON.stringify(initial));
-      return initial;
+      document.getElementById("rev-user-name").value = "";
+      document.getElementById("rev-user-country").value = "🌍 Turista";
+      document.getElementById("rev-rating").value = "5";
+      document.getElementById("rev-comment").value = "";
+      document.getElementById("rev-photo").value = "";
+      document.getElementById("admin-review-modal").classList.add("active");
+    }
+
+    function closeAdminReviewModal() {
+      document.getElementById("admin-review-modal").classList.remove("active");
+    }
+
+    async function saveAdminReview(e) {
+      e.preventDefault();
+      const placeId = document.getElementById("rev-place-id").value;
+      const place = allPlaces.find(p => p.id === placeId);
+      const placeName = place ? place.name : placeId;
+      const userName = document.getElementById("rev-user-name").value.trim() || "Turista";
+      const userCountry = document.getElementById("rev-user-country").value.trim() || "🌍 Turista";
+      const rating = parseInt(document.getElementById("rev-rating").value, 10) || 5;
+      const comment = document.getElementById("rev-comment").value.trim();
+      const photoData = document.getElementById("rev-photo").value.trim();
+
+      const newRev = {
+        id: "rev_" + Date.now(),
+        place_id: placeId,
+        place_name: placeName,
+        user_name: userName,
+        user_country: userCountry,
+        rating,
+        comment,
+        photo_data: photoData || "",
+        waiter_id: "isaias",
+        created_at: Date.now()
+      };
+
+      allReviews.unshift(newRev);
+      localStorage.setItem("bsas_reviews", JSON.stringify(allReviews));
+      closeAdminReviewModal();
+      await loadAdminReviews();
+
+      // Sincronizar automáticamente a GitHub para que lo vean todos los turistas
+      scheduleAutoSync("Nueva Reseña: " + placeName);
+      alert("✅ ¡Reseña guardada y sincronizada! Ya está disponible para todos los turistas.");
     }
 
     async function deleteAdminReview(id) {
@@ -2539,10 +2733,10 @@ ${qrImageUrl}
         } catch (e) {}
       }
 
-      let reviews = JSON.parse(localStorage.getItem("bsas_reviews") || "[]");
-      reviews = reviews.filter(r => r.id !== id);
-      localStorage.setItem("bsas_reviews", JSON.stringify(reviews));
+      allReviews = allReviews.filter(r => r.id !== id);
+      localStorage.setItem("bsas_reviews", JSON.stringify(allReviews));
       loadAdminReviews();
+      scheduleAutoSync("Eliminar reseña");
     }
 
     // ==================== RECOMENDACIONES DE LUGARES POR CLIENTES ====================

@@ -615,6 +615,7 @@ const APP_DATA = {
     {
       "id": "isaias",
       "name": "Isaias",
+      "phone": "1123456789",
       "alias": "isaias.mozo.mp",
       "pin": "1234",
       "commission_usd": 1.5
@@ -683,5 +684,103 @@ const APP_DATA = {
       "color": "#10b981"
     }
   ],
-  "version": "20261118_1795222060115"
+  "reviews": [
+    {
+      "id": "rev_seed_1",
+      "place_id": "p1",
+      "place_name": "Parrilla Don Julio",
+      "user_name": "Sarah & David",
+      "user_country": "🇺🇸 USA",
+      "rating": 5,
+      "comment": "Incredible bife de chorizo! Waiter Isaias recommended arriving early at 11:30 AM and we got a table without the huge queue. Best steak in South America!",
+      "photo_data": "https://images.unsplash.com/photo-1544025162-d76694265947?w=600&auto=format&fit=crop&q=80",
+      "waiter_id": "isaias",
+      "created_at": 1763500000000
+    },
+    {
+      "id": "rev_seed_2",
+      "place_id": "p3",
+      "place_name": "Pizzería Güerrin",
+      "user_name": "Thiago & Luana",
+      "user_country": "🇧🇷 Brasil",
+      "rating": 5,
+      "comment": "A melhor pizza de Buenos Aires! A dica do garçom para pedir a fugazzeta recheada e comer no balcão em pé foi perfeita. Experiência 100% autêntica e barata!",
+      "photo_data": "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=600&auto=format&fit=crop&q=80",
+      "waiter_id": "isaias",
+      "created_at": 1763400000000
+    },
+    {
+      "id": "rev_seed_3",
+      "place_id": "t1",
+      "place_name": "Madero Tango",
+      "user_name": "Gonzalo y Claudia",
+      "user_country": "🇨🇱 Chile",
+      "rating": 5,
+      "comment": "El show de tango en Puerto Madero superó todas las expectativas. La vista a los diques de noche y los bailarines son de primer nivel. Excelente recomendación!",
+      "photo_data": "https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?w=600&auto=format&fit=crop&q=80",
+      "waiter_id": "isaias",
+      "created_at": 1763300000000
+    },
+    {
+      "id": "rev_seed_4",
+      "place_id": "place_mworlt8b",
+      "place_name": "Planetario Galileo Galilei",
+      "user_name": "Emma & Liam",
+      "user_country": "🇬🇧 UK",
+      "rating": 5,
+      "comment": "The park around the Planetarium is gorgeous in the afternoon. Beautiful lights at night and great planetarium show! A must visit in Palermo.",
+      "photo_data": "",
+      "waiter_id": "isaias",
+      "created_at": 1763200000000
+    },
+    {
+      "id": "rev_seed_5",
+      "place_id": "place_mworkbsq",
+      "place_name": "MALBA - Museo de Arte Latinoamericano",
+      "user_name": "Camila & Lucas",
+      "user_country": "🇧🇷 Brasil",
+      "rating": 5,
+      "comment": "Imperdível! Ver o Abaporu de Tarsila do Amaral ao vivo e a arquitetura do museu foi o ponto alto da nossa visita por Palermo. O café também é uma delícia.",
+      "photo_data": "",
+      "waiter_id": "isaias",
+      "created_at": 1763100000000
+    },
+    {
+      "id": "rev_seed_6",
+      "place_id": "place_mwmznh03",
+      "place_name": "Teatro Colón",
+      "user_name": "Alessandro & Giulia",
+      "user_country": "🇮🇹 Italia",
+      "rating": 5,
+      "comment": "Un'acustica leggendaria e una bellezza che lascia senza fiato. Vale ogni singolo centesimo la visita guidata in inglese o spagnolo.",
+      "photo_data": "",
+      "waiter_id": "isaias",
+      "created_at": 1763000000000
+    },
+    {
+      "id": "rev_seed_7",
+      "place_id": "c1",
+      "place_name": "Café Tortoni",
+      "user_name": "Jean-Pierre",
+      "user_country": "🇫🇷 Francia",
+      "rating": 5,
+      "comment": "Ambiance historique magnifique avec churros et chocolat chaud parfaits. Arrivez tôt pour éviter la file d'attente sur l'Avenida de Mayo.",
+      "photo_data": "",
+      "waiter_id": "isaias",
+      "created_at": 1762900000000
+    },
+    {
+      "id": "rev_seed_8",
+      "place_id": "d1",
+      "place_name": "Heladería Cadore",
+      "user_name": "Carlos & Sofia",
+      "user_country": "🇪🇸 España",
+      "rating": 5,
+      "comment": "El helado de dulce de leche granizado más cremoso y espectacular que probamos en la vida. Vale totalmente la pena la parada.",
+      "photo_data": "",
+      "waiter_id": "isaias",
+      "created_at": 1762800000000
+    }
+  ],
+  "version": "20261120_04"
 };

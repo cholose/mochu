@@ -46,6 +46,7 @@ db.exec(`
   CREATE TABLE IF NOT EXISTS waiters (
     id TEXT PRIMARY KEY,
     name TEXT NOT NULL,
+    phone TEXT DEFAULT '',
     alias TEXT NOT NULL,
     pin TEXT DEFAULT '1234',
     commission_usd REAL DEFAULT 1.50,
@@ -54,6 +55,7 @@ db.exec(`
     total_paid_usd REAL DEFAULT 0,
     created_at INTEGER NOT NULL
   );
+  try { db.exec("ALTER TABLE waiters ADD COLUMN phone TEXT DEFAULT ''"); } catch(e) {}
 
   CREATE TABLE IF NOT EXISTS passes (
     id TEXT PRIMARY KEY,
@@ -646,19 +648,20 @@ const server = http.createServer(async (req, res) => {
       const data = await parseBody(req);
       const id = (data.id || data.name).trim().toLowerCase().replace(/\s+/g, "_");
       const name = data.name.trim();
+      const phone = (data.phone || "").trim();
       const alias = data.alias.trim();
       const pin = (data.pin || "1234").trim();
       const commission = parseFloat(data.commissionUsd) || WAITER_CUT_USD;
 
       const existing = db.prepare("SELECT id FROM waiters WHERE id = ?").get(id);
       if (existing) {
-        db.prepare("UPDATE waiters SET name = ?, alias = ?, pin = ?, commission_usd = ? WHERE id = ?")
-          .run(name, alias, pin, commission, id);
+        db.prepare("UPDATE waiters SET name = ?, phone = ?, alias = ?, pin = ?, commission_usd = ? WHERE id = ?")
+          .run(name, phone, alias, pin, commission, id);
       } else {
         db.prepare(`
-          INSERT INTO waiters (id, name, alias, pin, commission_usd, total_sales, pending_payout_usd, total_paid_usd, created_at)
-          VALUES (?, ?, ?, ?, ?, 0, 0, 0, ?)
-        `).run(id, name, alias, pin, commission, Date.now());
+          INSERT INTO waiters (id, name, phone, alias, pin, commission_usd, total_sales, pending_payout_usd, total_paid_usd, created_at)
+          VALUES (?, ?, ?, ?, ?, ?, 0, 0, 0, ?)
+        `).run(id, name, phone, alias, pin, commission, Date.now());
       }
       return sendJSON(res, 200, { success: true, id });
     } catch (e) {

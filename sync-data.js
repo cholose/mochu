@@ -46,7 +46,20 @@ try {
     const appData = fn();
     if (appData) {
       appData.places = formattedPlaces;
-      appData.version = "20261117_" + Date.now();
+      try {
+        const sqliteWaiters = db.prepare("SELECT * FROM waiters").all();
+        if (sqliteWaiters && sqliteWaiters.length > 0) {
+          appData.waiters = sqliteWaiters.map(w => ({
+            id: w.id,
+            name: w.name,
+            phone: w.phone || "",
+            alias: w.alias || "",
+            pin: w.pin || "1234",
+            commission_usd: w.commission_usd || 1.5
+          }));
+        }
+      } catch(e) {}
+      appData.version = "20261120_" + Date.now();
       fs.writeFileSync(dataJsPath, '// Base de datos de lugares, traducciones y tips para Buenos Aires\nconst APP_DATA = ' + JSON.stringify(appData, null, 2) + ';\n', 'utf8');
       console.log(`✅ ¡Éxito! Se sincronizaron ${formattedPlaces.length} lugares desde SQLite hacia data.js`);
       process.exit(0);
