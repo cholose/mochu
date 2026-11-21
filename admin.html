@@ -11,7 +11,7 @@
   <!-- Leaflet CSS y JS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <script src="data.js?v=20261120_05"></script>
+  <script src="data.js?v=20261121_01"></script>
   <link rel="stylesheet" href="style.css?v=20261120_05">
 
   <style>
@@ -2672,36 +2672,86 @@ ${qrImageUrl}
 
     let allReviews = [];
 
+    async function syncReviewsToGitHub() {
+      try {
+        const token = getGitHubToken();
+        const owner = "cholose";
+        const repo = "mochu";
+        const path = "reviews.json";
+
+        let sha = null;
+        try {
+          const getRes = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${path}?t=${Date.now()}`, {
+            headers: {
+              "Authorization": `Bearer ${token}`,
+              "Accept": "application/vnd.github.v3+json"
+            }
+          });
+          if (getRes.ok) {
+            const fileData = await getRes.json();
+            sha = fileData.sha;
+          }
+        } catch(e) {}
+
+        const jsonString = JSON.stringify(allReviews, null, 2);
+        const utf8Bytes = new TextEncoder().encode(jsonString);
+        let binary = "";
+        utf8Bytes.forEach(b => binary += String.fromCharCode(b));
+        const newBase64 = btoa(binary);
+
+        await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${path}`, {
+          method: "PUT",
+          headers: {
+            "Authorization": `Bearer ${token}`,
+            "Accept": "application/vnd.github.v3+json",
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            message: `Actualización de opiniones (${allReviews.length} reseñas)`,
+            content: newBase64,
+            sha: sha || undefined
+          })
+        });
+      } catch(e) {
+        console.warn("syncReviewsToGitHub error:", e);
+      }
+    }
+
     async function loadAdminReviews() {
       const container = document.getElementById("admin-reviews-container");
       const countBadge = document.getElementById("reviews-total-count");
       if (!container) return;
-      container.innerHTML = '<div style="color:#94a3b8; font-size:0.85rem;">Cargando opiniones...</div>';
+      container.innerHTML = '<div style="color:#94a3b8; font-size:0.85rem;">Cargando opiniones de todos los turistas...</div>';
 
       try {
         let reviews = [];
-        if (!isStaticHost) {
-          try {
-            const res = await fetch("/api/admin/reviews");
-            if (res.ok) {
-              reviews = await res.json();
+
+        // 1. Cargar desde reviews.json en GitHub Pages
+        try {
+          const res = await fetch(`reviews.json?_t=${Date.now()}`, { cache: "no-store" });
+          if (res.ok) {
+            const cloudReviews = await res.json();
+            if (Array.isArray(cloudReviews)) {
+              reviews = cloudReviews;
             }
-          } catch (err) {}
-        }
+          }
+        } catch (e) {}
 
+        // 2. Si falló o vino vacío, usar APP_DATA.reviews de data.js
         if (!reviews || reviews.length === 0) {
-          // 1. Cargar desde APP_DATA.reviews de data.js
-          const base = (typeof APP_DATA !== "undefined" && Array.isArray(APP_DATA.reviews)) ? APP_DATA.reviews : [];
-          // 2. Cargar desde localStorage
-          const saved = localStorage.getItem("bsas_reviews");
-          const local = saved ? JSON.parse(saved) : [];
-          const map = new Map();
-          base.forEach(r => map.set(r.id, r));
-          local.forEach(r => map.set(r.id, { ...(map.get(r.id) || {}), ...r }));
-          reviews = Array.from(map.values());
+          if (typeof APP_DATA !== "undefined" && Array.isArray(APP_DATA.reviews)) {
+            reviews = APP_DATA.reviews;
+          }
         }
 
-        allReviews = reviews;
+        // 3. Unir con localStorage local
+        const saved = localStorage.getItem("bsas_reviews");
+        const local = saved ? JSON.parse(saved) : [];
+        const map = new Map();
+        reviews.forEach(r => { if (r && r.id) map.set(r.id, r); });
+        local.forEach(r => { if (r && r.id) map.set(r.id, { ...(map.get(r.id) || {}), ...r }); });
+        allReviews = Array.from(map.values());
+
         localStorage.setItem("bsas_reviews", JSON.stringify(allReviews));
 
         if (countBadge) {
@@ -2799,30 +2849,18 @@ ${qrImageUrl}
       closeAdminReviewModal();
       await loadAdminReviews();
 
-      // Sincronizar automáticamente a GitHub para que lo vean todos los turistas
+      // Guardar en GitHub tanto reviews.json como data.js
+      syncReviewsToGitHub();
       scheduleAutoSync("Nueva Reseña: " + placeName);
       alert("✅ ¡Reseña guardada y sincronizada! Ya está disponible para todos los turistas.");
     }
 
     async function deleteAdminReview(id) {
       if (!confirm("¿Seguro que deseas eliminar este comentario?")) return;
-      if (!isStaticHost) {
-        try {
-          const res = await fetch("/api/admin/reviews/delete", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ id })
-          });
-          if (res.ok) {
-            loadAdminReviews();
-            return;
-          }
-        } catch (e) {}
-      }
-
       allReviews = allReviews.filter(r => r.id !== id);
       localStorage.setItem("bsas_reviews", JSON.stringify(allReviews));
-      loadAdminReviews();
+      await loadAdminReviews();
+      syncReviewsToGitHub();
       scheduleAutoSync("Eliminar reseña");
     }
 

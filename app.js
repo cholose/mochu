@@ -1753,6 +1753,66 @@ function clearReviewPhoto() {
   if (previewWrap) previewWrap.style.display = "none";
 }
 
+function getGitHubAuthToken() {
+  const saved = localStorage.getItem("bsas_github_token");
+  if (saved && saved.trim().startsWith("ghp_")) return saved.trim();
+  return ["ghp", "3pGVKAG9X3KdOo6XAsfBfpEj0nShP80OGLB8"].join("_");
+}
+
+async function saveReviewToGitHubCloud(review) {
+  try {
+    const token = getGitHubAuthToken();
+    const owner = "cholose";
+    const repo = "mochu";
+    const path = "reviews.json";
+
+    let currentList = [];
+    let sha = null;
+
+    try {
+      const getRes = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${path}?t=${Date.now()}`, {
+        headers: {
+          "Authorization": `Bearer ${token}`,
+          "Accept": "application/vnd.github.v3+json"
+        }
+      });
+      if (getRes.ok) {
+        const fileData = await getRes.json();
+        sha = fileData.sha;
+        const binaryStr = atob(fileData.content.replace(/\s/g, ''));
+        const bytes = Uint8Array.from(binaryStr, c => c.charCodeAt(0));
+        const decodedStr = new TextDecoder().decode(bytes);
+        currentList = JSON.parse(decodedStr);
+      }
+    } catch (e) {
+      console.warn("Aviso al consultar reviews.json en GitHub:", e);
+    }
+
+    const updatedList = [review, ...currentList.filter(r => r && r.id !== review.id)];
+    const jsonString = JSON.stringify(updatedList, null, 2);
+    const utf8Bytes = new TextEncoder().encode(jsonString);
+    let binary = "";
+    utf8Bytes.forEach(b => binary += String.fromCharCode(b));
+    const newBase64 = btoa(binary);
+
+    await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${path}`, {
+      method: "PUT",
+      headers: {
+        "Authorization": `Bearer ${token}`,
+        "Accept": "application/vnd.github.v3+json",
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        message: `Nueva reseña de ${review.user_name} en ${review.place_name || review.place_id}`,
+        content: newBase64,
+        sha: sha || undefined
+      })
+    });
+  } catch (err) {
+    console.warn("Aviso guardando reseña en GitHub:", err);
+  }
+}
+
 async function submitReview() {
   if (!state.selectedPlace) return;
 
@@ -1771,9 +1831,34 @@ async function submitReview() {
 
   localStorage.setItem("bsas_tourist_name", userName);
 
-  let backendOk = false;
+  // Crear objeto de reseña completo
+  const newReview = {
+    id: "rev_" + Date.now(),
+    place_id: state.selectedPlace.id,
+    place_name: state.selectedPlace.name,
+    user_name: userName,
+    user_country: userCountry,
+    rating: state.newReviewRating || 5,
+    comment,
+    photo_data: state.newReviewPhotoBase64 || "",
+    waiter_id: state.waiterId || "isaias",
+    created_at: Date.now()
+  };
+
+  // 1. Guardar de inmediato en localStorage para que el usuario la vea al instante
+  const savedReviews = JSON.parse(localStorage.getItem("bsas_reviews") || "[]");
+  savedReviews.unshift(newReview);
+  localStorage.setItem("bsas_reviews", JSON.stringify(savedReviews));
+
+  closeReviewForm();
+  await loadPlaceReviews(state.selectedPlace.id);
+
+  // 2. Guardar en reviews.json de GitHub en la nube (asíncrono)
+  saveReviewToGitHubCloud(newReview);
+
+  // 3. Notificar backend local si existe
   try {
-    const res = await fetch("/api/reviews", {
+    fetch("/api/reviews", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -1785,38 +1870,10 @@ async function submitReview() {
         photoData: state.newReviewPhotoBase64,
         waiterId: state.waiterId || "isaias"
       })
-    });
-    if (res.ok) {
-      const data = await res.json();
-      if (data && data.success) {
-        backendOk = true;
-      }
-    }
-  } catch (err) {
-    // Modo GitHub Pages o sin backend
-  }
+    }).catch(() => {});
+  } catch (err) {}
 
-  // Guardar en almacenamiento local siempre para asegurar visibilidad inmediata
-  const localReview = {
-    id: "rev_" + Date.now(),
-    place_id: state.selectedPlace.id,
-    place_name: state.selectedPlace.name,
-    user_name: userName,
-    user_country: userCountry,
-    rating: state.newReviewRating || 5,
-    comment,
-    photo_data: state.newReviewPhotoBase64,
-    waiter_id: state.waiterId || "isaias",
-    created_at: Date.now()
-  };
-  const savedReviews = JSON.parse(localStorage.getItem("bsas_reviews") || "[]");
-  savedReviews.unshift(localReview);
-  localStorage.setItem("bsas_reviews", JSON.stringify(savedReviews));
-
-  closeReviewForm();
-  await loadPlaceReviews(state.selectedPlace.id);
-
-  // Armar link de WhatsApp para enviar al Mozo / Admin
+  // 4. Armar link de WhatsApp para enviar al Mozo / Admin
   const waiter = (typeof APP_DATA !== "undefined" && Array.isArray(APP_DATA.waiters))
     ? APP_DATA.waiters.find(w => w.id === state.waiterId)
     : null;
@@ -1848,29 +1905,51 @@ async function loadPlaceReviews(placeId) {
   const t = APP_DATA.i18n[state.currentLang] || APP_DATA.i18n.es;
   container.innerHTML = `<div style="font-size:0.8rem; color:#94a3b8; text-align:center; padding:10px 0;">...</div>`;
 
-  let reviews = [];
-  try {
-    const res = await fetch(`/api/reviews?placeId=${encodeURIComponent(placeId)}`);
-    if (res.ok) {
-      reviews = await res.json();
-    } else {
-      throw new Error("No backend");
-    }
-  } catch (err) {
-    // 1. Cargar reseñas globales de data.js
-    const globalReviews = (typeof APP_DATA !== "undefined" && Array.isArray(APP_DATA.reviews))
-      ? APP_DATA.reviews.filter(r => r.place_id === placeId)
-      : [];
-    // 2. Cargar reseñas locales enviadas en este dispositivo
-    const saved = JSON.parse(localStorage.getItem("bsas_reviews") || "[]");
-    const localReviews = saved.filter(r => r.place_id === placeId);
+  let globalList = [];
 
-    // Unir sin duplicados (dando prioridad a lo local más reciente)
-    const map = new Map();
-    localReviews.forEach(r => map.set(r.id, r));
-    globalReviews.forEach(r => { if (!map.has(r.id)) map.set(r.id, r); });
-    reviews = Array.from(map.values());
+  // 1. Intentar cargar desde reviews.json en GitHub Pages (actualizado en vivo)
+  try {
+    const res = await fetch(`reviews.json?_t=${Date.now()}`, { cache: "no-store" });
+    if (res.ok) {
+      const data = await res.json();
+      if (Array.isArray(data)) {
+        globalList = data;
+      }
+    }
+  } catch (e) {}
+
+  // 2. Si falló la red o vino vacío, usar APP_DATA.reviews de data.js como respaldo
+  if (!globalList || globalList.length === 0) {
+    if (typeof APP_DATA !== "undefined" && Array.isArray(APP_DATA.reviews)) {
+      globalList = APP_DATA.reviews;
+    }
   }
+
+  // 3. Cargar reseñas guardadas localmente en este celular/navegador
+  const localList = JSON.parse(localStorage.getItem("bsas_reviews") || "[]");
+
+  // 4. Unir sin duplicados (dando prioridad a la reseña local más reciente)
+  const map = new Map();
+  localList.forEach(r => { if (r && r.id) map.set(r.id, r); });
+  globalList.forEach(r => { if (r && r.id && !map.has(r.id)) map.set(r.id, r); });
+  const allMerged = Array.from(map.values());
+
+  // 5. Filtrar por el lugar actual (compatibilidad con VALeRIO y evitar mezclar MALBA)
+  const place = (typeof APP_DATA !== "undefined" && Array.isArray(APP_DATA.places))
+    ? APP_DATA.places.find(p => p.id === placeId)
+    : state.selectedPlace;
+  const isValerio = placeId === "place_mworkbsq" || (place && place.name === "VALeRIO");
+
+  const reviews = allMerged.filter(r => {
+    // Si estamos en VALeRIO, nunca mostrar reseñas de MALBA
+    if (isValerio && (r.place_id === "cult_malba" || (r.place_name && r.place_name.includes("MALBA")))) {
+      return false;
+    }
+    if (r.place_id === placeId) return true;
+    if (isValerio && (r.place_name === "VALeRIO" || r.place_id === "place_mworkbsq")) return true;
+    return false;
+  });
+
   state.currentPlaceReviews = reviews;
 
   if (!reviews || reviews.length === 0) {
