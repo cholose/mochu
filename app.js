@@ -518,12 +518,29 @@ async function payWithMercadoPago() {
     }).catch(() => {});
   } catch(e) {}
 
-  // Abrir la terminal de cobro de Mercado Pago
-  const mpUrl = (typeof APP_DATA !== "undefined" && APP_DATA.config && APP_DATA.config.mpLink && APP_DATA.config.mpLink.startsWith("http"))
-    ? APP_DATA.config.mpLink
-    : "https://link.mercadopago.com.ar";
+  // Abrir la terminal de cobro de Mercado Pago de forma inteligente y segura
+  const rawMpLink = (typeof APP_DATA !== "undefined" && APP_DATA.config && APP_DATA.config.mpLink)
+    ? APP_DATA.config.mpLink.trim()
+    : "";
   
-  window.open(mpUrl, "_blank");
+  const alias = (typeof APP_DATA !== "undefined" && APP_DATA.config && APP_DATA.config.mpAlias) ? APP_DATA.config.mpAlias : "10.cholo";
+
+  // Validar si tiene configurado un link de cobro real (ej: https://mpago.la/... o link con path específico)
+  const isRealLink = rawMpLink.startsWith("http") && 
+    (rawMpLink.includes("mpago.la") || (rawMpLink.includes("mercadopago.com") && rawMpLink.replace(/^https?:\/\/[^\/]+\/?/, '').length > 0));
+
+  if (isRealLink) {
+    window.open(rawMpLink, "_blank");
+  } else {
+    // Si aún no pegó un link específico de $1.000, copiar el alias al portapapeles y abrir Mercado Pago
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(alias);
+      }
+    } catch(e) {}
+    window.open("https://www.mercadopago.com.ar", "_blank");
+    alert("📋 ¡Alias \"" + alias + "\" copiado al portapapeles!\n\nSe abrió Mercado Pago. Transferí los $1.000 ARS directamente al Alias " + alias + ".\n\nApenas completes la transferencia, tocá 'Enviar Comprobante por WhatsApp'.");
+  }
 
   // Cambiar modal al estado de espera
   const viewCheckout = document.getElementById("unlock-view-checkout");
@@ -2784,4 +2801,14 @@ async function submitPlaceRecommendation(event) {
   if (submitBtn) {
     submitBtn.textContent = "✅ ¡Recomendación Registrada!";
   }
+}
+
+function copyMpAlias() {
+  const alias = (typeof APP_DATA !== "undefined" && APP_DATA.config && APP_DATA.config.mpAlias) ? APP_DATA.config.mpAlias : "10.cholo";
+  try {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(alias);
+    }
+  } catch(e) {}
+  alert("📋 ¡Alias copiado: " + alias + "!\nPegalo en tu app de Mercado Pago o banco para transferir los $1.000 ARS.");
 }

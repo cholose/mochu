@@ -3,7 +3,7 @@ const APP_DATA = {
   "config": {
     "agencyWhatsApp": "5491122334455",
     "driverWhatsApp": "5491199887766",
-    "mpLink": "https://link.mercadopago.com.ar",
+    "mpLink": "",
     "mpAlias": "10.cholo",
     "passPriceArs": 1000,
     "passPriceUsd": 1.0,
@@ -967,5 +967,5 @@ const APP_DATA = {
       "is_active": 1
     }
   ],
-  "version": "20261121_02"
+  "version": "20261121_03"
 };
