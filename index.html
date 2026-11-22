@@ -12,7 +12,7 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 
   <!-- App Styles -->
-  <link rel="stylesheet" href="style.css?v=20261121_05">
+  <link rel="stylesheet" href="style.css?v=20261121_06">
   <style>
     .activation-overlay {
       position: fixed;
@@ -75,13 +75,13 @@
 </head>
 <body>
 
-  <!-- MODAL DE DESBLOQUEO VIP (COBRO RÁPIDO CON TARJETA / PAYPAL Y MERCADO PAGO) -->
+  <!-- MODAL DE DESBLOQUEO VIP (BILLETERAS MÓVILES APPLE PAY / GOOGLE PAY / PAYPAL) -->
   <div class="activation-overlay" id="unlock-modal" style="display:none;">
     <div class="activation-card" style="max-width:440px; padding:22px 18px;">
       
-      <!-- VISTA 1: CHECKOUT DIRECTO (POR DEFECTO: TARJETA INTERNACIONAL / PAYPAL) -->
+      <!-- VISTA 1: CHECKOUT CON BILLETERA MÓVIL (APPLE PAY / GOOGLE PAY) -->
       <div id="unlock-view-checkout">
-        <div style="font-size:2rem; margin-bottom:4px;">🌎</div>
+        <div style="font-size:2rem; margin-bottom:4px;">📱</div>
         <h2 style="font-size:1.35rem; margin-bottom:2px;" id="lbl-unlock-title">Pase Turista VIP Buenos Aires</h2>
         <div style="font-size:0.82rem; color:#94a3b8; margin-bottom:12px;">Acceso completo por 21 días a tips secretos de mozos, Uber/DiDi directos y descuentos</div>
 
@@ -90,17 +90,34 @@
           <div style="font-size:1.1rem; font-weight:700; color:#f59e0b;" id="activation-waiter-banner">👨‍🍳 Isaias</div>
         </div>
 
-        <!-- Tarjeta de Cobro Internacional -->
-        <div style="background:linear-gradient(135deg, rgba(37,99,235,0.2), rgba(15,23,42,0.95)); border:1.5px solid #3b82f6; border-radius:14px; padding:16px; margin-bottom:14px; text-align:center;">
-          <div style="font-size:0.75rem; color:#60a5fa; font-weight:800; text-transform:uppercase; letter-spacing:1px;">Acceso Completo 21 Días</div>
+        <!-- Tarjeta de Cobro con Billetera Digital -->
+        <div style="background:linear-gradient(135deg, rgba(30,41,59,0.9), rgba(15,23,42,0.95)); border:1.5px solid #3b82f6; border-radius:14px; padding:16px; margin-bottom:14px; text-align:center;">
+          <div style="font-size:0.75rem; color:#60a5fa; font-weight:800; text-transform:uppercase; letter-spacing:1px; margin-bottom:4px;">
+            Pago Instantáneo con tu Celular
+          </div>
+
           <div style="font-size:2.2rem; font-weight:900; color:#fff; margin:2px 0;">
             <span style="font-size:1.2rem; color:#60a5fa;">US$</span> 1.00 <span style="font-size:0.85rem; color:#94a3b8; font-weight:normal;">USD</span>
           </div>
-          <div style="display:inline-flex; align-items:center; gap:6px; background:#1e40af; color:#dbeafe; font-size:0.75rem; font-weight:700; padding:3px 10px; border-radius:999px; margin-bottom:6px;">
-            💳 Acepta tarjetas de Chile, Uruguay, México, Brasil, Europa y USA
+
+          <!-- Badges de Billeteras Digitales -->
+          <div style="display:flex; justify-content:center; align-items:center; gap:8px; margin:8px 0; flex-wrap:wrap;">
+            <span style="background:#000; color:#fff; border:1px solid #555; font-size:0.82rem; font-weight:800; padding:4px 10px; border-radius:6px; display:inline-flex; align-items:center; gap:4px;">
+               Pay
+            </span>
+            <span style="background:#000; color:#fff; border:1px solid #555; font-size:0.82rem; font-weight:800; padding:4px 10px; border-radius:6px; display:inline-flex; align-items:center; gap:2px;">
+              <span style="color:#4285f4; font-weight:900;">G</span><span style="color:#ea4335; font-weight:900;">P</span><span style="color:#fbbc05; font-weight:900;">a</span><span style="color:#34a853; font-weight:900;">y</span>
+            </span>
+            <span style="background:#003087; color:#fff; font-size:0.75rem; font-weight:700; padding:4px 8px; border-radius:6px;">
+              🅿️ PayPal
+            </span>
+            <span style="background:#334155; color:#cbd5e1; font-size:0.75rem; font-weight:700; padding:4px 8px; border-radius:6px;">
+              💳 Tarjetas
+            </span>
           </div>
-          <div style="font-size:0.75rem; color:#cbd5e1;">
-            Pago 100% seguro procesado por <strong>PayPal</strong>
+
+          <div style="font-size:0.75rem; color:#94a3b8;">
+            Pagás en 5 segundos con FaceID / Huella sin tipear números
           </div>
         </div>
 
@@ -118,9 +135,9 @@
           <input type="text" id="input-tourist-name-fast" class="input-pass" placeholder="ej. Sarah, Matías o Valentina" style="margin-bottom:0;">
         </div>
 
-        <!-- BOTÓN DE COBRO PRINCIPAL 1-CLIC -->
-        <button type="button" onclick="startInstantCardPayment()" class="btn-transport" style="background:#0070ba; color:#fff; width:100%; padding:14px; font-size:1.05rem; cursor:pointer; border:none; margin-bottom:12px; font-weight:800; border-radius:10px; box-shadow:0 4px 16px rgba(0,112,186,0.5); display:flex; align-items:center; justify-content:center; gap:8px;">
-          <span>💳</span> Pagar US$ 1.00 con Tarjeta o PayPal
+        <!-- BOTÓN PRINCIPAL BILLETERA DIGITAL (SE ADAPTA AUTOMÁTICAMENTE A IPHONE O ANDROID) -->
+        <button type="button" onclick="startInstantCardPayment()" id="btn-wallet-pay" class="btn-transport" style="background:#000000; color:#fff; width:100%; padding:14px; font-size:1.05rem; cursor:pointer; border:1.5px solid #475569; margin-bottom:12px; font-weight:800; border-radius:10px; box-shadow:0 4px 16px rgba(0,0,0,0.4); display:flex; align-items:center; justify-content:center; gap:8px;">
+          <span>📱</span> Pagar con Billetera del Celular (US$ 1.00)
         </button>
 
         <!-- OPCIONES ALTERNATIVAS COLAPSABLES (ARGENTINA & MOZO) -->
@@ -147,7 +164,7 @@
         </details>
 
         <!-- Desplegable Efectivo Mozo -->
-        <details style="margin-bottom:12px; text-align:left; background:rgba(255,255,255,0.02); border-radius:8px; padding:6px 10px; border:1px solid rgba(255,255,255,0.06);">
+        <details style="margin-bottom:12px; text-align:left; background:rgba(255,255,255,0.02); border-radius:8px; padding:8px 10px; border:1px solid rgba(255,255,255,0.06);">
           <summary style="font-size:0.78rem; color:#94a3b8; cursor:pointer; font-weight:600;">
             ¿Le pagaste en efectivo a tu mozo en la mesa? Ingresar PIN
           </summary>
@@ -164,21 +181,21 @@
         </button>
       </div>
 
-      <!-- VISTA 2: ACTIVACIÓN POST-PAGO INMEDIATA -->
+      <!-- VISTA 2: CONFIRMACIÓN Y ACTIVACIÓN INMEDIATA -->
       <div id="unlock-view-completed" style="display:none; text-align:center; padding:10px 0;">
-        <div style="font-size:3rem; margin-bottom:8px;">💳</div>
-        <h3 style="font-size:1.3rem; color:#fff; font-weight:800; margin-bottom:6px;">Se abrió PayPal para tu pago</h3>
+        <div style="font-size:3rem; margin-bottom:8px;">📱</div>
+        <h3 style="font-size:1.3rem; color:#fff; font-weight:800; margin-bottom:6px;">Se abrió la pasarela de pago</h3>
         <p style="font-size:0.86rem; color:#cbd5e1; margin-bottom:18px; line-height:1.45;">
-          Una vez abonado el <strong>US$ 1.00 USD</strong> en la ventana de PayPal con tu tarjeta, tocá el botón verde para desbloquear tu guía al instante.
+          Una vez abonado el <strong>US$ 1.00 USD</strong> con tu billetera o tarjeta, tocá el botón verde para desbloquear tu guía al instante.
         </p>
 
-        <button type="button" onclick="activatePassImmediately('PayPal (Tarjeta)')" class="btn-transport" style="background:#10b981; color:#fff; width:100%; padding:14px; font-size:1.05rem; font-weight:800; border-radius:10px; cursor:pointer; box-shadow:0 4px 16px rgba(16,185,129,0.4); border:none; margin-bottom:12px;">
+        <button type="button" onclick="activatePassImmediately('Billetera Móvil')" class="btn-transport" style="background:#10b981; color:#fff; width:100%; padding:14px; font-size:1.05rem; font-weight:800; border-radius:10px; cursor:pointer; box-shadow:0 4px 16px rgba(16,185,129,0.4); border:none; margin-bottom:12px;">
           ✅ ¡Listo! Activar mi Pase VIP Ya
         </button>
 
         <div style="display:flex; justify-content:center; gap:16px;">
           <button type="button" onclick="reopenPayPalLink()" style="background:transparent; color:#38bdf8; border:none; font-size:0.8rem; text-decoration:underline; cursor:pointer;">
-            🔄 Reabrir PayPal
+            🔄 Reabrir ventana de pago
           </button>
           <button type="button" onclick="resetPassCheckout()" style="background:transparent; color:#94a3b8; border:none; font-size:0.8rem; text-decoration:underline; cursor:pointer;">
             ← Volver atrás
@@ -663,7 +680,7 @@
   </div>
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <script src="data.js?v=20261121_05"></script>
-  <script src="app.js?v=20261121_05"></script>
+  <script src="data.js?v=20261121_06"></script>
+  <script src="app.js?v=20261121_06"></script>
 </body>
 </html>

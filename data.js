@@ -970,5 +970,5 @@ const APP_DATA = {
       "is_active": 1
     }
   ],
-  "version": "20261121_05"
+  "version": "20261121_06"
 };

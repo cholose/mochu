@@ -399,10 +399,34 @@ function updateVipUI() {
   renderTangoList();
 }
 
+function detectWalletButton() {
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  const isAndroid = /Android/i.test(navigator.userAgent);
+  const btn = document.getElementById("btn-wallet-pay");
+  if (!btn) return;
+
+  if (isIOS) {
+    btn.innerHTML = `<span style="font-size:1.3rem; vertical-align:middle;"></span> Pagar con <strong>Apple Pay</strong> (US$ 1.00)`;
+    btn.style.background = "#000000";
+    btn.style.borderColor = "#ffffff";
+    btn.style.boxShadow = "0 4px 16px rgba(255,255,255,0.2)";
+  } else if (isAndroid) {
+    btn.innerHTML = `<span style="font-weight:900; font-size:1.1rem;"><span style="color:#4285f4;">G</span><span style="color:#ea4335;">P</span><span style="color:#fbbc05;">a</span><span style="color:#34a853;">y</span></span> Pagar con <strong>Google Pay</strong> (US$ 1.00)`;
+    btn.style.background = "#000000";
+    btn.style.borderColor = "#555555";
+    btn.style.boxShadow = "0 4px 16px rgba(66,133,244,0.3)";
+  } else {
+    btn.innerHTML = `<span> Pay / GPay / 💳</span> Pagar con <strong>Tarjeta o Billetera</strong> (US$ 1.00)`;
+    btn.style.background = "#0070ba";
+    btn.style.borderColor = "transparent";
+  }
+}
+
 function openUnlockModal() {
   const modal = document.getElementById("unlock-modal");
   if (!modal) return;
   modal.style.display = "flex";
+  detectWalletButton();
 
   const isPending = state.pass && state.pass.status === "pending_payment";
   const viewCheckout = document.getElementById("unlock-view-checkout");
