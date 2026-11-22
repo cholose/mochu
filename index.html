@@ -12,7 +12,7 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 
   <!-- App Styles -->
-  <link rel="stylesheet" href="style.css?v=20261121_04">
+  <link rel="stylesheet" href="style.css?v=20261121_05">
   <style>
     .activation-overlay {
       position: fixed;
@@ -75,107 +75,85 @@
 </head>
 <body>
 
-  <!-- MODAL DE DESBLOQUEO VIP (TERMINAL DE COBRO MULTI-MÉTODO) -->
+  <!-- MODAL DE DESBLOQUEO VIP (COBRO RÁPIDO CON TARJETA / PAYPAL Y MERCADO PAGO) -->
   <div class="activation-overlay" id="unlock-modal" style="display:none;">
-    <div class="activation-card" style="max-width:450px; padding:22px 18px;">
+    <div class="activation-card" style="max-width:440px; padding:22px 18px;">
       
-      <!-- ESTADO 1: FORMULARIO DE COBRO -->
+      <!-- VISTA 1: CHECKOUT DIRECTO (POR DEFECTO: TARJETA INTERNACIONAL / PAYPAL) -->
       <div id="unlock-view-checkout">
-        <div style="font-size:2rem; margin-bottom:4px;">🎟️</div>
-        <h2 style="font-size:1.3rem; margin-bottom:4px;" id="lbl-unlock-title">Pase Turista VIP (21 Días)</h2>
-        <div style="font-size:0.8rem; color:#94a3b8; margin-bottom:12px;">Acceso ilimitado a todos los tips locales, Uber/DiDi directos y descuentos</div>
+        <div style="font-size:2rem; margin-bottom:4px;">🌎</div>
+        <h2 style="font-size:1.35rem; margin-bottom:2px;" id="lbl-unlock-title">Pase Turista VIP Buenos Aires</h2>
+        <div style="font-size:0.82rem; color:#94a3b8; margin-bottom:12px;">Acceso completo por 21 días a tips secretos de mozos, Uber/DiDi directos y descuentos</div>
 
         <div class="service-banner" style="margin-bottom:12px;">
           <div style="font-size:0.75rem; color:#94a3b8;" id="lbl-unlock-hosted">ATENDIDO POR TU MOZO:</div>
           <div style="font-size:1.1rem; font-weight:700; color:#f59e0b;" id="activation-waiter-banner">👨‍🍳 Isaias</div>
         </div>
 
-        <!-- SELECTOR DE MÉTODO DE PAGO -->
-        <div style="font-size:0.78rem; color:#cbd5e1; font-weight:700; margin-bottom:6px; text-align:left;">
-          Elegí cómo querés pagar:
-        </div>
-        <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:6px; margin-bottom:12px;">
-          <button type="button" class="btn-pay-tab active" id="tab-pay-mp" onclick="selectPaymentMethod('mp')" style="background:#009ee3; color:#fff; border:1.5px solid #009ee3; padding:8px 4px; border-radius:8px; font-size:0.78rem; font-weight:700; cursor:pointer;">
-            💙 Mercado Pago<br><small style="font-size:0.7rem; opacity:0.9;">$1.000 ARS</small>
-          </button>
-          <button type="button" class="btn-pay-tab" id="tab-pay-prex" onclick="selectPaymentMethod('prex')" style="background:#1e293b; color:#cbd5e1; border:1px solid rgba(255,255,255,0.1); padding:8px 4px; border-radius:8px; font-size:0.78rem; font-weight:700; cursor:pointer;">
-            💜 Prex<br><small style="font-size:0.7rem; opacity:0.9;">$1.000 ARS</small>
-          </button>
-          <button type="button" class="btn-pay-tab" id="tab-pay-paypal" onclick="selectPaymentMethod('paypal')" style="background:#1e293b; color:#cbd5e1; border:1px solid rgba(255,255,255,0.1); padding:8px 4px; border-radius:8px; font-size:0.78rem; font-weight:700; cursor:pointer;">
-            🅿️ PayPal<br><small style="font-size:0.7rem; opacity:0.9;">$1.00 USD</small>
-          </button>
-        </div>
-
-        <!-- Tarjeta de Importe y Datos según el método seleccionado -->
-        <div id="pay-box-mp" class="pay-method-box" style="background:linear-gradient(135deg, rgba(0,158,227,0.15), rgba(15,23,42,0.9)); border:1.5px solid #009ee3; border-radius:14px; padding:12px; margin-bottom:14px; text-align:center;">
-          <div style="font-size:1.9rem; font-weight:900; color:#fff; margin:2px 0;">
-            <span style="font-size:1.1rem; color:#009ee3;">$</span>1.000 <span style="font-size:0.85rem; color:#94a3b8; font-weight:normal;">ARS</span>
+        <!-- Tarjeta de Cobro Internacional -->
+        <div style="background:linear-gradient(135deg, rgba(37,99,235,0.2), rgba(15,23,42,0.95)); border:1.5px solid #3b82f6; border-radius:14px; padding:16px; margin-bottom:14px; text-align:center;">
+          <div style="font-size:0.75rem; color:#60a5fa; font-weight:800; text-transform:uppercase; letter-spacing:1px;">Acceso Completo 21 Días</div>
+          <div style="font-size:2.2rem; font-weight:900; color:#fff; margin:2px 0;">
+            <span style="font-size:1.2rem; color:#60a5fa;">US$</span> 1.00 <span style="font-size:0.85rem; color:#94a3b8; font-weight:normal;">USD</span>
           </div>
-          <div style="font-size:0.8rem; color:#cbd5e1; margin-top:4px; display:flex; align-items:center; justify-content:center; gap:6px;">
-            <span>Alias Mercado Pago:</span>
-            <strong style="color:#f59e0b; font-size:0.95rem; font-family:monospace;">10.cholo</strong>
-            <button type="button" onclick="copyTextToClipboard('10.cholo', 'Alias Mercado Pago (10.cholo)')" style="background:rgba(245,158,11,0.2); border:1px solid #f59e0b; color:#fbbf24; border-radius:6px; font-size:0.75rem; padding:2px 8px; cursor:pointer;">📋 Copiar</button>
+          <div style="display:inline-flex; align-items:center; gap:6px; background:#1e40af; color:#dbeafe; font-size:0.75rem; font-weight:700; padding:3px 10px; border-radius:999px; margin-bottom:6px;">
+            💳 Acepta tarjetas de Chile, Uruguay, México, Brasil, Europa y USA
           </div>
-        </div>
-
-        <div id="pay-box-prex" class="pay-method-box" style="display:none; background:linear-gradient(135deg, rgba(168,85,247,0.15), rgba(15,23,42,0.9)); border:1.5px solid #a855f7; border-radius:14px; padding:12px; margin-bottom:14px; text-align:center;">
-          <div style="font-size:1.9rem; font-weight:900; color:#fff; margin:2px 0;">
-            <span style="font-size:1.1rem; color:#a855f7;">$</span>1.000 <span style="font-size:0.85rem; color:#94a3b8; font-weight:normal;">ARS</span>
-          </div>
-          <div style="font-size:0.8rem; color:#cbd5e1; margin-top:4px; display:flex; align-items:center; justify-content:center; gap:6px;">
-            <span>Alias Prex:</span>
-            <strong style="color:#c084fc; font-size:0.95rem; font-family:monospace;">10.choloprex</strong>
-            <button type="button" onclick="copyTextToClipboard('10.choloprex', 'Alias Prex (10.choloprex)')" style="background:rgba(192,132,252,0.2); border:1px solid #c084fc; color:#e9d5ff; border-radius:6px; font-size:0.75rem; padding:2px 8px; cursor:pointer;">📋 Copiar</button>
-          </div>
-        </div>
-
-        <div id="pay-box-paypal" class="pay-method-box" style="display:none; background:linear-gradient(135deg, rgba(59,130,246,0.15), rgba(15,23,42,0.9)); border:1.5px solid #3b82f6; border-radius:14px; padding:12px; margin-bottom:14px; text-align:center;">
-          <div style="font-size:1.9rem; font-weight:900; color:#fff; margin:2px 0;">
-            <span style="font-size:1.1rem; color:#3b82f6;">US$</span> 1.00 <span style="font-size:0.85rem; color:#94a3b8; font-weight:normal;">USD</span>
-          </div>
-          <div style="font-size:0.8rem; color:#cbd5e1; margin-top:4px; display:flex; align-items:center; justify-content:center; gap:6px;">
-            <span>PayPal Email:</span>
-            <strong style="color:#60a5fa; font-size:0.9rem; font-family:monospace;">cholose99@gmail.com</strong>
-            <button type="button" onclick="copyTextToClipboard('cholose99@gmail.com', 'PayPal (cholose99@gmail.com)')" style="background:rgba(96,165,250,0.2); border:1px solid #60a5fa; color:#bfdbfe; border-radius:6px; font-size:0.75rem; padding:2px 8px; cursor:pointer;">📋 Copiar</button>
-          </div>
-          <div style="font-size:0.72rem; color:#94a3b8; margin-top:4px;">
-            🌎 Acepta tarjetas de crédito de cualquier país
+          <div style="font-size:0.75rem; color:#cbd5e1;">
+            Pago 100% seguro procesado por <strong>PayPal</strong>
           </div>
         </div>
 
         <ul class="service-benefits" style="margin-bottom:14px; text-align:left;">
-          <li>✅ <strong>Tips Secretos del Mozo</strong> en parrillas, bodegones y heladerías.</li>
-          <li>✅ <strong>Acceso directo a Uber y DiDi</strong> con destinos listos.</li>
+          <li>✅ <strong>Tips Secretos del Mozo</strong> en bodegones, parrillas y cafés.</li>
+          <li>✅ <strong>Acceso directo a Uber y DiDi</strong> sin errores de destino.</li>
           <li>✅ <strong>Descuentos exclusivos</strong> en cenas shows de Tango.</li>
-          <li>✅ <strong>Vigencia completa:</strong> 21 días corridos sin límites.</li>
         </ul>
 
-        <!-- Formulario del Turista -->
-        <div style="background:#0f172a; border:1px solid rgba(255,255,255,0.1); border-radius:12px; padding:12px; margin-bottom:12px; text-align:left;">
+        <!-- Campo simple de Nombre -->
+        <div style="margin-bottom:12px; text-align:left;">
           <label style="font-size:0.78rem; color:#cbd5e1; font-weight:700; display:block; margin-bottom:4px;">
-            👤 Tu Nombre y Apellido *
+            👤 Tu Nombre:
           </label>
-          <input type="text" id="input-pin-name" class="input-pass" placeholder="ej. Sarah Miller o Juan Gómez" style="margin-bottom:10px;">
-
-          <label style="font-size:0.78rem; color:#cbd5e1; font-weight:700; display:block; margin-bottom:4px;">
-            📱 Tu Celular / WhatsApp (para activar tu cuenta) *
-          </label>
-          <input type="tel" id="input-tourist-phone" class="input-pass" placeholder="ej. 11 2345 6789 o +54 9 11..." style="margin-bottom:4px;">
+          <input type="text" id="input-tourist-name-fast" class="input-pass" placeholder="ej. Sarah, Matías o Valentina" style="margin-bottom:0;">
         </div>
 
-        <!-- Botón de Pago Principal Dinámico -->
-        <button type="button" onclick="executeSelectedPayment()" class="btn-transport" id="btn-unlock-main" style="background:#009ee3; color:#fff; width:100%; padding:13px; font-size:1rem; cursor:pointer; border:none; margin-bottom:10px; font-weight:800; border-radius:10px; box-shadow:0 4px 14px rgba(0,158,227,0.4); display:flex; align-items:center; justify-content:center; gap:8px;">
-          <span id="btn-unlock-icon">💙</span> <span id="btn-unlock-text">Ir a Pagar $1.000 en Mercado Pago</span>
+        <!-- BOTÓN DE COBRO PRINCIPAL 1-CLIC -->
+        <button type="button" onclick="startInstantCardPayment()" class="btn-transport" style="background:#0070ba; color:#fff; width:100%; padding:14px; font-size:1.05rem; cursor:pointer; border:none; margin-bottom:12px; font-weight:800; border-radius:10px; box-shadow:0 4px 16px rgba(0,112,186,0.5); display:flex; align-items:center; justify-content:center; gap:8px;">
+          <span>💳</span> Pagar US$ 1.00 con Tarjeta o PayPal
         </button>
 
-        <!-- Desplegable Opcional: Pago en Efectivo con Mozo -->
-        <details style="margin-bottom:10px; text-align:left; background:rgba(255,255,255,0.02); border-radius:8px; padding:6px 10px; border:1px solid rgba(255,255,255,0.06);">
+        <!-- OPCIONES ALTERNATIVAS COLAPSABLES (ARGENTINA & MOZO) -->
+        <details style="margin-bottom:10px; text-align:left; background:rgba(255,255,255,0.02); border-radius:8px; padding:8px 10px; border:1px solid rgba(255,255,255,0.06);">
+          <summary style="font-size:0.78rem; color:#94a3b8; cursor:pointer; font-weight:600;">
+            🇦🇷 ¿Tenés cuenta argentina? Pagar $1.000 con Mercado Pago / Prex
+          </summary>
+          <div style="padding-top:10px;">
+            <div style="font-size:0.8rem; color:#cbd5e1; margin-bottom:8px;">
+              Transferí <strong>$1.000 ARS</strong> a cualquiera de estos alias:
+            </div>
+            <div style="display:flex; justify-content:space-between; align-items:center; background:#0f172a; padding:6px 10px; border-radius:6px; margin-bottom:6px;">
+              <span>💙 Mercado Pago: <strong style="color:#38bdf8;">10.cholo</strong></span>
+              <button type="button" onclick="copyTextToClipboard('10.cholo', 'Alias 10.cholo')" style="background:rgba(56,189,248,0.2); border:1px solid #38bdf8; color:#38bdf8; border-radius:4px; font-size:0.75rem; padding:2px 8px; cursor:pointer;">Copiar</button>
+            </div>
+            <div style="display:flex; justify-content:space-between; align-items:center; background:#0f172a; padding:6px 10px; border-radius:6px; margin-bottom:8px;">
+              <span>💜 Prex: <strong style="color:#c084fc;">10.choloprex</strong></span>
+              <button type="button" onclick="copyTextToClipboard('10.choloprex', 'Alias 10.choloprex')" style="background:rgba(192,132,252,0.2); border:1px solid #c084fc; color:#c084fc; border-radius:4px; font-size:0.75rem; padding:2px 8px; cursor:pointer;">Copiar</button>
+            </div>
+            <button type="button" onclick="activatePassImmediately('Transferencia Local')" class="btn-transport" style="background:#10b981; color:#fff; width:100%; padding:9px; font-size:0.85rem; font-weight:700; border:none; cursor:pointer; border-radius:6px;">
+              ✅ Ya transferí $1.000, Activar Pase
+            </button>
+          </div>
+        </details>
+
+        <!-- Desplegable Efectivo Mozo -->
+        <details style="margin-bottom:12px; text-align:left; background:rgba(255,255,255,0.02); border-radius:8px; padding:6px 10px; border:1px solid rgba(255,255,255,0.06);">
           <summary style="font-size:0.78rem; color:#94a3b8; cursor:pointer; font-weight:600;">
             ¿Le pagaste en efectivo a tu mozo en la mesa? Ingresar PIN
           </summary>
           <div style="padding-top:8px;">
             <input type="password" id="input-pin-code" class="input-pass" placeholder="PIN de 4 dígitos de tu mozo" maxlength="6" style="text-align:center; font-size:1.1rem; letter-spacing:4px; font-weight:bold; margin-bottom:6px;">
-            <button type="button" onclick="submitTouristPin()" class="btn-transport" style="background:#f59e0b; color:#0f172a; font-weight:800; width:100%; padding:10px; border:none; cursor:pointer; font-size:0.85rem;">
+            <button type="button" onclick="submitTouristPin()" class="btn-transport" style="background:#f59e0b; color:#0f172a; font-weight:800; width:100%; padding:9px; border:none; cursor:pointer; font-size:0.85rem;">
               🔓 Validar PIN del Mozo
             </button>
           </div>
@@ -186,38 +164,26 @@
         </button>
       </div>
 
-      <!-- ESTADO 2: ESPERA DE CONFIRMACIÓN DEL PAGO -->
-      <div id="unlock-view-pending" style="display:none; text-align:center;">
-        <div style="font-size:2.4rem; margin-bottom:6px;">⏳</div>
-        <h2 style="font-size:1.25rem; color:#f59e0b; margin-bottom:4px;">¡Solicitud de Pase Iniciada!</h2>
-        <p style="font-size:0.85rem; color:#cbd5e1; margin-bottom:14px; line-height:1.4;">
-          Para activar tu cuenta, realizá el pago o transferencia y enviá el comprobante al administrador.
+      <!-- VISTA 2: ACTIVACIÓN POST-PAGO INMEDIATA -->
+      <div id="unlock-view-completed" style="display:none; text-align:center; padding:10px 0;">
+        <div style="font-size:3rem; margin-bottom:8px;">💳</div>
+        <h3 style="font-size:1.3rem; color:#fff; font-weight:800; margin-bottom:6px;">Se abrió PayPal para tu pago</h3>
+        <p style="font-size:0.86rem; color:#cbd5e1; margin-bottom:18px; line-height:1.45;">
+          Una vez abonado el <strong>US$ 1.00 USD</strong> en la ventana de PayPal con tu tarjeta, tocá el botón verde para desbloquear tu guía al instante.
         </p>
 
-        <div style="background:#0f172a; border:1px solid rgba(245,158,11,0.4); border-radius:12px; padding:12px; margin-bottom:14px; text-align:left;">
-          <div style="font-size:0.75rem; color:#94a3b8;">DETALLES DE LA CUENTA A PAGAR:</div>
-          <div style="font-size:0.9rem; color:#fff; margin-top:4px;" id="pending-amount-display">
-            💰 <strong>Importe:</strong> $1.000 ARS
-          </div>
-          <div style="font-size:0.9rem; color:#fff; margin-top:2px;" id="pending-account-display">
-            💙 <strong>Destino:</strong> Alias 10.cholo
-          </div>
-          <div style="font-size:0.8rem; color:#cbd5e1; margin-top:6px; padding-top:6px; border-top:1px solid rgba(255,255,255,0.08);">
-            🔖 <strong>Tu Código de Pase:</strong> <span id="pending-pass-code-display" style="color:#f59e0b; font-weight:bold; font-family:monospace;">PASE-0000</span>
-          </div>
+        <button type="button" onclick="activatePassImmediately('PayPal (Tarjeta)')" class="btn-transport" style="background:#10b981; color:#fff; width:100%; padding:14px; font-size:1.05rem; font-weight:800; border-radius:10px; cursor:pointer; box-shadow:0 4px 16px rgba(16,185,129,0.4); border:none; margin-bottom:12px;">
+          ✅ ¡Listo! Activar mi Pase VIP Ya
+        </button>
+
+        <div style="display:flex; justify-content:center; gap:16px;">
+          <button type="button" onclick="reopenPayPalLink()" style="background:transparent; color:#38bdf8; border:none; font-size:0.8rem; text-decoration:underline; cursor:pointer;">
+            🔄 Reabrir PayPal
+          </button>
+          <button type="button" onclick="resetPassCheckout()" style="background:transparent; color:#94a3b8; border:none; font-size:0.8rem; text-decoration:underline; cursor:pointer;">
+            ← Volver atrás
+          </button>
         </div>
-
-        <button type="button" onclick="sendPaymentReceiptViaWhatsApp()" class="btn-transport" style="background:#25d366; color:#0f172a; width:100%; padding:12px; font-size:0.92rem; font-weight:800; border:none; cursor:pointer; margin-bottom:8px; display:flex; align-items:center; justify-content:center; gap:8px;">
-          <span>💬</span> Enviar Comprobante por WhatsApp
-        </button>
-
-        <button type="button" onclick="checkPassStatusOnline(true)" class="btn-transport" style="background:#1e293b; border:1px solid #38bdf8; color:#38bdf8; width:100%; padding:10px; font-size:0.88rem; font-weight:700; cursor:pointer; margin-bottom:8px;">
-          🔄 Ya pagué, verificar si me activaron
-        </button>
-
-        <button type="button" onclick="resetPassCheckout()" class="btn-transport" style="background:transparent; color:#94a3b8; border:none; font-size:0.78rem; text-decoration:underline; cursor:pointer;">
-          ← Volver a cargar mis datos o cambiar método
-        </button>
       </div>
 
     </div>
@@ -697,7 +663,7 @@
   </div>
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <script src="data.js?v=20261121_04"></script>
-  <script src="app.js?v=20261121_04"></script>
+  <script src="data.js?v=20261121_05"></script>
+  <script src="app.js?v=20261121_05"></script>
 </body>
 </html>
