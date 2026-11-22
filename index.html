@@ -12,7 +12,7 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 
   <!-- App Styles -->
-  <link rel="stylesheet" href="style.css?v=20261121_06">
+  <link rel="stylesheet" href="style.css?v=20261121_07">
   <style>
     .activation-overlay {
       position: fixed;
@@ -143,19 +143,23 @@
         <!-- OPCIONES ALTERNATIVAS COLAPSABLES (ARGENTINA & MOZO) -->
         <details style="margin-bottom:10px; text-align:left; background:rgba(255,255,255,0.02); border-radius:8px; padding:8px 10px; border:1px solid rgba(255,255,255,0.06);">
           <summary style="font-size:0.78rem; color:#94a3b8; cursor:pointer; font-weight:600;">
-            🇦🇷 ¿Tenés cuenta argentina? Pagar $1.000 con Mercado Pago / Prex
+            🇦🇷 ¿Tenés cuenta argentina? Pagar con MP, Prex o Banco Nación
           </summary>
           <div style="padding-top:10px;">
             <div style="font-size:0.8rem; color:#cbd5e1; margin-bottom:8px;">
-              Transferí <strong>$1.000 ARS</strong> a cualquiera de estos alias:
+              Transferí <strong>$1.000 ARS</strong> a cualquiera de estas cuentas:
             </div>
             <div style="display:flex; justify-content:space-between; align-items:center; background:#0f172a; padding:6px 10px; border-radius:6px; margin-bottom:6px;">
               <span>💙 Mercado Pago: <strong style="color:#38bdf8;">10.cholo</strong></span>
               <button type="button" onclick="copyTextToClipboard('10.cholo', 'Alias 10.cholo')" style="background:rgba(56,189,248,0.2); border:1px solid #38bdf8; color:#38bdf8; border-radius:4px; font-size:0.75rem; padding:2px 8px; cursor:pointer;">Copiar</button>
             </div>
-            <div style="display:flex; justify-content:space-between; align-items:center; background:#0f172a; padding:6px 10px; border-radius:6px; margin-bottom:8px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; background:#0f172a; padding:6px 10px; border-radius:6px; margin-bottom:6px;">
               <span>💜 Prex: <strong style="color:#c084fc;">10.choloprex</strong></span>
               <button type="button" onclick="copyTextToClipboard('10.choloprex', 'Alias 10.choloprex')" style="background:rgba(192,132,252,0.2); border:1px solid #c084fc; color:#c084fc; border-radius:4px; font-size:0.75rem; padding:2px 8px; cursor:pointer;">Copiar</button>
+            </div>
+            <div style="display:flex; justify-content:space-between; align-items:center; background:#0f172a; padding:6px 10px; border-radius:6px; margin-bottom:8px;">
+              <span style="font-size:0.82rem;">🏛️ BNA (CBU): <strong style="color:#60a5fa; font-family:monospace; font-size:0.76rem;">0110625730062513301251</strong></span>
+              <button type="button" onclick="copyTextToClipboard('0110625730062513301251', 'CBU Banco Nación')" style="background:rgba(96,165,250,0.2); border:1px solid #60a5fa; color:#60a5fa; border-radius:4px; font-size:0.75rem; padding:2px 8px; cursor:pointer;">Copiar</button>
             </div>
             <button type="button" onclick="activatePassImmediately('Transferencia Local')" class="btn-transport" style="background:#10b981; color:#fff; width:100%; padding:9px; font-size:0.85rem; font-weight:700; border:none; cursor:pointer; border-radius:6px;">
               ✅ Ya transferí $1.000, Activar Pase
@@ -680,7 +684,7 @@
   </div>
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <script src="data.js?v=20261121_06"></script>
-  <script src="app.js?v=20261121_06"></script>
+  <script src="data.js?v=20261121_07"></script>
+  <script src="app.js?v=20261121_07"></script>
 </body>
 </html>

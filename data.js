@@ -6,6 +6,7 @@ const APP_DATA = {
     "mpLink": "",
     "mpAlias": "10.cholo",
     "prexAlias": "10.choloprex",
+    "bnaCbu": "0110625730062513301251",
     "paypalEmail": "cholose99@gmail.com",
     "paypalLink": "https://www.paypal.com/paypalme/cholose99",
     "passPriceArs": 1000,
@@ -970,5 +971,5 @@ const APP_DATA = {
       "is_active": 1
     }
   ],
-  "version": "20261121_06"
+  "version": "20261121_07"
 };
