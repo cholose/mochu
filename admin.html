@@ -11,7 +11,7 @@
   <!-- Leaflet CSS y JS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <script src="data.js?v=20261121_07"></script>
+  <script src="data.js?v=20261122_02"></script>
   <link rel="stylesheet" href="style.css?v=20261120_05">
 
   <style>
@@ -3288,20 +3288,22 @@ ${qrImageUrl}
                 <div style="font-weight:700; color:#fff; font-size:1.05rem;">
                   👤 ${t.tourist_name || 'Turista'}
                   <span style="font-size:0.75rem; background:#f59e0b; color:#0f172a; padding:2px 8px; border-radius:999px; font-weight:800; margin-left:6px;">
-                    $1.000 ARS
+                    ${t.amount_paid_usd ? `US$ ${t.amount_paid_usd} USD` : `$${t.amount_paid_ars || 1000} ARS`}
                   </span>
                 </div>
                 <div style="font-size:0.82rem; color:#cbd5e1; margin-top:3px;">
-                  📱 WhatsApp: ${cleanPhone ? `<a href="https://wa.me/${cleanPhone}" target="_blank" style="color:#38bdf8; font-weight:700; text-decoration:underline;">${t.tourist_contact} 💬</a>` : 'No especificado'}
-                  • 🏷️ Código: <strong style="color:#f59e0b; font-family:monospace;">${t.id}</strong>
+                  💳 Método: <strong>${t.payment_method || 'Transferencia'}</strong>
+                  • 🧾 Comprobante: <strong style="color:#38bdf8; font-family:monospace; font-size:0.95rem;">${t.receipt_id || 'Sin comprobante'}</strong>
                 </div>
                 <div style="font-size:0.75rem; color:#94a3b8; margin-top:2px;">
-                  📅 Solicitado: ${createdDate} • 👨‍🍳 Mozo: ${t.waiter_id || 'cholo'}
+                  🏷️ Código: <strong style="color:#f59e0b; font-family:monospace;">${t.id}</strong>
+                  • 👨‍🍳 Mozo: <strong>${t.waiter_id || 'isaias'}</strong>
+                  • 📅 Solicitado: ${createdDate}
                 </div>
               </div>
               <div style="display:flex; gap:8px;">
                 <button class="btn-action" style="background:#10b981; color:#fff; font-weight:800; padding:8px 14px; font-size:0.85rem;" onclick="confirmAndActivateTourist('${t.id}')">
-                  ✅ Confirmar Pago y Activar ($1.000)
+                  ✅ Confirmar Pago y Activar VIP
                 </button>
                 <button class="btn-action btn-danger" style="padding:8px 10px; font-size:0.8rem;" onclick="deleteAdminTourist('${t.id}')" title="Rechazar y borrar">
                   ✕
@@ -3388,15 +3390,13 @@ ${qrImageUrl}
       tourist.is_active = 1;
       tourist.activated_at = now;
       tourist.expires_at = now + (21 * 86400000);
-      tourist.amount_paid_ars = tourist.amount_paid_ars || 1000;
-      tourist.amount_paid_usd = 1.0;
-      tourist.payment_method = "Mercado Pago (Confirmado)";
+      tourist.payment_method = (tourist.payment_method || "Pago") + " (Verificado)";
 
       localStorage.setItem("bsas_tourists_passes", JSON.stringify(allTourists));
       renderAdminTouristsUI();
       await syncPassesToGitHub();
       scheduleAutoSync(`Activar Turista: ${tourist.tourist_name}`);
-      alert(`🎉 ¡Pago de $1.000 ARS verificado!\nLa cuenta de ${tourist.tourist_name} está ACTIVA por 21 días y sincronizada con su celular.`);
+      alert(`🎉 ¡Pago verificado con éxito!\nLa cuenta de ${tourist.tourist_name} está ACTIVA por 21 días.`);
     }
 
     function openNewTouristModal() {
