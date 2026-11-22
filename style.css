@@ -210,10 +210,10 @@ body {
 
 .map-quick-toggles {
   position: absolute;
-  bottom: calc(16px + env(safe-area-inset-bottom, 10px));
-  left: 12px;
-  right: 12px;
-  max-width: calc(100% - 24px);
+  bottom: calc(20px + env(safe-area-inset-bottom, 10px));
+  left: 16px;
+  right: 16px;
+  max-width: calc(100% - 32px);
   z-index: 1000;
   display: flex;
   gap: 8px;
@@ -379,28 +379,42 @@ body {
   color: #fff;
 }
 
-/* Locate Me Button (Elevado para no tapar los botones de recomendación en móviles) */
+/* Locate Me Button */
 .locate-btn {
   position: absolute;
-  bottom: calc(112px + env(safe-area-inset-bottom, 10px));
-  right: 14px;
-  z-index: 1001;
+  bottom: calc(130px + env(safe-area-inset-bottom, 10px));
+  right: 16px;
+  z-index: 1000;
   background: var(--card-bg);
   color: #fff;
-  border: 1px solid rgba(255,255,255,0.25);
-  width: 46px;
-  height: 46px;
+  border: 1px solid rgba(255,255,255,0.2);
+  width: 48px;
+  height: 48px;
   border-radius: 50%;
-  font-size: 1.25rem;
-  box-shadow: 0 4px 14px rgba(0,0,0,0.45);
+  font-size: 1.3rem;
+  box-shadow: var(--shadow);
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: transform 0.2s, background 0.2s;
+  transition: transform 0.2s;
 }
 .locate-btn:active {
   transform: scale(0.9);
+}
+
+@media (max-width: 600px) {
+  .locate-btn {
+    bottom: calc(130px + env(safe-area-inset-bottom, 10px));
+    right: 14px;
+    width: 44px;
+    height: 44px;
+    font-size: 1.2rem;
+  }
+  .safety-toggle-btn {
+    padding: 7px 12px;
+    font-size: 0.75rem;
+  }
 }
 
 /* Place Bottom Sheet / Modal */
