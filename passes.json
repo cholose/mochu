@@ -1,5 +1,20 @@
 [
   {
+    "id": "pass_vip_MWR7HXCA",
+    "device_token": "dev_myfiym9efd",
+    "tourist_name": "Sabrina",
+    "tourist_contact": "Billetera Móvil",
+    "waiter_id": "isaias",
+    "payment_method": "Billetera Móvil",
+    "amount_paid_ars": 1000,
+    "amount_paid_usd": 1,
+    "status": "active",
+    "created_at": 1795313825290,
+    "activated_at": 1795313825290,
+    "expires_at": 1797128225290,
+    "is_active": 1
+  },
+  {
     "id": "pass_vip_MWR64G1R",
     "device_token": "dev_06o75s6b8z",
     "tourist_name": "mochu",
