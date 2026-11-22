@@ -5,6 +5,9 @@ const APP_DATA = {
     "driverWhatsApp": "5491199887766",
     "mpLink": "",
     "mpAlias": "10.cholo",
+    "prexAlias": "10.choloprex",
+    "paypalEmail": "cholose99@gmail.com",
+    "paypalLink": "https://www.paypal.com/paypalme/cholose99",
     "passPriceArs": 1000,
     "passPriceUsd": 1.0,
     "passDays": 21
@@ -967,5 +970,5 @@ const APP_DATA = {
       "is_active": 1
     }
   ],
-  "version": "20261121_03"
+  "version": "20261121_04"
 };

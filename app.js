@@ -445,8 +445,78 @@ function resetPassCheckout() {
   if (viewPending) viewPending.style.display = "none";
 }
 
-// 1. INICIAR PAGO CON MERCADO PAGO ($1.000 ARS)
-async function payWithMercadoPago() {
+// 1. GESTIÓN MULTI-MÉTODO DE PAGO (MERCADO PAGO, PREX, PAYPAL)
+let selectedPaymentMethodKey = "mp";
+
+function selectPaymentMethod(method) {
+  selectedPaymentMethodKey = method;
+  const tabMp = document.getElementById("tab-pay-mp");
+  const tabPrex = document.getElementById("tab-pay-prex");
+  const tabPaypal = document.getElementById("tab-pay-paypal");
+
+  const boxMp = document.getElementById("pay-box-mp");
+  const boxPrex = document.getElementById("pay-box-prex");
+  const boxPaypal = document.getElementById("pay-box-paypal");
+
+  const btnMain = document.getElementById("btn-unlock-main");
+  const btnIcon = document.getElementById("btn-unlock-icon");
+  const btnText = document.getElementById("btn-unlock-text");
+
+  // Reset tab styles
+  [tabMp, tabPrex, tabPaypal].forEach(t => {
+    if (t) {
+      t.style.background = "#1e293b";
+      t.style.borderColor = "rgba(255,255,255,0.1)";
+      t.style.color = "#cbd5e1";
+    }
+  });
+  if (boxMp) boxMp.style.display = "none";
+  if (boxPrex) boxPrex.style.display = "none";
+  if (boxPaypal) boxPaypal.style.display = "none";
+
+  if (method === "mp") {
+    if (tabMp) {
+      tabMp.style.background = "#009ee3";
+      tabMp.style.borderColor = "#009ee3";
+      tabMp.style.color = "#fff";
+    }
+    if (boxMp) boxMp.style.display = "block";
+    if (btnMain) btnMain.style.background = "#009ee3";
+    if (btnIcon) btnIcon.textContent = "💙";
+    if (btnText) btnText.textContent = "Ir a Pagar $1.000 en Mercado Pago";
+  } else if (method === "prex") {
+    if (tabPrex) {
+      tabPrex.style.background = "#a855f7";
+      tabPrex.style.borderColor = "#a855f7";
+      tabPrex.style.color = "#fff";
+    }
+    if (boxPrex) boxPrex.style.display = "block";
+    if (btnMain) btnMain.style.background = "#a855f7";
+    if (btnIcon) btnIcon.textContent = "💜";
+    if (btnText) btnText.textContent = "Pagar $1.000 con Prex (10.choloprex)";
+  } else if (method === "paypal") {
+    if (tabPaypal) {
+      tabPaypal.style.background = "#3b82f6";
+      tabPaypal.style.borderColor = "#3b82f6";
+      tabPaypal.style.color = "#fff";
+    }
+    if (boxPaypal) boxPaypal.style.display = "block";
+    if (btnMain) btnMain.style.background = "#3b82f6";
+    if (btnIcon) btnIcon.textContent = "🅿️";
+    if (btnText) btnText.textContent = "Pagar US$ 1.00 con PayPal";
+  }
+}
+
+function copyTextToClipboard(text, label = "Dato") {
+  try {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text);
+    }
+  } catch(e) {}
+  alert("📋 ¡" + label + " copiado al portapapeles!\n" + text);
+}
+
+function executeSelectedPayment() {
   const nameInput = document.getElementById("input-pin-name");
   const phoneInput = document.getElementById("input-tourist-phone");
 
@@ -470,9 +540,44 @@ async function payWithMercadoPago() {
   localStorage.setItem("bsas_tourist_name", name);
   localStorage.setItem("bsas_tourist_phone", phone);
 
-  // Generar ID único de pase
-  const passId = "pass_mp_" + Date.now().toString(36).toUpperCase();
-  const priceArs = (typeof APP_DATA !== "undefined" && APP_DATA.config && APP_DATA.config.passPriceArs) ? APP_DATA.config.passPriceArs : 1000;
+  const passId = "pass_" + selectedPaymentMethodKey + "_" + Date.now().toString(36).toUpperCase();
+
+  let paymentMethodName = "Mercado Pago";
+  let amountArs = 1000;
+  let amountUsd = 1.0;
+  let accountInfo = "Alias: 10.cholo";
+
+  if (selectedPaymentMethodKey === "prex") {
+    paymentMethodName = "Prex";
+    amountArs = 1000;
+    amountUsd = 1.0;
+    accountInfo = "Alias: 10.choloprex";
+    copyTextToClipboard("10.choloprex", "Alias Prex (10.choloprex)");
+  } else if (selectedPaymentMethodKey === "paypal") {
+    paymentMethodName = "PayPal";
+    amountArs = 1000;
+    amountUsd = 1.0;
+    accountInfo = "PayPal: cholose99@gmail.com";
+    copyTextToClipboard("cholose99@gmail.com", "PayPal (cholose99@gmail.com)");
+    const paypalUrl = (typeof APP_DATA !== "undefined" && APP_DATA.config && APP_DATA.config.paypalLink)
+      ? APP_DATA.config.paypalLink
+      : "https://www.paypal.com/paypalme/cholose99";
+    window.open(paypalUrl, "_blank");
+  } else {
+    // Mercado Pago
+    paymentMethodName = "Mercado Pago";
+    amountArs = 1000;
+    amountUsd = 1.0;
+    accountInfo = "Alias: 10.cholo";
+    const rawMpLink = (typeof APP_DATA !== "undefined" && APP_DATA.config && APP_DATA.config.mpLink) ? APP_DATA.config.mpLink.trim() : "";
+    const isRealLink = rawMpLink.startsWith("http") && (rawMpLink.includes("mpago.la") || (rawMpLink.includes("mercadopago.com") && rawMpLink.replace(/^https?:\/\/[^\/]+\/?/, '').length > 0));
+    if (isRealLink) {
+      window.open(rawMpLink, "_blank");
+    } else {
+      copyTextToClipboard("10.cholo", "Alias Mercado Pago (10.cholo)");
+      window.open("https://www.mercadopago.com.ar", "_blank");
+    }
+  }
 
   const newPass = {
     id: passId,
@@ -480,69 +585,29 @@ async function payWithMercadoPago() {
     tourist_name: name,
     tourist_contact: phone,
     waiter_id: state.waiterId || "cholo",
-    payment_method: "Mercado Pago",
-    amount_paid_ars: priceArs,
-    amount_paid_usd: 1.0,
+    payment_method: paymentMethodName,
+    amount_paid_ars: amountArs,
+    amount_paid_usd: amountUsd,
     status: "pending_payment",
     created_at: Date.now(),
     is_active: 0
   };
 
-  // Guardar estado localmente
   localStorage.setItem("bsas_pass_id", passId);
   localStorage.setItem("bsas_pass_status", "pending_payment");
+  localStorage.setItem("bsas_pass_method", paymentMethodName);
   const localList = JSON.parse(localStorage.getItem("bsas_tourists_passes") || "[]");
   localList.unshift(newPass);
   localStorage.setItem("bsas_tourists_passes", JSON.stringify(localList));
 
   state.pass = newPass;
-  state.isVip = false; // NO se activa hasta que pague y sea confirmado
+  state.isVip = false;
   updateVipUI();
 
-  // Guardar en la nube (passes.json de GitHub)
+  // Guardar solicitud en la nube
   savePassToGitHubCloud(newPass);
 
-  // Notificar backend local si estuviera corriendo
-  try {
-    fetch("/api/pay-service", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        passId,
-        name,
-        contact: phone,
-        waiterId: state.waiterId || "cholo",
-        deviceToken,
-        amountArs: priceArs
-      })
-    }).catch(() => {});
-  } catch(e) {}
-
-  // Abrir la terminal de cobro de Mercado Pago de forma inteligente y segura
-  const rawMpLink = (typeof APP_DATA !== "undefined" && APP_DATA.config && APP_DATA.config.mpLink)
-    ? APP_DATA.config.mpLink.trim()
-    : "";
-  
-  const alias = (typeof APP_DATA !== "undefined" && APP_DATA.config && APP_DATA.config.mpAlias) ? APP_DATA.config.mpAlias : "10.cholo";
-
-  // Validar si tiene configurado un link de cobro real (ej: https://mpago.la/... o link con path específico)
-  const isRealLink = rawMpLink.startsWith("http") && 
-    (rawMpLink.includes("mpago.la") || (rawMpLink.includes("mercadopago.com") && rawMpLink.replace(/^https?:\/\/[^\/]+\/?/, '').length > 0));
-
-  if (isRealLink) {
-    window.open(rawMpLink, "_blank");
-  } else {
-    // Si aún no pegó un link específico de $1.000, copiar el alias al portapapeles y abrir Mercado Pago
-    try {
-      if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(alias);
-      }
-    } catch(e) {}
-    window.open("https://www.mercadopago.com.ar", "_blank");
-    alert("📋 ¡Alias \"" + alias + "\" copiado al portapapeles!\n\nSe abrió Mercado Pago. Transferí los $1.000 ARS directamente al Alias " + alias + ".\n\nApenas completes la transferencia, tocá 'Enviar Comprobante por WhatsApp'.");
-  }
-
-  // Cambiar modal al estado de espera
+  // Mostrar vista de espera de confirmación
   const viewCheckout = document.getElementById("unlock-view-checkout");
   const viewPending = document.getElementById("unlock-view-pending");
   if (viewCheckout) viewCheckout.style.display = "none";
@@ -550,6 +615,16 @@ async function payWithMercadoPago() {
     viewPending.style.display = "block";
     const codeEl = document.getElementById("pending-pass-code-display");
     if (codeEl) codeEl.textContent = passId;
+    const amountEl = document.getElementById("pending-amount-display");
+    if (amountEl) {
+      amountEl.innerHTML = selectedPaymentMethodKey === "paypal"
+        ? `💰 <strong>Importe:</strong> US$ 1.00 USD`
+        : `💰 <strong>Importe:</strong> $1.000 ARS`;
+    }
+    const accEl = document.getElementById("pending-account-display");
+    if (accEl) {
+      accEl.innerHTML = `💳 <strong>Destino:</strong> ${accountInfo}`;
+    }
   }
 }
 
@@ -558,7 +633,15 @@ function sendPaymentReceiptViaWhatsApp() {
   const pass = state.pass;
   const name = (pass && pass.tourist_name) ? pass.tourist_name : (localStorage.getItem("bsas_tourist_name") || "Turista");
   const phone = (pass && pass.tourist_contact) ? pass.tourist_contact : (localStorage.getItem("bsas_tourist_phone") || "");
-  const passId = (pass && pass.id) ? pass.id : (localStorage.getItem("bsas_pass_id") || "PASE-MP");
+  const passId = (pass && pass.id) ? pass.id : (localStorage.getItem("bsas_pass_id") || "PASE");
+  const method = (pass && pass.payment_method) ? pass.payment_method : (localStorage.getItem("bsas_pass_method") || "Mercado Pago");
+
+  let payInfo = "Mercado Pago (Alias: 10.cholo) por $1.000 ARS";
+  if (method.includes("Prex")) {
+    payInfo = "Prex (Alias: 10.choloprex) por $1.000 ARS";
+  } else if (method.includes("PayPal")) {
+    payInfo = "PayPal (cholose99@gmail.com) por US$ 1.00 USD";
+  }
 
   const targetWa = (typeof APP_DATA !== "undefined" && APP_DATA.config && APP_DATA.config.agencyWhatsApp)
     ? APP_DATA.config.agencyWhatsApp
@@ -568,7 +651,7 @@ function sendPaymentReceiptViaWhatsApp() {
   if (cleanTarget.startsWith("0")) cleanTarget = cleanTarget.slice(1);
   if (cleanTarget.length === 10) cleanTarget = "549" + cleanTarget;
 
-  const msg = `👋 ¡Hola! Acabo de transferir los $1.000 ARS por Mercado Pago para activar mi Pase Turista VIP (21 Días).\n\n👤 Nombre: *${name}*\n📱 Celular: *${phone}*\n🏷️ Código de Activación: *${passId}*\n💙 Terminal: Mercado Pago (Alias: 10.cholo)\n\nAdjunto el comprobante para que puedan activar mi acceso. ¡Muchas gracias!`;
+  const msg = `👋 ¡Hola! Acabo de realizar el pago para activar mi Pase Turista VIP (21 Días).\n\n👤 Nombre: *${name}*\n📱 Celular: *${phone}*\n🏷️ Código: *${passId}*\n💳 Método: *${payInfo}*\n\nAdjunto el comprobante de pago para que me activen el acceso. ¡Muchas gracias!`;
 
   const waUrl = cleanTarget 
     ? `https://wa.me/${cleanTarget}?text=${encodeURIComponent(msg)}`
@@ -608,12 +691,12 @@ async function checkPassStatusOnline(isManualClick = false) {
     closeUnlockModal();
     updateVipUI();
     if (state.selectedPlace) updateModalContent(state.selectedPlace);
-    alert(`🎉 ¡Excelente ${foundPass.tourist_name || ''}! Tu pago de $1.000 fue confirmado y tu Pase VIP está 100% ACTIVO por 21 días.`);
+    alert(`🎉 ¡Excelente ${foundPass.tourist_name || ''}! Tu pago fue confirmado y tu Pase VIP está 100% ACTIVO por 21 días.`);
     return;
   }
 
   if (isManualClick) {
-    alert(`⏳ Tu solicitud (${passId}) sigue en estado 'Pendiente de Pago'.\n\nApenas el administrador verifique el ingreso de los $1.000 en Mercado Pago, se activará automáticamente.\n\nPodés tocar el botón verde para enviarle tu comprobante por WhatsApp y agilizar la activación.`);
+    alert(`⏳ Tu solicitud (${passId}) sigue en estado 'Pendiente de Pago'.\n\nApenas el administrador verifique el ingreso del pago, se activará automáticamente.\n\nPodés tocar el botón verde para enviarle tu comprobante por WhatsApp y agilizar la activación.`);
   }
 }
 

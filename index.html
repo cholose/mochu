@@ -12,7 +12,7 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 
   <!-- App Styles -->
-  <link rel="stylesheet" href="style.css?v=20261121_03">
+  <link rel="stylesheet" href="style.css?v=20261121_04">
   <style>
     .activation-overlay {
       position: fixed;
@@ -75,11 +75,11 @@
 </head>
 <body>
 
-  <!-- MODAL DE DESBLOQUEO VIP (TERMINAL DE COBRO MERCADO PAGO $1.000 ARS) -->
+  <!-- MODAL DE DESBLOQUEO VIP (TERMINAL DE COBRO MULTI-MÉTODO) -->
   <div class="activation-overlay" id="unlock-modal" style="display:none;">
-    <div class="activation-card" style="max-width:440px; padding:22px 18px;">
+    <div class="activation-card" style="max-width:450px; padding:22px 18px;">
       
-      <!-- ESTADO 1: FORMULARIO DE COBRO CON MERCADO PAGO -->
+      <!-- ESTADO 1: FORMULARIO DE COBRO -->
       <div id="unlock-view-checkout">
         <div style="font-size:2rem; margin-bottom:4px;">🎟️</div>
         <h2 style="font-size:1.3rem; margin-bottom:4px;" id="lbl-unlock-title">Pase Turista VIP (21 Días)</h2>
@@ -90,19 +90,56 @@
           <div style="font-size:1.1rem; font-weight:700; color:#f59e0b;" id="activation-waiter-banner">👨‍🍳 Isaias</div>
         </div>
 
-        <!-- Tarjeta de Importe y Terminal de Cobro -->
-        <div style="background:linear-gradient(135deg, rgba(0,158,227,0.15), rgba(15,23,42,0.9)); border:1.5px solid #009ee3; border-radius:14px; padding:14px; margin-bottom:14px; text-align:center;">
-          <div style="font-size:0.75rem; color:#38bdf8; font-weight:700; text-transform:uppercase; letter-spacing:1px;">Terminal de Cobro Oficial</div>
-          <div style="font-size:2rem; font-weight:900; color:#fff; margin:4px 0;">
-            <span style="font-size:1.2rem; color:#009ee3;">$</span>1.000 <span style="font-size:0.85rem; color:#94a3b8; font-weight:normal;">ARS</span>
+        <!-- SELECTOR DE MÉTODO DE PAGO -->
+        <div style="font-size:0.78rem; color:#cbd5e1; font-weight:700; margin-bottom:6px; text-align:left;">
+          Elegí cómo querés pagar:
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:6px; margin-bottom:12px;">
+          <button type="button" class="btn-pay-tab active" id="tab-pay-mp" onclick="selectPaymentMethod('mp')" style="background:#009ee3; color:#fff; border:1.5px solid #009ee3; padding:8px 4px; border-radius:8px; font-size:0.78rem; font-weight:700; cursor:pointer;">
+            💙 Mercado Pago<br><small style="font-size:0.7rem; opacity:0.9;">$1.000 ARS</small>
+          </button>
+          <button type="button" class="btn-pay-tab" id="tab-pay-prex" onclick="selectPaymentMethod('prex')" style="background:#1e293b; color:#cbd5e1; border:1px solid rgba(255,255,255,0.1); padding:8px 4px; border-radius:8px; font-size:0.78rem; font-weight:700; cursor:pointer;">
+            💜 Prex<br><small style="font-size:0.7rem; opacity:0.9;">$1.000 ARS</small>
+          </button>
+          <button type="button" class="btn-pay-tab" id="tab-pay-paypal" onclick="selectPaymentMethod('paypal')" style="background:#1e293b; color:#cbd5e1; border:1px solid rgba(255,255,255,0.1); padding:8px 4px; border-radius:8px; font-size:0.78rem; font-weight:700; cursor:pointer;">
+            🅿️ PayPal<br><small style="font-size:0.7rem; opacity:0.9;">$1.00 USD</small>
+          </button>
+        </div>
+
+        <!-- Tarjeta de Importe y Datos según el método seleccionado -->
+        <div id="pay-box-mp" class="pay-method-box" style="background:linear-gradient(135deg, rgba(0,158,227,0.15), rgba(15,23,42,0.9)); border:1.5px solid #009ee3; border-radius:14px; padding:12px; margin-bottom:14px; text-align:center;">
+          <div style="font-size:1.9rem; font-weight:900; color:#fff; margin:2px 0;">
+            <span style="font-size:1.1rem; color:#009ee3;">$</span>1.000 <span style="font-size:0.85rem; color:#94a3b8; font-weight:normal;">ARS</span>
           </div>
-          <div style="display:inline-flex; align-items:center; gap:6px; background:#009ee3; color:#fff; font-size:0.75rem; font-weight:800; padding:3px 10px; border-radius:999px;">
-            💙 Mercado Pago
+          <div style="font-size:0.8rem; color:#cbd5e1; margin-top:4px; display:flex; align-items:center; justify-content:center; gap:6px;">
+            <span>Alias Mercado Pago:</span>
+            <strong style="color:#f59e0b; font-size:0.95rem; font-family:monospace;">10.cholo</strong>
+            <button type="button" onclick="copyTextToClipboard('10.cholo', 'Alias Mercado Pago (10.cholo)')" style="background:rgba(245,158,11,0.2); border:1px solid #f59e0b; color:#fbbf24; border-radius:6px; font-size:0.75rem; padding:2px 8px; cursor:pointer;">📋 Copiar</button>
           </div>
-          <div style="font-size:0.8rem; color:#cbd5e1; margin-top:8px; display:flex; align-items:center; justify-content:center; gap:6px;">
-            <span>Alias:</span>
-            <strong id="mp-alias-display" style="color:#f59e0b; font-size:0.95rem; font-family:monospace;">10.cholo</strong>
-            <button type="button" onclick="copyMpAlias()" style="background:rgba(245,158,11,0.2); border:1px solid #f59e0b; color:#fbbf24; border-radius:6px; font-size:0.75rem; padding:2px 8px; cursor:pointer;" title="Copiar alias">📋 Copiar</button>
+        </div>
+
+        <div id="pay-box-prex" class="pay-method-box" style="display:none; background:linear-gradient(135deg, rgba(168,85,247,0.15), rgba(15,23,42,0.9)); border:1.5px solid #a855f7; border-radius:14px; padding:12px; margin-bottom:14px; text-align:center;">
+          <div style="font-size:1.9rem; font-weight:900; color:#fff; margin:2px 0;">
+            <span style="font-size:1.1rem; color:#a855f7;">$</span>1.000 <span style="font-size:0.85rem; color:#94a3b8; font-weight:normal;">ARS</span>
+          </div>
+          <div style="font-size:0.8rem; color:#cbd5e1; margin-top:4px; display:flex; align-items:center; justify-content:center; gap:6px;">
+            <span>Alias Prex:</span>
+            <strong style="color:#c084fc; font-size:0.95rem; font-family:monospace;">10.choloprex</strong>
+            <button type="button" onclick="copyTextToClipboard('10.choloprex', 'Alias Prex (10.choloprex)')" style="background:rgba(192,132,252,0.2); border:1px solid #c084fc; color:#e9d5ff; border-radius:6px; font-size:0.75rem; padding:2px 8px; cursor:pointer;">📋 Copiar</button>
+          </div>
+        </div>
+
+        <div id="pay-box-paypal" class="pay-method-box" style="display:none; background:linear-gradient(135deg, rgba(59,130,246,0.15), rgba(15,23,42,0.9)); border:1.5px solid #3b82f6; border-radius:14px; padding:12px; margin-bottom:14px; text-align:center;">
+          <div style="font-size:1.9rem; font-weight:900; color:#fff; margin:2px 0;">
+            <span style="font-size:1.1rem; color:#3b82f6;">US$</span> 1.00 <span style="font-size:0.85rem; color:#94a3b8; font-weight:normal;">USD</span>
+          </div>
+          <div style="font-size:0.8rem; color:#cbd5e1; margin-top:4px; display:flex; align-items:center; justify-content:center; gap:6px;">
+            <span>PayPal Email:</span>
+            <strong style="color:#60a5fa; font-size:0.9rem; font-family:monospace;">cholose99@gmail.com</strong>
+            <button type="button" onclick="copyTextToClipboard('cholose99@gmail.com', 'PayPal (cholose99@gmail.com)')" style="background:rgba(96,165,250,0.2); border:1px solid #60a5fa; color:#bfdbfe; border-radius:6px; font-size:0.75rem; padding:2px 8px; cursor:pointer;">📋 Copiar</button>
+          </div>
+          <div style="font-size:0.72rem; color:#94a3b8; margin-top:4px;">
+            🌎 Acepta tarjetas de crédito de cualquier país
           </div>
         </div>
 
@@ -126,9 +163,9 @@
           <input type="tel" id="input-tourist-phone" class="input-pass" placeholder="ej. 11 2345 6789 o +54 9 11..." style="margin-bottom:4px;">
         </div>
 
-        <!-- Botón de Cobro Mercado Pago -->
-        <button type="button" onclick="payWithMercadoPago()" class="btn-transport" id="btn-unlock-mp" style="background:#009ee3; color:#fff; width:100%; padding:13px; font-size:1rem; cursor:pointer; border:none; margin-bottom:10px; font-weight:800; border-radius:10px; box-shadow:0 4px 14px rgba(0,158,227,0.4); display:flex; align-items:center; justify-content:center; gap:8px;">
-          <span>💙</span> Ir a Pagar $1.000 en Mercado Pago
+        <!-- Botón de Pago Principal Dinámico -->
+        <button type="button" onclick="executeSelectedPayment()" class="btn-transport" id="btn-unlock-main" style="background:#009ee3; color:#fff; width:100%; padding:13px; font-size:1rem; cursor:pointer; border:none; margin-bottom:10px; font-weight:800; border-radius:10px; box-shadow:0 4px 14px rgba(0,158,227,0.4); display:flex; align-items:center; justify-content:center; gap:8px;">
+          <span id="btn-unlock-icon">💙</span> <span id="btn-unlock-text">Ir a Pagar $1.000 en Mercado Pago</span>
         </button>
 
         <!-- Desplegable Opcional: Pago en Efectivo con Mozo -->
@@ -154,17 +191,16 @@
         <div style="font-size:2.4rem; margin-bottom:6px;">⏳</div>
         <h2 style="font-size:1.25rem; color:#f59e0b; margin-bottom:4px;">¡Solicitud de Pase Iniciada!</h2>
         <p style="font-size:0.85rem; color:#cbd5e1; margin-bottom:14px; line-height:1.4;">
-          Para activar tu cuenta, realizá la transferencia o pago de <strong>$1.000 ARS</strong> por Mercado Pago.
+          Para activar tu cuenta, realizá el pago o transferencia y enviá el comprobante al administrador.
         </p>
 
         <div style="background:#0f172a; border:1px solid rgba(245,158,11,0.4); border-radius:12px; padding:12px; margin-bottom:14px; text-align:left;">
-          <div style="font-size:0.75rem; color:#94a3b8;">DATOS PARA EL PAGO:</div>
-          <div style="font-size:0.9rem; color:#fff; margin-top:4px;">
+          <div style="font-size:0.75rem; color:#94a3b8;">DETALLES DE LA CUENTA A PAGAR:</div>
+          <div style="font-size:0.9rem; color:#fff; margin-top:4px;" id="pending-amount-display">
             💰 <strong>Importe:</strong> $1.000 ARS
           </div>
-          <div style="font-size:0.9rem; color:#fff; margin-top:2px; display:flex; align-items:center; gap:6px;">
-            <span>💙 <strong>Alias MP:</strong> <strong style="color:#38bdf8; font-family:monospace;">10.cholo</strong></span>
-            <button type="button" onclick="copyMpAlias()" style="background:rgba(56,189,248,0.2); border:1px solid #38bdf8; color:#38bdf8; border-radius:6px; font-size:0.75rem; padding:1px 6px; cursor:pointer;">📋 Copiar</button>
+          <div style="font-size:0.9rem; color:#fff; margin-top:2px;" id="pending-account-display">
+            💙 <strong>Destino:</strong> Alias 10.cholo
           </div>
           <div style="font-size:0.8rem; color:#cbd5e1; margin-top:6px; padding-top:6px; border-top:1px solid rgba(255,255,255,0.08);">
             🔖 <strong>Tu Código de Pase:</strong> <span id="pending-pass-code-display" style="color:#f59e0b; font-weight:bold; font-family:monospace;">PASE-0000</span>
@@ -180,7 +216,7 @@
         </button>
 
         <button type="button" onclick="resetPassCheckout()" class="btn-transport" style="background:transparent; color:#94a3b8; border:none; font-size:0.78rem; text-decoration:underline; cursor:pointer;">
-          ← Volver a cargar mis datos o reintentar
+          ← Volver a cargar mis datos o cambiar método
         </button>
       </div>
 
@@ -661,7 +697,7 @@
   </div>
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <script src="data.js?v=20261121_03"></script>
-  <script src="app.js?v=20261121_03"></script>
+  <script src="data.js?v=20261121_04"></script>
+  <script src="app.js?v=20261121_04"></script>
 </body>
 </html>

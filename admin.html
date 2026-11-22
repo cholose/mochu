@@ -11,7 +11,7 @@
   <!-- Leaflet CSS y JS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <script src="data.js?v=20261121_03"></script>
+  <script src="data.js?v=20261121_04"></script>
   <link rel="stylesheet" href="style.css?v=20261120_05">
 
   <style>
@@ -511,48 +511,57 @@
 
     <!-- PESTAÑA 4: MOZOS, QR Y COBROS -->
     <div id="tab-admin-waiters" class="admin-tab-content">
-      <!-- CONFIGURACIÓN DE TERMINAL DE COBRO MERCADO PAGO -->
+      <!-- CONFIGURACIÓN DE TERMINAL DE COBRO MERCADO PAGO, PREX Y PAYPAL -->
       <div class="admin-card">
         <div class="section-title">
-          <span>💙 Terminal de Cobro Mercado Pago ($1.000 ARS)</span>
+          <span>💳 Terminales de Cobro (Mercado Pago, Prex & PayPal)</span>
         </div>
         <p style="font-size:0.8rem; color:#94a3b8; margin-bottom:12px;">
-          Configurá acá la terminal a la que los turistas transfieren o pagan su pase VIP de 21 días.
+          Tus cuentas receptoras oficiales para que turistas locales e internacionales adquieran el Pase VIP.
         </p>
         <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:10px; margin-bottom:12px;">
           <div>
-            <label style="font-size:0.75rem; color:#cbd5e1; display:block; margin-bottom:4px; font-weight:700;">
-              Enlace Directo de Cobro (ej. https://mpago.la/... o link generado en MP)
-            </label>
-            <input type="url" id="cfg-mp-link" class="input-field" style="margin:0;" placeholder="Pegá tu link de pago de Mercado Pago">
-          </div>
-          <div>
-            <label style="font-size:0.75rem; color:#cbd5e1; display:block; margin-bottom:4px; font-weight:700;">
-              Alias de Mercado Pago / CVU *
+            <label style="font-size:0.75rem; color:#38bdf8; display:block; margin-bottom:4px; font-weight:700;">
+              💙 Mercado Pago: Alias / CVU *
             </label>
             <input type="text" id="cfg-mp-alias" class="input-field" style="margin:0;" placeholder="ej. 10.cholo" value="10.cholo">
           </div>
           <div>
+            <label style="font-size:0.75rem; color:#c084fc; display:block; margin-bottom:4px; font-weight:700;">
+              💜 Prex: Alias *
+            </label>
+            <input type="text" id="cfg-prex-alias" class="input-field" style="margin:0;" placeholder="ej. 10.choloprex" value="10.choloprex">
+          </div>
+          <div>
+            <label style="font-size:0.75rem; color:#60a5fa; display:block; margin-bottom:4px; font-weight:700;">
+              🅿️ PayPal: Correo receptor *
+            </label>
+            <input type="email" id="cfg-paypal-email" class="input-field" style="margin:0;" placeholder="ej. cholose99@gmail.com" value="cholose99@gmail.com">
+          </div>
+          <div>
             <label style="font-size:0.75rem; color:#cbd5e1; display:block; margin-bottom:4px; font-weight:700;">
-              Importe de Pase para Pruebas Reales (ARS) *
+              Importe ARS (MP / Prex)
             </label>
             <input type="number" id="cfg-mp-price" class="input-field" style="margin:0;" placeholder="1000" value="1000">
+          </div>
+          <div>
+            <label style="font-size:0.75rem; color:#cbd5e1; display:block; margin-bottom:4px; font-weight:700;">
+              Importe USD (PayPal Internacional)
+            </label>
+            <input type="number" id="cfg-paypal-price" class="input-field" style="margin:0;" placeholder="1.0" value="1.0" step="0.5">
+          </div>
+          <div>
+            <label style="font-size:0.75rem; color:#cbd5e1; display:block; margin-bottom:4px; font-weight:700;">
+              Link de Cobro MP (opcional)
+            </label>
+            <input type="url" id="cfg-mp-link" class="input-field" style="margin:0;" placeholder="https://mpago.la/...">
           </div>
         </div>
         <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
           <div style="font-size:0.75rem; color:#94a3b8;">
-            El turista verá en su celular el botón para pagar exactamente este importe y el alias <strong>10.cholo</strong>.
+            Configuración activa: los turistas pueden elegir entre Mercado Pago (10.cholo), Prex (10.choloprex) y PayPal (cholose99@gmail.com).
           </div>
-          <button class="btn-action" style="background:#009ee3; color:#fff; font-weight:700;" onclick="saveMpConfig()">💾 Guardar Terminal de Cobro</button>
-        </div>
-        <div style="background:rgba(0,158,227,0.08); border:1px dashed rgba(0,158,227,0.4); border-radius:8px; padding:10px; margin-top:12px; font-size:0.78rem; color:#cbd5e1; line-height:1.45;">
-          💡 <strong>¿Cómo sacar tu enlace directo de cobro en 1 minuto?</strong><br>
-          1. Abrí la app de <strong>Mercado Pago</strong> en tu celular.<br>
-          2. Tocá en <strong>"Cobrar con link de pago"</strong> (o "Cobrar con Point / Link").<br>
-          3. Ingresá el monto: <strong>$1.000</strong>.<br>
-          4. Tocá en <strong>"Crear link"</strong> y luego <strong>"Copiar"</strong> (te dará un enlace que empieza con <code>https://mpago.la/...</code>).<br>
-          5. Pegalo en la casilla de arriba y tocá <strong>"Guardar Terminal de Cobro"</strong>.<br>
-          <em>(Si lo dejás vacío, la app le copiará automáticamente tu Alias <strong>10.cholo</strong> para que te transfiera directo desde cualquier banco o app).</em>
+          <button class="btn-action" style="background:#10b981; color:#fff; font-weight:700;" onclick="saveMpConfig()">💾 Guardar Cuentas de Cobro</button>
         </div>
       </div>
 
@@ -1047,31 +1056,47 @@
       if (typeof APP_DATA !== "undefined" && APP_DATA.config) {
         if (APP_DATA.config.mpLink && document.getElementById("cfg-mp-link")) document.getElementById("cfg-mp-link").value = APP_DATA.config.mpLink;
         if (APP_DATA.config.mpAlias && document.getElementById("cfg-mp-alias")) document.getElementById("cfg-mp-alias").value = APP_DATA.config.mpAlias;
+        if (APP_DATA.config.prexAlias && document.getElementById("cfg-prex-alias")) document.getElementById("cfg-prex-alias").value = APP_DATA.config.prexAlias;
+        if (APP_DATA.config.paypalEmail && document.getElementById("cfg-paypal-email")) document.getElementById("cfg-paypal-email").value = APP_DATA.config.paypalEmail;
         if (APP_DATA.config.passPriceArs && document.getElementById("cfg-mp-price")) document.getElementById("cfg-mp-price").value = APP_DATA.config.passPriceArs;
+        if (APP_DATA.config.passPriceUsd && document.getElementById("cfg-paypal-price")) document.getElementById("cfg-paypal-price").value = APP_DATA.config.passPriceUsd;
       }
       const savedLink = localStorage.getItem("bsas_mp_link");
       if (savedLink && document.getElementById("cfg-mp-link")) document.getElementById("cfg-mp-link").value = savedLink;
       const savedAlias = localStorage.getItem("bsas_mp_alias");
       if (savedAlias && document.getElementById("cfg-mp-alias")) document.getElementById("cfg-mp-alias").value = savedAlias;
+      const savedPrex = localStorage.getItem("bsas_prex_alias");
+      if (savedPrex && document.getElementById("cfg-prex-alias")) document.getElementById("cfg-prex-alias").value = savedPrex;
+      const savedPaypal = localStorage.getItem("bsas_paypal_email");
+      if (savedPaypal && document.getElementById("cfg-paypal-email")) document.getElementById("cfg-paypal-email").value = savedPaypal;
     }
 
     async function saveMpConfig() {
       const mpLink = document.getElementById("cfg-mp-link") ? document.getElementById("cfg-mp-link").value.trim() : "";
       const mpAlias = document.getElementById("cfg-mp-alias") ? document.getElementById("cfg-mp-alias").value.trim() : "10.cholo";
+      const prexAlias = document.getElementById("cfg-prex-alias") ? document.getElementById("cfg-prex-alias").value.trim() : "10.choloprex";
+      const paypalEmail = document.getElementById("cfg-paypal-email") ? document.getElementById("cfg-paypal-email").value.trim() : "cholose99@gmail.com";
       const mpPrice = document.getElementById("cfg-mp-price") ? (parseInt(document.getElementById("cfg-mp-price").value, 10) || 1000) : 1000;
+      const paypalPrice = document.getElementById("cfg-paypal-price") ? (parseFloat(document.getElementById("cfg-paypal-price").value) || 1.0) : 1.0;
 
       localStorage.setItem("bsas_mp_link", mpLink);
       localStorage.setItem("bsas_mp_alias", mpAlias);
+      localStorage.setItem("bsas_prex_alias", prexAlias);
+      localStorage.setItem("bsas_paypal_email", paypalEmail);
       localStorage.setItem("bsas_mp_price", mpPrice);
+      localStorage.setItem("bsas_paypal_price", paypalPrice);
 
       if (typeof APP_DATA !== "undefined" && APP_DATA.config) {
         APP_DATA.config.mpLink = mpLink;
         APP_DATA.config.mpAlias = mpAlias;
+        APP_DATA.config.prexAlias = prexAlias;
+        APP_DATA.config.paypalEmail = paypalEmail;
         APP_DATA.config.passPriceArs = mpPrice;
+        APP_DATA.config.passPriceUsd = paypalPrice;
       }
 
-      scheduleAutoSync("Terminal Mercado Pago");
-      alert("✅ ¡Terminal de Cobro guardada y sincronizada!\nMonto: $" + mpPrice + " ARS\nAlias: " + mpAlias);
+      scheduleAutoSync("Cuentas de Cobro MP, Prex y PayPal");
+      alert("✅ ¡Cuentas de Cobro guardadas y sincronizadas!\n• Mercado Pago: " + mpAlias + " ($" + mpPrice + " ARS)\n• Prex: " + prexAlias + " ($" + mpPrice + " ARS)\n• PayPal: " + paypalEmail + " ($" + paypalPrice + " USD)");
     }
 
     async function loadWaiters() {
