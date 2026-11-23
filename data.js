@@ -756,6 +756,14 @@ const APP_DATA = {
       "alias": "10.cholo",
       "pin": "1234",
       "commission_usd": 1.5
+    },
+    {
+      "id": "luna",
+      "name": "Luna",
+      "phone": "1122446695",
+      "alias": "lunareni.mp",
+      "pin": "1221",
+      "commission_usd": 1.5
     }
   ],
   "categories": [
@@ -1127,5 +1135,5 @@ const APP_DATA = {
       "is_active": 1
     }
   ],
-  "version": "20261118_1795454686642"
+  "version": "20261118_1795454796585"
 };
