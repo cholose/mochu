@@ -2265,6 +2265,8 @@ function clearCurrentRoute() {
   state.currentRouteTarget = null;
   const panel = document.getElementById("route-panel");
   if (panel) panel.style.display = "none";
+  const topControls = document.querySelector(".map-controls-top");
+  if (topControls) topControls.style.display = "";
 }
 
 function switchRouteMode(mode) {
@@ -2335,6 +2337,8 @@ async function calculateAndDrawRoute(start, dest, place, mode, isSimulated) {
   clearCurrentRouteLayersOnly();
 
   const panel = document.getElementById("route-panel");
+  const topControls = document.querySelector(".map-controls-top");
+  if (topControls) topControls.style.display = "none";
   const destTitle = document.getElementById("route-dest-title");
   const modeIcon = document.getElementById("route-mode-icon");
   const summaryStats = document.getElementById("route-summary-stats");
@@ -2410,7 +2414,8 @@ async function calculateAndDrawRoute(start, dest, place, mode, isSimulated) {
   }).addTo(state.map);
 
   state.map.fitBounds(state.currentRouteLayer.getBounds(), {
-    padding: [70, 70],
+    paddingTopLeft: [25, 65],
+    paddingBottomRight: [25, 75],
     maxZoom: 16
   });
 

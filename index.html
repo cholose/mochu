@@ -12,7 +12,7 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 
   <!-- App Styles -->
-  <link rel="stylesheet" href="style.css?v=20261122_01">
+  <link rel="stylesheet" href="style.css?v=20261122_03">
   <style>
     .activation-overlay {
       position: fixed;
@@ -402,21 +402,24 @@
     <span>⬇️ Soltá para recargar</span>
   </div>
 
-  <!-- Header -->
+  <!-- Header Compacto (Máximo Espacio para el Mapa) -->
   <header class="app-header">
-    <div class="brand-section">
-      <h1 id="lbl-title">📍 BsAs Local Guide</h1>
-      <div class="subtitle" id="lbl-subtitle">Recomendaciones reales de mozos</div>
-      <div id="waiter-tag" class="waiter-badge" style="display:none;"></div>
-      <button id="btn-header-tour" class="btn-tour-pill" onclick="openOnboardingTour()">👋 <span id="lbl-btn-tour">¿Primera vez?</span></button>
-      <button id="btn-header-calc" class="btn-calc-pill" onclick="openTipCalculator()">💵 <span id="lbl-btn-calc">Propina & Divisas</span></button>
-      <button id="btn-header-unlock" class="btn-unlock-pill" onclick="openUnlockModal()">🔑 Desbloquear VIP</button>
-      <div id="pass-tag" class="vip-active-pill" style="display:none;"></div>
+    <div class="header-top-row">
+      <div class="brand-section">
+        <h1 id="lbl-title">📍 BsAs Local Guide</h1>
+      </div>
+      <div class="lang-switch">
+        <button class="lang-btn active" data-lang="es">🇪🇸</button>
+        <button class="lang-btn" data-lang="en">🇺🇸</button>
+        <button class="lang-btn" data-lang="pt">🇧🇷</button>
+      </div>
     </div>
-    <div class="lang-switch">
-      <button class="lang-btn active" data-lang="es">🇪🇸</button>
-      <button class="lang-btn" data-lang="en">🇺🇸</button>
-      <button class="lang-btn" data-lang="pt">🇧🇷</button>
+    <div class="header-badges-row">
+      <div id="waiter-tag" class="waiter-badge" style="display:none;"></div>
+      <div id="pass-tag" class="vip-active-pill" style="display:none;"></div>
+      <button id="btn-header-unlock" class="btn-unlock-pill" onclick="openUnlockModal()">🔑 Desbloquear VIP</button>
+      <button id="btn-header-calc" class="btn-calc-pill" onclick="openTipCalculator()">💵 <span id="lbl-btn-calc">Propina & Divisas</span></button>
+      <button id="btn-header-tour" class="btn-tour-pill" onclick="openOnboardingTour()">👋 <span id="lbl-btn-tour">¿Primera vez?</span></button>
     </div>
   </header>
 
@@ -469,27 +472,26 @@
       </button>
     </div>
 
-    <!-- Panel flotante de navegación cuando hay una ruta activa -->
+    <!-- Panel flotante de navegación cuando hay una ruta activa (Slim & Compacto) -->
     <div id="route-panel" class="route-floating-panel" style="display:none;">
       <div class="route-panel-main">
-        <div style="font-size:1.4rem; margin-right:10px;" id="route-mode-icon">🚶‍♂️</div>
-        <div style="flex:1;">
-          <div style="font-size:0.75rem; color:#94a3b8;" id="route-to-label">Ruta trazada hacia:</div>
-          <div style="font-weight:700; color:#fff; font-size:0.95rem;" id="route-dest-title">Lugar</div>
-          <div style="font-size:0.82rem; color:#38bdf8; font-weight:700; margin-top:2px;" id="route-summary-stats">a 850m • ~11 min</div>
+        <div style="font-size:1.2rem; margin-right:8px;" id="route-mode-icon">🚶‍♂️</div>
+        <div style="flex:1; min-width:0; overflow:hidden;">
+          <div style="font-weight:800; color:#fff; font-size:0.86rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" id="route-dest-title">Lugar</div>
+          <div style="font-size:0.75rem; color:#38bdf8; font-weight:700;" id="route-summary-stats">a 850m • ~11 min</div>
         </div>
-        <div style="display:flex; flex-direction:column; gap:4px; align-items:flex-end;">
-          <button type="button" class="btn-route-close" onclick="clearCurrentRoute()" title="Quitar camino">✕</button>
-          <div style="display:flex; gap:4px; margin-top:2px;">
+        <div style="display:flex; gap:6px; align-items:center; margin-left:8px;">
+          <div style="display:flex; gap:2px; background:rgba(255,255,255,0.06); padding:2px; border-radius:6px;">
             <button type="button" class="btn-mode-toggle active" id="btn-toggle-walk" onclick="switchRouteMode('walking')">🚶</button>
             <button type="button" class="btn-mode-toggle" id="btn-toggle-drive" onclick="switchRouteMode('driving')">🚗</button>
           </div>
+          <button type="button" class="btn-route-close" onclick="clearCurrentRoute()" title="Quitar camino">✕</button>
         </div>
       </div>
     </div>
 
     <div id="map"></div>
-    <button id="btn-locate" class="locate-btn" title="Mi ubicación" style="bottom: calc(130px + env(safe-area-inset-bottom, 10px));">📍</button>
+    <button id="btn-locate" class="locate-btn" title="Mi ubicación">📍</button>
   </main>
 
   <!-- TAB: EVENTOS & AGENDAS EN VIVO -->
@@ -737,7 +739,7 @@
   </div>
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <script src="data.js?v=20261122_02"></script>
-  <script src="app.js?v=20261122_02"></script>
+  <script src="data.js?v=20261122_03"></script>
+  <script src="app.js?v=20261122_03"></script>
 </body>
 </html>

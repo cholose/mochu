@@ -38,44 +38,76 @@ body {
   overscroll-behavior-y: auto;
 }
 
-/* Header */
+/* Header Compacto (Máximo Espacio para el Mapa) */
 .app-header {
-  background: rgba(15, 23, 42, 0.95);
-  backdrop-filter: blur(8px);
-  padding: 12px 16px;
+  background: rgba(15, 23, 42, 0.96);
+  backdrop-filter: blur(10px);
+  padding: 8px 12px 6px 12px;
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  flex-direction: column;
+  gap: 5px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   z-index: 1000;
   touch-action: pan-y;
   user-select: none;
 }
 
+.header-top-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+.brand-section {
+  display: flex;
+  align-items: center;
+}
+
 .brand-section h1 {
-  font-size: 1.15rem;
-  font-weight: 700;
+  font-size: 1.05rem;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: #fff;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.header-badges-row {
   display: flex;
   align-items: center;
   gap: 6px;
-  color: #fff;
+  width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  white-space: nowrap;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+  padding: 1px 0;
 }
 
-.brand-section .subtitle {
-  font-size: 0.75rem;
-  color: var(--text-muted);
+.header-badges-row::-webkit-scrollbar {
+  display: none;
+}
+
+.header-badges-row > * {
+  flex-shrink: 0;
+  margin: 0 !important;
 }
 
 .waiter-badge {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
   background: rgba(16, 185, 129, 0.2);
   color: #34d399;
   border: 1px solid rgba(16, 185, 129, 0.4);
-  font-size: 0.7rem;
-  font-weight: 600;
-  padding: 2px 8px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 3px 8px;
   border-radius: 999px;
-  margin-top: 3px;
+  white-space: nowrap;
 }
 
 .lang-switch {
@@ -210,19 +242,29 @@ body {
 
 .map-quick-toggles {
   position: absolute;
-  bottom: calc(20px + env(safe-area-inset-bottom, 10px));
-  left: 16px;
-  right: 16px;
-  max-width: calc(100% - 32px);
+  bottom: calc(14px + env(safe-area-inset-bottom, 8px));
+  left: 10px;
+  right: 68px; /* Espacio 100% libre y reservado para el botón de ubicación */
   z-index: 1000;
   display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
+  gap: 6px;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  overflow-y: hidden;
+  white-space: nowrap;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
   pointer-events: none;
+  padding: 2px 0;
+}
+
+.map-quick-toggles::-webkit-scrollbar {
+  display: none;
 }
 
 .map-quick-toggles > * {
   pointer-events: auto;
+  flex-shrink: 0;
 }
 
 .safety-toggle-btn {
@@ -382,17 +424,17 @@ body {
 /* Locate Me Button */
 .locate-btn {
   position: absolute;
-  bottom: calc(130px + env(safe-area-inset-bottom, 10px));
-  right: 16px;
-  z-index: 1000;
+  bottom: calc(14px + env(safe-area-inset-bottom, 8px));
+  right: 12px;
+  z-index: 1001;
   background: var(--card-bg);
   color: #fff;
-  border: 1px solid rgba(255,255,255,0.2);
-  width: 48px;
-  height: 48px;
+  border: 1.5px solid rgba(255,255,255,0.25);
+  width: 46px;
+  height: 46px;
   border-radius: 50%;
-  font-size: 1.3rem;
-  box-shadow: var(--shadow);
+  font-size: 1.25rem;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.5);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -405,15 +447,15 @@ body {
 
 @media (max-width: 600px) {
   .locate-btn {
-    bottom: calc(130px + env(safe-area-inset-bottom, 10px));
-    right: 14px;
+    bottom: calc(14px + env(safe-area-inset-bottom, 8px));
+    right: 12px;
     width: 44px;
     height: 44px;
     font-size: 1.2rem;
   }
   .safety-toggle-btn {
-    padding: 7px 12px;
-    font-size: 0.75rem;
+    padding: 6px 11px;
+    font-size: 0.74rem;
   }
 }
 
@@ -584,19 +626,19 @@ body {
 
 .route-floating-panel {
   position: absolute;
-  top: 98px;
-  left: 10px;
-  right: 10px;
-  max-width: 520px;
+  top: 8px;
+  left: 8px;
+  right: 8px;
+  max-width: 480px;
   margin: 0 auto;
-  z-index: 1001;
-  background: rgba(15, 23, 42, 0.95);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(56, 189, 248, 0.4);
-  border-radius: 14px;
-  padding: 10px 14px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
-  animation: slideDown 0.25s ease-out;
+  z-index: 1002;
+  background: rgba(15, 23, 42, 0.94);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(56, 189, 248, 0.45);
+  border-radius: 12px;
+  padding: 6px 10px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.55);
+  animation: slideDown 0.2s ease-out;
 }
 
 @keyframes slideDown {
