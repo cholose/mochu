@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1e293b"/>
+      <stop offset="100%" stop-color="#0f172a"/>
+    </linearGradient>
+    <linearGradient id="pinGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f87171"/>
+      <stop offset="100%" stop-color="#dc2626"/>
+    </linearGradient>
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#000" flood-opacity="0.6"/>
+      <feDropShadow dx="0" dy="2" stdDeviation="4" flood-color="#38bdf8" flood-opacity="0.4"/>
+    </filter>
+  </defs>
+  
+  <!-- Background with rounded corners -->
+  <rect width="512" height="512" rx="112" fill="url(#bgGrad)" stroke="#38bdf8" stroke-width="8"/>
+  
+  <!-- Subtle circular accent -->
+  <circle cx="256" cy="230" r="160" fill="none" stroke="rgba(16, 185, 129, 0.25)" stroke-width="4" stroke-dasharray="8 8"/>
+  
+  <!-- Location Pin -->
+  <g filter="url(#glow)">
+    <!-- Pin Body -->
+    <path d="M 256,90 C 185,90 128,147 128,218 C 128,305 256,410 256,410 C 256,410 384,305 384,218 C 384,147 327,90 256,90 Z" fill="url(#pinGrad)" stroke="#ffffff" stroke-width="4"/>
+    <!-- Center Hole -->
+    <circle cx="256" cy="215" r="48" fill="#0f172a" stroke="#38bdf8" stroke-width="6"/>
+  </g>
+  
+  <!-- City Badge Text -->
+  <text x="256" y="470" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-weight="900" font-size="34" fill="#38bdf8" letter-spacing="4">BUENOS AIRES</text>
+</svg>

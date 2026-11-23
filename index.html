@@ -8,11 +8,21 @@
   <meta http-equiv="Expires" content="0">
   <title>BsAs Local Guide - Mapa y Recomendaciones</title>
   
+  <!-- PWA Manifest & Mobile App Meta -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#0f172a">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="BsAs Guide">
+  <link rel="apple-touch-icon" href="icon-192.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+  <link rel="icon" type="image/svg+xml" href="icon.svg">
+
   <!-- Leaflet Map CSS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 
   <!-- App Styles -->
-  <link rel="stylesheet" href="style.css?v=20261122_03">
+  <link rel="stylesheet" href="style.css?v=20261123_01">
   <style>
     .activation-overlay {
       position: fixed;
@@ -420,6 +430,7 @@
       <button id="btn-header-unlock" class="btn-unlock-pill" onclick="openUnlockModal()">🔑 Desbloquear VIP</button>
       <button id="btn-header-calc" class="btn-calc-pill" onclick="openTipCalculator()">💵 <span id="lbl-btn-calc">Propina & Divisas</span></button>
       <button id="btn-header-tour" class="btn-tour-pill" onclick="openOnboardingTour()">👋 <span id="lbl-btn-tour">¿Primera vez?</span></button>
+      <button id="btn-install-pwa" class="btn-install-pill" onclick="triggerPwaInstall()" style="display:none;">📲 <span id="lbl-btn-install">Instalar App</span></button>
     </div>
   </header>
 
@@ -739,7 +750,7 @@
   </div>
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <script src="data.js?v=20261122_03"></script>
-  <script src="app.js?v=20261122_03"></script>
+  <script src="data.js?v=20261123_01"></script>
+  <script src="app.js?v=20261123_01"></script>
 </body>
 </html>

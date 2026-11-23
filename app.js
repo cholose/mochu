@@ -29,8 +29,65 @@ const state = {
   exchangeRates: { USD: 1180, EUR: 1280, BRL: 215, updated: false }
 };
 
+// ==================== PWA & SERVICE WORKER ====================
+let deferredPwaPrompt = null;
+
+function initPwaSupport() {
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('./sw.js').then((reg) => {
+        console.log('✅ PWA Service Worker registrado con éxito:', reg.scope);
+      }).catch((err) => {
+        console.warn('Aviso registrando Service Worker:', err);
+      });
+    });
+  }
+
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPwaPrompt = e;
+    const btn = document.getElementById('btn-install-pwa');
+    if (btn) btn.style.display = 'inline-flex';
+  });
+
+  window.addEventListener('appinstalled', () => {
+    deferredPwaPrompt = null;
+    const btn = document.getElementById('btn-install-pwa');
+    if (btn) btn.style.display = 'none';
+    console.log('🎉 PWA instalada con éxito en el dispositivo');
+  });
+
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+  const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+  if (isIOS && !isStandalone) {
+    const btn = document.getElementById('btn-install-pwa');
+    if (btn) btn.style.display = 'inline-flex';
+  }
+}
+
+function triggerPwaInstall() {
+  if (deferredPwaPrompt) {
+    deferredPwaPrompt.prompt();
+    deferredPwaPrompt.userChoice.then((choiceResult) => {
+      if (choiceResult.outcome === 'accepted') {
+        const btn = document.getElementById('btn-install-pwa');
+        if (btn) btn.style.display = 'none';
+      }
+      deferredPwaPrompt = null;
+    });
+  } else {
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+    if (isIOS) {
+      alert("📲 Para instalar BsAs Guide en tu iPhone:\n\n1. Tocá el botón Compartir ⎋ (abajo al centro en Safari).\n2. Deslizá y elegí 'Agregar a pantalla de inicio' ➕.\n\n¡Listo! Te quedará el icono como una app nativa.");
+    } else {
+      alert("📲 Podés instalar esta app desde el menú de tu navegador (los 3 puntos ⋮ arriba a la derecha) eligiendo 'Instalar aplicación' o 'Agregar a pantalla principal'.");
+    }
+  }
+}
+
 // Inicialización
 document.addEventListener("DOMContentLoaded", async () => {
+  initPwaSupport();
   await initWaiterTracking();
   initLanguage();
   initTabs();
