@@ -751,10 +751,10 @@ const APP_DATA = {
     },
     {
       "id": "cholo",
-      "name": "cholo",
+      "name": "Cholo",
       "phone": "",
       "alias": "10.cholo",
-      "pin": "1234",
+      "pin": "9999",
       "commission_usd": 1.5
     },
     {
@@ -1135,5 +1135,5 @@ const APP_DATA = {
       "is_active": 1
     }
   ],
-  "version": "20261123_01"
+  "version": "20261123_02"
 };

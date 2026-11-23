@@ -11,7 +11,7 @@
   <!-- Leaflet CSS y JS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <script src="data.js?v=20261123_01"></script>
+  <script src="data.js?v=20261123_02"></script>
   <link rel="stylesheet" href="style.css?v=20261120_05">
 
   <style>
@@ -3340,7 +3340,7 @@ ${qrImageUrl}
         const isExpired = t.expires_at ? t.expires_at <= now : false;
         const daysLeft = t.expires_at ? Math.max(0, Math.ceil((t.expires_at - now) / 86400000)) : 21;
         const createdDate = new Date(t.created_at || now).toLocaleDateString("es-AR", { day: "2-digit", month: "2-digit", year: "numeric" });
-        const waiter = (allWaiters && allWaiters.find(w => w.id === t.waiter_id)) || { name: t.waiter_id || "cholo" };
+        const waiter = (allWaiters && allWaiters.find(w => w.id === t.waiter_id)) || { name: t.waiter_id || "Isaias" };
         const statusBadge = isExpired
           ? `<span style="background:#ef4444; color:#fff; font-size:0.7rem; font-weight:700; padding:2px 8px; border-radius:999px;">🔴 Vencido</span>`
           : `<span style="background:#065f46; color:#a7f3d0; font-size:0.7rem; font-weight:700; padding:2px 8px; border-radius:999px;">🟢 Activo (${daysLeft}d restantes)</span>`;
@@ -3418,7 +3418,7 @@ ${qrImageUrl}
       e.preventDefault();
       const name = document.getElementById("tourist-name").value.trim();
       const contact = document.getElementById("tourist-contact").value.trim() || "Turista Amigo";
-      const waiterId = document.getElementById("tourist-waiter-id").value || "cholo";
+      const waiterId = document.getElementById("tourist-waiter-id").value || "isaias";
       const paymentMethod = document.getElementById("tourist-payment-method").value;
       const days = parseInt(document.getElementById("tourist-days").value, 10) || 21;
 

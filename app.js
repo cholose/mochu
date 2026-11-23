@@ -125,19 +125,30 @@ async function initWaiterTracking() {
     state.waiterId = localStorage.getItem("bsas_waiter") || "isaias";
   }
 
-  try {
-    const res = await fetch(`/api/waiter-info?id=${state.waiterId}`);
-    if (res.ok) {
-      const data = await res.json();
-      state.waiterName = data.name;
+  // Buscar primero en los mozos registrados en APP_DATA.waiters
+  const waiters = (typeof APP_DATA !== "undefined" && Array.isArray(APP_DATA.waiters)) ? APP_DATA.waiters : [];
+  const found = waiters.find(w => w.id === state.waiterId || w.id.toLowerCase() === state.waiterId.toLowerCase());
+  if (found && found.name) {
+    state.waiterName = found.name;
+  } else {
+    try {
+      const res = await fetch(`/api/waiter-info?id=${state.waiterId}`);
+      if (res.ok) {
+        const data = await res.json();
+        state.waiterName = data.name;
+      } else {
+        state.waiterName = capitalize(state.waiterId);
+      }
+    } catch (e) {
+      state.waiterName = capitalize(state.waiterId);
     }
-  } catch (e) {
-    state.waiterName = capitalize(state.waiterId);
   }
 
   const waiterTag = document.getElementById("waiter-tag");
   if (waiterTag) {
-    const i18n = APP_DATA.i18n[state.currentLang];
+    const i18n = (typeof APP_DATA !== "undefined" && APP_DATA.i18n && APP_DATA.i18n[state.currentLang])
+      ? APP_DATA.i18n[state.currentLang]
+      : { recommendedBy: "Atendido por" };
     waiterTag.textContent = `${i18n.recommendedBy}: ${state.waiterName}`;
     waiterTag.style.display = "inline-block";
   }
@@ -485,6 +496,34 @@ function openUnlockModal() {
   modal.style.display = "flex";
   detectWalletButton();
 
+  // Asegurar que el mozo asignado esté reflejado en el banner y formularios
+  const assignedId = state.waiterId || localStorage.getItem("bsas_waiter") || "isaias";
+  const waiters = (typeof APP_DATA !== "undefined" && Array.isArray(APP_DATA.waiters)) ? APP_DATA.waiters : [];
+  const assignedWaiter = waiters.find(w => w.id === assignedId || w.id.toLowerCase() === assignedId.toLowerCase());
+  const waiterName = assignedWaiter ? assignedWaiter.name : (state.waiterName || capitalize(assignedId));
+
+  const banner = document.getElementById("activation-waiter-banner");
+  if (banner) {
+    banner.textContent = `👨‍🍳 ${waiterName}`;
+  }
+
+  const pinInput = document.getElementById("input-pin-code");
+  if (pinInput) {
+    pinInput.placeholder = `PIN de 4 dígitos de ${waiterName}`;
+  }
+  const pinInputPending = document.getElementById("input-pin-code-pending");
+  if (pinInputPending) {
+    pinInputPending.placeholder = `PIN de ${waiterName}`;
+  }
+  const summaryCash = document.getElementById("lbl-cash-mozo-summary");
+  if (summaryCash) {
+    summaryCash.textContent = `¿Le pagaste en efectivo a ${waiterName}? Ingresar PIN`;
+  }
+  const btnPin = document.getElementById("btn-submit-tourist-pin");
+  if (btnPin) {
+    btnPin.textContent = `🔓 Validar PIN de ${waiterName}`;
+  }
+
   const isPending = state.pass && state.pass.status === "pending_payment";
   const viewCheckout = document.getElementById("unlock-view-checkout");
   const viewPending = document.getElementById("unlock-view-pending");
@@ -651,9 +690,14 @@ function showPendingPassView(pass) {
   const codeEl = document.getElementById("pending-pass-code-display");
   if (codeEl) codeEl.textContent = pass.id;
 
+  const waiterId = pass.waiter_id || state.waiterId || "isaias";
+  const waiters = (typeof APP_DATA !== "undefined" && Array.isArray(APP_DATA.waiters)) ? APP_DATA.waiters : [];
+  const found = waiters.find(w => w.id === waiterId || w.id.toLowerCase() === waiterId.toLowerCase());
+  const waiterName = found ? found.name : capitalize(waiterId);
+
   const infoEl = document.getElementById("pending-pass-info-display");
   if (infoEl) {
-    infoEl.innerHTML = `Comprobante: <strong style="color:#38bdf8;">${pass.receipt_id || 'Registrado'}</strong> (${pass.payment_method}).<br>Tu solicitud fue enviada a tu mozo <strong>${capitalize(pass.waiter_id || 'Isaias')}</strong> para acreditación.`;
+    infoEl.innerHTML = `Comprobante: <strong style="color:#38bdf8;">${pass.receipt_id || 'Registrado'}</strong> (${pass.payment_method}).<br>Tu solicitud fue enviada a tu mozo <strong>${waiterName}</strong> para acreditación.`;
   }
 }
 
@@ -661,14 +705,15 @@ function notifyWaiterWhatsApp() {
   if (!state.pass) return;
   const waiterId = state.pass.waiter_id || state.waiterId || "isaias";
   const waiters = (typeof APP_DATA !== "undefined" && Array.isArray(APP_DATA.waiters)) ? APP_DATA.waiters : [];
-  const waiter = waiters.find(w => w.id === waiterId);
+  const waiter = waiters.find(w => w.id === waiterId || w.id.toLowerCase() === waiterId.toLowerCase());
+  const waiterName = waiter ? waiter.name : capitalize(waiterId);
 
   let rawPhone = (waiter && waiter.phone) ? waiter.phone : ((APP_DATA && APP_DATA.config && APP_DATA.config.agencyWhatsApp) || "5491122334455");
   let cleanPhone = rawPhone.replace(/\D/g, "");
   if (cleanPhone.startsWith("0")) cleanPhone = cleanPhone.slice(1);
   if (cleanPhone.length === 10) cleanPhone = "549" + cleanPhone;
 
-  const msg = `👋 ¡Hola! Acabo de transferir/pagar el Pase VIP en BsAs Local Guide:\n\n👤 Turista: *${state.pass.tourist_name}*\n🏷️ Código de Pase: *${state.pass.id}*\n💳 Método: ${state.pass.payment_method}\n🧾 Comprobante / Transacción: *${state.pass.receipt_id || 'Enviado'}*\n👨‍🍳 Mozo: ${capitalize(waiterId)}\n\n¿Me podrías confirmar y activar el acceso por favor? ¡Muchas gracias!`;
+  const msg = `👋 ¡Hola! Acabo de transferir/pagar el Pase VIP en BsAs Local Guide:\n\n👤 Turista: *${state.pass.tourist_name}*\n🏷️ Código de Pase: *${state.pass.id}*\n💳 Método: ${state.pass.payment_method}\n🧾 Comprobante / Transacción: *${state.pass.receipt_id || 'Enviado'}*\n👨‍🍳 Mozo: ${waiterName}\n\n¿Me podrías confirmar y activar el acceso por favor? ¡Muchas gracias!`;
   const waUrl = cleanPhone 
     ? `https://wa.me/${cleanPhone}?text=${encodeURIComponent(msg)}` 
     : `https://wa.me/?text=${encodeURIComponent(msg)}`;
@@ -725,15 +770,24 @@ async function submitTouristPin(source = 'default') {
     return;
   }
 
-  // Validar contra mozos reales registrados en APP_DATA
+  // Mozo asignado obligatoriamente a este cliente (por link ?m= o guardado en el dispositivo)
+  const assignedId = state.waiterId || localStorage.getItem("bsas_waiter") || "isaias";
   const waiters = (typeof APP_DATA !== "undefined" && Array.isArray(APP_DATA.waiters)) ? APP_DATA.waiters : [];
-  const matchedWaiter = waiters.find(w => String(w.pin).trim() === pin);
+  let assignedWaiter = waiters.find(w => w.id === assignedId || w.id.toLowerCase() === assignedId.toLowerCase());
+  const assignedName = assignedWaiter ? assignedWaiter.name : (state.waiterName || capitalize(assignedId));
 
-  if (!matchedWaiter) {
-    alert("⚠️ PIN incorrecto. Por favor pedile el PIN de activación a tu mozo en la mesa.");
+  // VALIDACIÓN ESTRICTA: Solo se acepta el PIN del mozo asignado a esta sesión.
+  // Es imposible que el PIN de otro mozo (ej. Luna con PIN 1221) desbloquee un enlace perteneciente a Isaias.
+  if (!assignedWaiter || !assignedWaiter.pin || String(assignedWaiter.pin).trim() !== pin) {
+    alert(`⛔ PIN incorrecto.\n\nEste enlace de atención pertenece exclusivamente al mozo ${assignedName}.\nSolo podés ingresar el PIN de 4 dígitos de ${assignedName}.\n\n(Si te está atendiendo otro mozo, pedile que te comparta su propio código QR).`);
+    if (pinInput) {
+      pinInput.value = "";
+      pinInput.focus();
+    }
     return;
   }
 
+  const matchedWaiter = assignedWaiter;
   const deviceToken = localStorage.getItem("bsas_device_token") || ("dev_" + Math.random().toString(36).substring(2, 10));
   const now = Date.now();
   const passId = (state.pass && state.pass.id) ? state.pass.id : ("PASS-PIN-" + Date.now().toString(36).toUpperCase());
@@ -773,7 +827,7 @@ async function submitTouristPin(source = 'default') {
   // Guardar en la nube passes.json
   await savePassToGitHubCloud(newPass);
 
-  alert(`🎉 ¡Excelente ${name}! Tu acceso VIP fue activado en el acto por tu mozo ${matchedWaiter.name} por 21 días.`);
+  alert(`🎉 ¡Excelente ${name}!\n\nTu acceso VIP fue activado en el acto por tu mozo ${matchedWaiter.name} por 21 días.`);
 }
 
 // 3. Carga de lugares
