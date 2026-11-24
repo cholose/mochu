@@ -140,16 +140,5 @@
     "created_at": 1795289574727,
     "expires_at": 1797103974727,
     "is_active": 1
-  },
-  {
-    "id": "pass_mwqt0se8_85qo",
-    "tourist_name": "Luna",
-    "tourist_contact": "Mesa / Local",
-    "waiter_id": "isaias",
-    "payment_method": "PIN Mozo (Efectivo)",
-    "amount_paid_usd": 3,
-    "created_at": 1795289511104,
-    "expires_at": 1797103911104,
-    "is_active": 1
   }
 ]
