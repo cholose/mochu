@@ -1167,22 +1167,7 @@ const APP_DATA = {
       "status": "pending_payment",
       "created_at": 1795294115615,
       "is_active": 0
-    },
-    {
-      "id": "pass_7d23cfe5fbdc",
-      "device_token": "dev_seed_juan",
-      "tourist_name": "Juan",
-      "tourist_contact": "3577",
-      "waiter_id": "isaias",
-      "payment_method": "Efectivo al Mozo",
-      "amount_paid_ars": 1000,
-      "amount_paid_usd": 3,
-      "status": "active",
-      "created_at": 1794533347195,
-      "activated_at": 1794533347195,
-      "expires_at": 1796347747195,
-      "is_active": 1
     }
   ],
-  "version": "20261124_1795562138347"
+  "version": "20261124_1795562140889"
 };
