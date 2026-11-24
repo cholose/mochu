@@ -1228,9 +1228,10 @@ const APP_DATA = {
       "payment_method": "Mercado Pago",
       "amount_paid_usd": 3,
       "created_at": 1795230908598,
-      "expires_at": 1797045308598,
-      "is_active": 1
+      "expires_at": 1798859708598,
+      "is_active": 1,
+      "status": "active"
     }
   ],
-  "version": "20261124_1795562046527"
+  "version": "20261124_1795562126241"
 };
