@@ -15,6 +15,26 @@ const APP_DATA = {
   },
   "places": [
     {
+      "id": "place_mwuxkg11",
+      "category": "food",
+      "name": "Roux",
+      "neighborhood": "2300",
+      "address": "Peña 2300, C1126ABF",
+      "lat": -34.59067,
+      "lng": -58.397424,
+      "price": "$$",
+      "tag": "Recomendado",
+      "image": "https://images.unsplash.com/photo-1544025162-d76694265947?w=600",
+      "menu_url": "",
+      "is_indoor": 0,
+      "active": 1,
+      "tips": {
+        "es": "Lugar elegante y acogedor, especializado en vinos y comida latina y mediterránea fusionada.",
+        "en": "Lugar elegante y acogedor, especializado en vinos y comida latina y mediterránea fusionada.",
+        "pt": "Lugar elegante y acogedor, especializado en vinos y comida latina y mediterránea fusionada."
+      }
+    },
+    {
       "id": "place_mworlt8b",
       "category": "food",
       "name": "Tilo",
@@ -1064,6 +1084,38 @@ const APP_DATA = {
   ],
   "tourists": [
     {
+      "id": "pass_mp_MWQW3LYA",
+      "device_token": "dev_mptw0jdjwl",
+      "tourist_name": "Sabrina",
+      "tourist_contact": "1128991873",
+      "receipt_id": "Validado con PIN (Luna)",
+      "waiter_id": "cholo",
+      "payment_method": "Mercado Pago",
+      "amount_paid_ars": 1000,
+      "amount_paid_usd": 1,
+      "status": "pending_payment",
+      "created_at": 1795294681570,
+      "activated_at": 1795473539847,
+      "expires_at": 1797287939847,
+      "is_active": 0
+    },
+    {
+      "id": "PASS-PIN-MWTTJTT7",
+      "device_token": "dev_n5sj7obd6f",
+      "tourist_name": "Noah",
+      "tourist_contact": "Mesa / Local",
+      "receipt_id": "Validado con PIN (Isaias)",
+      "waiter_id": "isaias",
+      "payment_method": "Validado por Mozo (Isaias)",
+      "amount_paid_ars": 1000,
+      "amount_paid_usd": 1,
+      "status": "active",
+      "created_at": 1795471797931,
+      "activated_at": 1795471797931,
+      "expires_at": 1797286197931,
+      "is_active": 1
+    },
+    {
       "id": "pass_vip_MWR7HXCA",
       "device_token": "dev_myfiym9efd",
       "tourist_name": "Sabrina",
@@ -1104,19 +1156,6 @@ const APP_DATA = {
       "amount_paid_usd": 1,
       "status": "pending_payment",
       "created_at": 1795294693266,
-      "is_active": 0
-    },
-    {
-      "id": "pass_mp_MWQW3LYA",
-      "device_token": "dev_mptw0jdjwl",
-      "tourist_name": "Sabrina",
-      "tourist_contact": "1128991873",
-      "waiter_id": "cholo",
-      "payment_method": "Mercado Pago",
-      "amount_paid_ars": 1000,
-      "amount_paid_usd": 1,
-      "status": "pending_payment",
-      "created_at": 1795294681570,
       "is_active": 0
     },
     {
@@ -1209,5 +1248,5 @@ const APP_DATA = {
       "is_active": 1
     }
   ],
-  "version": "20261124_01"
+  "version": "20261124_1795539014925"
 };
