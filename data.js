@@ -1115,21 +1115,6 @@ const APP_DATA = {
       "is_active": 1
     },
     {
-      "id": "pass_vip_MWR64G1R",
-      "device_token": "dev_06o75s6b8z",
-      "tourist_name": "mochu",
-      "tourist_contact": "Billetera Móvil",
-      "waiter_id": "isaias",
-      "payment_method": "Billetera Móvil",
-      "amount_paid_ars": 1000,
-      "amount_paid_usd": 1,
-      "status": "active",
-      "created_at": 1795311516735,
-      "activated_at": 1795311516735,
-      "expires_at": 1797125916735,
-      "is_active": 1
-    },
-    {
       "id": "pass_mp_MWQW3UZ6",
       "device_token": "dev_myfiym9efd",
       "tourist_name": "Sabrina",
@@ -1169,5 +1154,5 @@ const APP_DATA = {
       "is_active": 0
     }
   ],
-  "version": "20261124_1795562140889"
+  "version": "20261124_1795562144227"
 };
