@@ -1208,30 +1208,7 @@ const APP_DATA = {
       "created_at": 1795289574727,
       "expires_at": 1797103974727,
       "is_active": 1
-    },
-    {
-      "id": "pass_mwqt0se8_85qo",
-      "tourist_name": "Luna",
-      "tourist_contact": "Mesa / Local",
-      "waiter_id": "isaias",
-      "payment_method": "PIN Mozo (Efectivo)",
-      "amount_paid_usd": 3,
-      "created_at": 1795289511104,
-      "expires_at": 1797103911104,
-      "is_active": 1
-    },
-    {
-      "id": "pass_mwpu4qeu_mcqd",
-      "tourist_name": "luna",
-      "tourist_contact": "Mesa / Local",
-      "waiter_id": "isaias",
-      "payment_method": "Mercado Pago",
-      "amount_paid_usd": 3,
-      "created_at": 1795230908598,
-      "expires_at": 1798859708598,
-      "is_active": 1,
-      "status": "active"
     }
   ],
-  "version": "20261124_1795562126241"
+  "version": "20261124_1795562133542"
 };
