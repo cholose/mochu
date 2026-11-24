@@ -114,20 +114,5 @@
     "activated_at": 1794533347195,
     "expires_at": 1796347747195,
     "is_active": 1
-  },
-  {
-    "id": "pass_39f61d2dbf66",
-    "device_token": "dev_seed_barby",
-    "tourist_name": "Barby",
-    "tourist_contact": "145632897",
-    "waiter_id": "isaias",
-    "payment_method": "Mercado Pago",
-    "amount_paid_ars": 1000,
-    "amount_paid_usd": 3,
-    "status": "active",
-    "created_at": 1794533466441,
-    "activated_at": 1794533466441,
-    "expires_at": 1796347866441,
-    "is_active": 1
   }
 ]
