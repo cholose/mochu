@@ -525,6 +525,80 @@ const APP_DATA = {
       }
     }
   },
+  "tangoConfig": {
+    "title": "Cenas Show de Tango & Noche Porteña",
+    "desc": "Los mejores espectáculos de tango tradicional y moderno seleccionados por los mozos. Reserva directa por WhatsApp con traslados y descuentos exclusivos."
+  },
+  "events": {
+    "header": {
+      "title": "¿Qué hacer en Buenos Aires hoy?",
+      "subtitle": "Consultá en vivo las agendas oficiales del Gobierno de la Ciudad y las mejores ferias semanales recomendadas por los mozos."
+    },
+    "officialAgendas": [
+      {
+        "id": "agenda_disfrutemos",
+        "icon": "🎭",
+        "name": "Disfrutemos BA",
+        "desc": "La cartelera cultural oficial más completa del Gobierno de la Ciudad: festivales, cine al aire libre, muestras de arte y recitales gratuitos.",
+        "url": "https://disfrutemosba.buenosaires.gob.ar/",
+        "btnText": "Abrir Agenda Disfrutemos BA"
+      },
+      {
+        "id": "agenda_turismo_ba",
+        "icon": "🌆",
+        "name": "Turismo BA Planner",
+        "desc": "Planificador interactivo oficial de la Ciudad. Armá tu itinerario día por día, descubrí paseos y organizá tus actividades.",
+        "url": "https://turismo.buenosaires.gob.ar/es/basic-page/planner",
+        "btnText": "Abrir Planificador Turismo BA"
+      },
+      {
+        "id": "agenda_teatro_corrientes",
+        "icon": "🎬",
+        "name": "Cartelera Calle Corrientes",
+        "desc": "Buenos Aires es una de las capitales mundiales del teatro. Obras, comedias y shows musicales en cartelera sobre Av. Corrientes.",
+        "url": "https://www.plateanet.com/",
+        "btnText": "Ver Cartelera de Teatro"
+      }
+    ],
+    "weeklyEvents": [
+      {
+        "id": "event_san_telmo",
+        "title": "Feria de San Telmo (Calle Defensa)",
+        "badge": "Todos los Domingos (10:00 a 18:00 hs)",
+        "desc": "12 cuadras peatonales repletas de antigüedades, artistas callejeros, parejas bailando tango al aire libre y recuerdos.",
+        "image": "https://images.unsplash.com/photo-1519567241046-7f570eee3ce6?w=600&auto=format&fit=crop&q=80",
+        "place_id": "f1",
+        "btnText": "Ver en el Mapa y Trazar Ruta"
+      },
+      {
+        "id": "event_mataderos",
+        "title": "Feria de las Tradiciones Criollas (Mataderos)",
+        "badge": "Domingos y Feriados (11:00 a 19:00 hs)",
+        "desc": "Tradición gauchesca pura: asado a la cruz, destrezas ecuestres, empanadas criollas, peñas folclóricas y artesanías de campo.",
+        "image": "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=600&auto=format&fit=crop&q=80",
+        "place_id": "f2",
+        "btnText": "Ver en el Mapa y Trazar Ruta"
+      },
+      {
+        "id": "event_recoleta",
+        "title": "Feria de Artesanos de Plaza Francia (Recoleta)",
+        "badge": "Sábados, Domingos y Feriados (11:00 a 20:00 hs)",
+        "desc": "Junto al Cementerio de Recoleta. Orfebrería en plata, cuero, mates artesanales, músicos en vivo y cafés al aire libre.",
+        "image": "https://images.unsplash.com/photo-1589802829985-817e51171b92?w=600&auto=format&fit=crop&q=80",
+        "place_id": "s4",
+        "btnText": "Ver en el Mapa y Trazar Ruta"
+      },
+      {
+        "id": "event_museos",
+        "title": "La Noche de los Museos & La Noche de las Librerías",
+        "badge": "🏛️ Mega Noches Temáticas Anuales",
+        "desc": "Más de 250 museos y centros culturales abren gratis hasta las 2:00 AM con transporte público gratuito. Además se realizan La Noche de las Pizzerías y de las Librerías.",
+        "image": "",
+        "url": "https://turismo.buenosaires.gob.ar/es/article/la-noche-de-los-museos",
+        "btnText": "Ver Fechas Oficiales Noche de los Museos"
+      }
+    ]
+  },
   "i18n": {
     "es": {
       "appTitle": "BsAs Local Guide",
@@ -1135,5 +1209,5 @@ const APP_DATA = {
       "is_active": 1
     }
   ],
-  "version": "20261123_03"
+  "version": "20261124_01"
 };

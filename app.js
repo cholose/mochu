@@ -845,14 +845,27 @@ async function loadPlaces() {
       const text = await res.text();
       const fn = new Function("let window={}; " + text + "; return (typeof APP_DATA !== 'undefined' ? APP_DATA : window.APP_DATA);");
       const freshData = fn();
-      if (freshData && freshData.places && freshData.places.length > 0) {
+      if (freshData) {
         if (freshData.categories && freshData.categories.length > 0) {
           APP_DATA.categories = freshData.categories;
         }
         if (freshData.waiters && freshData.waiters.length > 0) {
           APP_DATA.waiters = freshData.waiters;
         }
-        state.places = freshData.places.map(p => ({
+        if (freshData.events) {
+          APP_DATA.events = freshData.events;
+          renderEventsList();
+        }
+        if (freshData.tangoConfig) {
+          APP_DATA.tangoConfig = freshData.tangoConfig;
+          renderTangoList();
+        }
+        if (freshData.guide) {
+          APP_DATA.guide = freshData.guide;
+          renderGuideList();
+        }
+        if (freshData.places && freshData.places.length > 0) {
+          state.places = freshData.places.map(p => ({
           id: p.id,
           category: p.category,
           name: p.name,
@@ -881,7 +894,8 @@ async function loadPlaces() {
         return;
       }
     }
-  } catch (err) {
+  }
+} catch (err) {
     console.warn("Aviso cargando data.js de GitHub:", err);
   }
 
@@ -1914,17 +1928,21 @@ function renderTangoList() {
   const isEn = state.currentLang === "en";
   const isPt = state.currentLang === "pt";
 
+  const tangoCfg = (APP_DATA && APP_DATA.tangoConfig) ? APP_DATA.tangoConfig : null;
+  const tangoTitle = (tangoCfg && tangoCfg.title) ? tangoCfg.title : (isEn ? "Tango Shows & Buenos Aires Nightlife" : (isPt ? "Cenas Show de Tango & Noite Portenha" : "Cenas Show de Tango & Noche Porteña"));
+  const tangoDesc = (tangoCfg && tangoCfg.desc) ? tangoCfg.desc : (isEn
+    ? "Top traditional and modern musical tango dinner shows handpicked by local waitstaff. Direct WhatsApp reservations with VIP hotel transfers and discounts."
+    : (isPt
+      ? "Os melhores espetáculos de tango tradicional e moderno selecionados pelos garçons. Reserva direta via WhatsApp com traslados e descontos exclusivos."
+      : "Los mejores espectáculos de tango tradicional y moderno seleccionados por los mozos. Reserva directa por WhatsApp con traslados y descuentos exclusivos."));
+
   const headerHtml = `
     <div class="tango-header-box">
       <div style="font-size:1.15rem; font-weight:800; color:#fff; margin-bottom:4px; display:flex; align-items:center; gap:8px;">
-        <span>💃</span> ${isEn ? "Tango Shows & Buenos Aires Nightlife" : (isPt ? "Cenas Show de Tango & Noite Portenha" : "Cenas Show de Tango & Noche Porteña")}
+        <span>💃</span> ${tangoTitle}
       </div>
       <p style="font-size:0.82rem; color:#cbd5e1; line-height:1.45; margin:0;">
-        ${isEn
-          ? "Top traditional and modern musical tango dinner shows handpicked by local waitstaff. Direct WhatsApp reservations with VIP hotel transfers and discounts."
-          : (isPt
-            ? "Os melhores espetáculos de tango tradicional e moderno selecionados pelos garçons. Reserva direta via WhatsApp com traslados e descontos exclusivos."
-            : "Los mejores espectáculos de tango tradicional y moderno seleccionados por los mozos. Reserva directa por WhatsApp con traslados y descuentos exclusivos.")}
+        ${tangoDesc}
       </p>
     </div>
   `;
@@ -1982,19 +2000,25 @@ function renderTangoList() {
 // 10. Guía de Seguridad
 function renderGuideList() {
   const container = document.getElementById("guide-list-container");
-  const guide = APP_DATA.guide;
-  const lang = state.currentLang;
-  const sections = ["money", "safety", "transport", "tipping"];
+  if (!container) return;
+  const guide = (APP_DATA && APP_DATA.guide) ? APP_DATA.guide : {};
+  const lang = state.currentLang || "es";
+  const keys = Object.keys(guide);
 
-  container.innerHTML = sections.map(key => {
+  container.innerHTML = keys.map(key => {
     const item = guide[key];
-    const title = item.title[lang] || item.title.es;
-    const text = item.text[lang] || item.text.es;
+    if (!item) return "";
+    const title = (item.title && typeof item.title === "object") 
+      ? (item.title[lang] || item.title.es || "") 
+      : (item.title || key);
+    const text = (item.text && typeof item.text === "object") 
+      ? (item.text[lang] || item.text.es || "") 
+      : (item.text || "");
 
     return `
       <article class="guide-card">
         <h3>${title}</h3>
-        <p>${text}</p>
+        <p style="white-space:pre-line;">${text}</p>
       </article>
     `;
   }).join("");
@@ -2646,19 +2670,70 @@ function renderEventsList() {
   const isEn = state.currentLang === "en";
   const isPt = state.currentLang === "pt";
 
+  const evData = (APP_DATA && APP_DATA.events) ? APP_DATA.events : {};
+  const header = evData.header || {
+    title: isEn ? "What's Happening in Buenos Aires" : (isPt ? "O que Fazer em Buenos Aires" : "¿Qué hacer en Buenos Aires hoy?"),
+    subtitle: isEn 
+      ? "Direct live access to the official cultural agendas of the City government plus the top weekly fairs and street markets."
+      : (isPt 
+        ? "Acesso direto e atualizado às agendas culturais oficiais do governo e aos melhores eventos semanais da cidade."
+        : "Consultá en vivo las agendas oficiales del Gobierno de la Ciudad y las mejores ferias semanales recomendadas por los mozos.")
+  };
+
+  const officialAgendas = (evData.officialAgendas && evData.officialAgendas.length > 0) ? evData.officialAgendas : [];
+  const weeklyEvents = (evData.weeklyEvents && evData.weeklyEvents.length > 0) ? evData.weeklyEvents : [];
+
+  let agendasHtml = officialAgendas.map(item => {
+    return `
+      <div class="official-link-card">
+        <div>
+          <div style="font-size:1.05rem; margin-bottom:6px; color:#fff;">${item.icon || '🏛️'} <strong>${item.name}</strong></div>
+          <p style="font-size:0.78rem; color:#cbd5e1; line-height:1.4; margin:0;">
+            ${item.desc || ''}
+          </p>
+        </div>
+        <a href="${item.url || '#'}" target="_blank" class="btn-event-link">
+          🔗 ${item.btnText || (isEn ? "Open Agenda" : (isPt ? "Abrir Agenda" : "Abrir Agenda Oficial"))}
+        </a>
+      </div>
+    `;
+  }).join("");
+
+  let weeklyHtml = weeklyEvents.map(item => {
+    const isSpecial = !item.place_id && item.url;
+    const actionBtn = item.place_id ? `
+      <button type="button" class="btn-event-map" onclick="navigateToPlaceOnMap('${item.place_id}')">
+        📍 ${item.btnText || (isEn ? "Show on Map & Get Directions" : (isPt ? "Ver no Mapa e Traçar Rota" : "Ver en el Mapa y Trazar Ruta"))}
+      </button>
+    ` : (item.url ? `
+      <a href="${item.url}" target="_blank" class="btn-event-link" style="background:linear-gradient(135deg, #7c3aed, #6d28d9); margin-top:4px;">
+        🔗 ${item.btnText || (isEn ? "Official Event Info" : (isPt ? "Informações do Evento" : "Ver Información Oficial"))}
+      </a>
+    ` : '');
+
+    return `
+      <div class="event-weekly-card" ${isSpecial ? 'style="border-color:rgba(168,85,247,0.3); background:rgba(30,27,75,0.4);"' : ''}>
+        ${item.image ? `<img src="${item.image}" alt="${item.title}" class="event-weekly-img">` : ''}
+        <div class="event-weekly-body">
+          <span class="event-day-badge" ${isSpecial ? 'style="background:rgba(168,85,247,0.2); color:#c084fc;"' : ''}>${item.badge || '📅 Horario a confirmar'}</span>
+          <h3 style="font-size:1.05rem; font-weight:700; color:#fff; margin:2px 0 4px 0;">${item.title}</h3>
+          <p style="font-size:0.8rem; color:#cbd5e1; margin:0 0 6px 0; line-height:1.4;">
+            ${item.desc || ''}
+          </p>
+          ${actionBtn}
+        </div>
+      </div>
+    `;
+  }).join("");
+
   container.innerHTML = `
     <!-- Banner de Cabecera -->
     <div class="events-header-box">
       <div style="font-size:1.15rem; font-weight:800; color:#fff; margin-bottom:4px;">
-        📅 ${isEn ? "What's Happening in Buenos Aires" : (isPt ? "O que Fazer em Buenos Aires" : "¿Qué hacer en Buenos Aires hoy?")}
+        📅 ${header.title}
       </div>
       <p style="font-size:0.82rem; color:#94a3b8; line-height:1.4; margin:0;">
-        ${isEn 
-          ? "Direct live access to the official cultural agendas of the City government plus the top weekly fairs and street markets." 
-          : (isPt 
-            ? "Acesso direto e atualizado às agendas culturais oficiais do governo e aos melhores eventos semanais da cidade." 
-            : "Consultá en vivo las agendas oficiales del Gobierno de la Ciudad y las mejores ferias semanales recomendadas por los mozos.")
-        }
+        ${header.subtitle}
       </p>
     </div>
 
@@ -2666,146 +2741,15 @@ function renderEventsList() {
     <div class="events-section-title">
       <span>🏛️</span> ${isEn ? "Official Live City Agendas" : (isPt ? "Agendas Oficiais ao Vivo" : "Agendas Oficiales en Vivo (Ciudad)")}
     </div>
-
     <div class="official-links-grid">
-      <!-- Disfrutemos BA -->
-      <div class="official-link-card">
-        <div>
-          <div style="font-size:1.05rem; margin-bottom:6px; color:#fff;">🎭 <strong>Disfrutemos BA</strong></div>
-          <p style="font-size:0.78rem; color:#cbd5e1; line-height:1.4; margin:0;">
-            ${isEn 
-              ? "Official Buenos Aires government cultural agenda. Free outdoor concerts, museum tours, street food festivals, and family events." 
-              : (isPt 
-                ? "A agenda cultural oficial mais completa do governo. Festivais ao ar livre, cinema, teatro, museus e atrações gratuitas." 
-                : "La cartelera cultural oficial más completa del Gobierno de la Ciudad: festivales, cine al aire libre, muestras de arte y recitales gratuitos.")
-            }
-          </p>
-        </div>
-        <a href="https://disfrutemosba.buenosaires.gob.ar/" target="_blank" class="btn-event-link">
-          🔗 ${isEn ? "Open Disfrutemos BA" : (isPt ? "Abrir Disfrutemos BA" : "Abrir Agenda Disfrutemos BA")}
-        </a>
-      </div>
-
-      <!-- Turismo BA -->
-      <div class="official-link-card">
-        <div>
-          <div style="font-size:1.05rem; margin-bottom:6px; color:#fff;">🌆 <strong>Turismo BA Planner</strong></div>
-          <p style="font-size:0.78rem; color:#cbd5e1; line-height:1.4; margin:0;">
-            ${isEn 
-              ? "Official Buenos Aires City interactive trip planner. Customize your daily itinerary, discover landmarks, and schedule activities." 
-              : (isPt 
-                ? "Planejador oficial interativo de viagens da cidade. Monte seu roteiro personalizado, descubra atrações e planeje seus dias." 
-                : "Planificador interactivo oficial de la Ciudad. Armá tu itinerario día por día, descubrí paseos y organizá tus actividades.")
-            }
-          </p>
-        </div>
-        <a href="https://turismo.buenosaires.gob.ar/es/basic-page/planner" target="_blank" class="btn-event-link">
-          🔗 ${isEn ? "Open BA Trip Planner" : (isPt ? "Abrir Planejador Turismo BA" : "Abrir Planificador Turismo BA")}
-        </a>
-      </div>
-
-      <!-- Teatro Calle Corrientes -->
-      <div class="official-link-card">
-        <div>
-          <div style="font-size:1.05rem; margin-bottom:6px; color:#fff;">🎬 <strong>Cartelera Calle Corrientes</strong></div>
-          <p style="font-size:0.78rem; color:#cbd5e1; line-height:1.4; margin:0;">
-            ${isEn 
-              ? "Buenos Aires is a world capital of theater. Check tonight's Broadway-style musicals, comedies, and drama plays on Corrientes St." 
-              : (isPt 
-                ? "Buenos Aires é a capital do teatro da América Latina. Veja as peças, musicais e comédias em cartaz na famosa Calle Corrientes." 
-                : "Buenos Aires es una de las capitales mundiales del teatro. Obras, comedias y shows musicales en cartelera sobre Av. Corrientes.")
-            }
-          </p>
-        </div>
-        <a href="https://www.plateanet.com/" target="_blank" class="btn-event-link">
-          🔗 ${isEn ? "View Theater Plays" : (isPt ? "Ver Cartaz de Teatros" : "Ver Cartelera de Teatro")}
-        </a>
-      </div>
+      ${agendasHtml}
     </div>
 
     <!-- Sección 2: Los Grandes Eventos Fijos Semanales -->
     <div class="events-section-title">
       <span>🌟</span> ${isEn ? "Iconic Weekly Events & Markets" : (isPt ? "Feiras e Eventos Semanais Clássicos" : "Eventos Semanales Imperdibles")}
     </div>
-
-    <!-- Feria San Telmo -->
-    <div class="event-weekly-card">
-      <img src="https://images.unsplash.com/photo-1519567241046-7f570eee3ce6?w=600&auto=format&fit=crop&q=80" alt="Feria San Telmo" class="event-weekly-img">
-      <div class="event-weekly-body">
-        <span class="event-day-badge">📅 ${isEn ? "Every Sunday (10 AM - 6 PM)" : (isPt ? "Todo Domingo (10h às 18h)" : "Todos los Domingos (10:00 a 18:00 hs)")}</span>
-        <h3 style="font-size:1.05rem; font-weight:700; color:#fff; margin:2px 0 4px 0;">Feria de San Telmo (Calle Defensa)</h3>
-        <p style="font-size:0.8rem; color:#cbd5e1; margin:0 0 6px 0; line-height:1.4;">
-          ${isEn 
-            ? "12 pedestrian cobblestone blocks full of vintage antiques, buskers, street tango dancers, leather goods, and local treats." 
-            : (isPt 
-              ? "12 quadras históricas de paralelepípedos com antiguidades, artistas de rua, dançarinos de tango e muito artesanato." 
-              : "12 cuadras peatonales repletas de antigüedades, artistas callejeros, parejas bailando tango al aire libre y recuerdos.")
-          }
-        </p>
-        <button type="button" class="btn-event-map" onclick="navigateToPlaceOnMap('f1')">
-          📍 ${isEn ? "Show on Map & Get Directions" : (isPt ? "Ver no Mapa e Traçar Rota" : "Ver en el Mapa y Trazar Ruta")}
-        </button>
-      </div>
-    </div>
-
-    <!-- Feria de Mataderos -->
-    <div class="event-weekly-card">
-      <img src="https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=600&auto=format&fit=crop&q=80" alt="Feria Mataderos" class="event-weekly-img">
-      <div class="event-weekly-body">
-        <span class="event-day-badge">📅 ${isEn ? "Sundays & Holidays (11 AM - 7 PM)" : (isPt ? "Domingos e Feriados (11h às 19h)" : "Domingos y Feriados (11:00 a 19:00 hs)")}</span>
-        <h3 style="font-size:1.05rem; font-weight:700; color:#fff; margin:2px 0 4px 0;">Feria de las Tradiciones Criollas (Mataderos)</h3>
-        <p style="font-size:0.8rem; color:#cbd5e1; margin:0 0 6px 0; line-height:1.4;">
-          ${isEn 
-            ? "Authentic Argentine gaucho culture: open-pit barbecue (asado al asador), horseback ring races, folklore music, and country crafts." 
-            : (isPt 
-              ? "Cultura gaúcha tradicional: churrasco no fogo de chão, danças folclóricas, pastel de carne e artesanato criollo autêntico." 
-              : "Tradición gauchesca pura: asado a la cruz, destrezas ecuestres, empanadas criollas, peñas folclóricas y artesanías de campo.")
-          }
-        </p>
-        <button type="button" class="btn-event-map" onclick="navigateToPlaceOnMap('f2')">
-          📍 ${isEn ? "Show on Map & Get Directions" : (isPt ? "Ver no Mapa e Traçar Rota" : "Ver en el Mapa y Trazar Ruta")}
-        </button>
-      </div>
-    </div>
-
-    <!-- Feria de Plaza Francia y Recoleta -->
-    <div class="event-weekly-card">
-      <img src="https://images.unsplash.com/photo-1589802829985-817e51171b92?w=600&auto=format&fit=crop&q=80" alt="Recoleta" class="event-weekly-img">
-      <div class="event-weekly-body">
-        <span class="event-day-badge">📅 ${isEn ? "Saturdays, Sundays & Holidays (11 AM - 8 PM)" : (isPt ? "Sábados, Domingos e Feriados (11h às 20h)" : "Sábados, Domingos y Feriados (11:00 a 20:00 hs)")}</span>
-        <h3 style="font-size:1.05rem; font-weight:700; color:#fff; margin:2px 0 4px 0;">Feria de Artesanos de Plaza Francia (Recoleta)</h3>
-        <p style="font-size:0.8rem; color:#cbd5e1; margin:0 0 6px 0; line-height:1.4;">
-          ${isEn 
-            ? "Right next to the famous Recoleta Cemetery. Top-tier silver jewelry, leather mates, acoustic musicians, and European-style gardens." 
-            : (isPt 
-              ? "Ao lado do famoso Cemitério da Recoleta. Feira de prataria, couro, cuia de mate e música ao vivo em belos jardins franceses." 
-              : "Junto al Cementerio de Recoleta. Orfebrería en plata, cuero, mates artesanales, músicos en vivo y cafés al aire libre.")
-          }
-        </p>
-        <button type="button" class="btn-event-map" onclick="navigateToPlaceOnMap('s4')">
-          📍 ${isEn ? "Show on Map & Get Directions" : (isPt ? "Ver no Mapa e Traçar Rota" : "Ver en el Mapa y Trazar Ruta")}
-        </button>
-      </div>
-    </div>
-
-    <!-- Noche de los Museos Especial -->
-    <div class="event-weekly-card" style="border-color:rgba(168,85,247,0.3); background:rgba(30,27,75,0.4);">
-      <div class="event-weekly-body">
-        <span class="event-day-badge" style="background:rgba(168,85,247,0.2); color:#c084fc;">🏛️ ${isEn ? "Annual Mega Cultural Nights" : (isPt ? "Mega Noites Culturais Anuais" : "Mega Noches Temáticas Anuales")}</span>
-        <h3 style="font-size:1.05rem; font-weight:700; color:#fff; margin:2px 0 4px 0;">La Noche de los Museos & La Noche de las Librerías</h3>
-        <p style="font-size:0.8rem; color:#cbd5e1; margin:0 0 8px 0; line-height:1.4;">
-          ${isEn 
-            ? "Once a year, over 250 museums open for free until 2 AM with complimentary public transport. Similar nights exist for Pizzerias, Bookstores, and Tourism." 
-            : (isPt 
-              ? "Mais de 250 museus abertos de graça até as 2h da madrugada com ônibus e metrô gratuitos. Também há noites da pizza e livrarias." 
-              : "Más de 250 museos y centros culturales abren gratis hasta las 2:00 AM con transporte público gratuito. Además se realizan La Noche de las Pizzerías y de las Librerías.")
-          }
-        </p>
-        <a href="https://turismo.buenosaires.gob.ar/es/article/la-noche-de-los-museos" target="_blank" class="btn-event-link" style="background:linear-gradient(135deg, #7c3aed, #6d28d9); margin-top:4px;">
-          🔗 ${isEn ? "Official Museum Night Info" : (isPt ? "Informações Noite dos Museus" : "Ver Fechas Oficiales Noche de los Museos")}
-        </a>
-      </div>
-    </div>
+    ${weeklyHtml}
   `;
 }
 

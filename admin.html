@@ -11,8 +11,8 @@
   <!-- Leaflet CSS y JS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <script src="data.js?v=20261123_03"></script>
-  <link rel="stylesheet" href="style.css?v=20261120_05">
+  <script src="data.js?v=20261124_01"></script>
+  <link rel="stylesheet" href="style.css?v=20261124_01">
 
   <style>
     body {
@@ -406,6 +406,15 @@
       <button class="admin-tab-btn active" data-tab="tab-admin-places" onclick="switchAdminTab('tab-admin-places')">
         <span>🗺️</span> Lugares & Mapa
       </button>
+      <button class="admin-tab-btn" data-tab="tab-admin-events" onclick="switchAdminTab('tab-admin-events')">
+        <span>📅</span> Eventos & Agenda
+      </button>
+      <button class="admin-tab-btn" data-tab="tab-admin-tango" onclick="switchAdminTab('tab-admin-tango')">
+        <span>💃</span> Tango & Shows
+      </button>
+      <button class="admin-tab-btn" data-tab="tab-admin-guide" onclick="switchAdminTab('tab-admin-guide')">
+        <span>🛡️</span> Tips & Seguridad
+      </button>
       <button class="admin-tab-btn" data-tab="tab-admin-suggestions" onclick="switchAdminTab('tab-admin-suggestions')">
         <span>💡</span> Recomendaciones
         <span id="tab-suggestions-counter" class="tab-badge" style="display:none;">0</span>
@@ -469,6 +478,105 @@
         </div>
 
         <div class="places-list" id="places-container"></div>
+      </div>
+    </div>
+
+    <!-- PESTAÑA: EVENTOS & AGENDA -->
+    <div id="tab-admin-events" class="admin-tab-content">
+      <div class="admin-card">
+        <div class="section-title">
+          <span>📅 Gestión de Eventos & Agenda de la Ciudad</span>
+          <button class="btn-action btn-secondary" onclick="loadAdminEvents()">🔄 Actualizar</button>
+        </div>
+        <p style="font-size:0.8rem; color:#94a3b8; margin-bottom:14px;">
+          Personalizá el encabezado, las agendas culturales oficiales en vivo y las grandes ferias semanales que consultan los turistas.
+        </p>
+
+        <!-- Cabecera de Eventos -->
+        <div style="background:#0f172a; border:1px solid rgba(255,255,255,0.1); border-radius:12px; padding:14px; margin-bottom:18px;">
+          <div style="font-size:0.9rem; font-weight:700; color:#38bdf8; margin-bottom:10px;">✏️ Título y Subtítulo de la Sección</div>
+          <div class="form-group" style="margin-bottom:10px;">
+            <label style="font-size:0.75rem; color:#cbd5e1;">Título Principal</label>
+            <input type="text" id="events-header-title" class="input-field" placeholder="ej. ¿Qué hacer en Buenos Aires hoy?">
+          </div>
+          <div class="form-group" style="margin-bottom:10px;">
+            <label style="font-size:0.75rem; color:#cbd5e1;">Subtítulo / Bajada descriptiva</label>
+            <textarea id="events-header-subtitle" class="input-field" rows="2" placeholder="ej. Consultá en vivo las agendas oficiales del Gobierno de la Ciudad..."></textarea>
+          </div>
+          <button type="button" class="btn-action" onclick="saveEventsHeader()">💾 Guardar Títulos de Eventos</button>
+        </div>
+
+        <!-- Sección 1: Agendas Oficiales en Vivo -->
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+          <div style="font-size:0.95rem; font-weight:700; color:#fff; display:flex; align-items:center; gap:6px;">
+            <span>🏛️</span> Portales y Agendas Oficiales en Vivo
+          </div>
+          <button class="btn-action" style="font-size:0.8rem; padding:6px 10px;" onclick="openAgendaModal()">➕ Agregar Portal</button>
+        </div>
+        <div id="admin-agendas-container" style="display:flex; flex-direction:column; gap:10px; margin-bottom:24px;"></div>
+
+        <!-- Sección 2: Ferias y Eventos Semanales -->
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+          <div style="font-size:0.95rem; font-weight:700; color:#fff; display:flex; align-items:center; gap:6px;">
+            <span>🌟</span> Ferias y Grandes Eventos Semanales
+          </div>
+          <button class="btn-action" style="font-size:0.8rem; padding:6px 10px;" onclick="openWeeklyEventModal()">➕ Agregar Evento Semanal</button>
+        </div>
+        <div id="admin-weekly-events-container" style="display:flex; flex-direction:column; gap:12px;"></div>
+      </div>
+    </div>
+
+    <!-- PESTAÑA: TANGO & SHOWS -->
+    <div id="tab-admin-tango" class="admin-tab-content">
+      <div class="admin-card">
+        <div class="section-title">
+          <span>💃 Gestión de Tango & Shows</span>
+          <div style="display:flex; gap:8px;">
+            <button class="btn-action" onclick="openTangoModal()">➕ Nuevo Show de Tango</button>
+            <button class="btn-action btn-secondary" onclick="loadAdminTango()">🔄 Actualizar</button>
+          </div>
+        </div>
+        <p style="font-size:0.8rem; color:#94a3b8; margin-bottom:14px;">
+          Gestioná la portada y los espectáculos de cena show con reserva directa por WhatsApp, traslados al hotel y beneficios exclusivos de los mozos.
+        </p>
+
+        <!-- Cabecera de Tango -->
+        <div style="background:#0f172a; border:1px solid rgba(255,255,255,0.1); border-radius:12px; padding:14px; margin-bottom:18px;">
+          <div style="font-size:0.9rem; font-weight:700; color:#c084fc; margin-bottom:10px;">✏️ Título y Descripción de la Portada Tango</div>
+          <div class="form-group" style="margin-bottom:10px;">
+            <label style="font-size:0.75rem; color:#cbd5e1;">Título Principal</label>
+            <input type="text" id="tango-header-title" class="input-field" placeholder="ej. Cenas Show de Tango & Noche Porteña">
+          </div>
+          <div class="form-group" style="margin-bottom:10px;">
+            <label style="font-size:0.75rem; color:#cbd5e1;">Descripción / Consejos para Turistas</label>
+            <textarea id="tango-header-desc" class="input-field" rows="2" placeholder="ej. Los mejores espectáculos de tango tradicional y moderno seleccionados por los mozos..."></textarea>
+          </div>
+          <button type="button" class="btn-action" style="background:#a855f7;" onclick="saveTangoHeader()">💾 Guardar Portada Tango</button>
+        </div>
+
+        <!-- Listado de Shows de Tango -->
+        <div style="font-size:0.95rem; font-weight:700; color:#fff; margin-bottom:10px;">
+          🎭 Shows y Casas de Tango Activas
+        </div>
+        <div id="admin-tango-container" style="display:flex; flex-direction:column; gap:12px;"></div>
+      </div>
+    </div>
+
+    <!-- PESTAÑA: TIPS & SEGURIDAD -->
+    <div id="tab-admin-guide" class="admin-tab-content">
+      <div class="admin-card">
+        <div class="section-title">
+          <span>🛡️ Gestión de Tips & Guía de Seguridad</span>
+          <div style="display:flex; gap:8px;">
+            <button class="btn-action" onclick="openGuideModal()">➕ Agregar Tip</button>
+            <button class="btn-action btn-secondary" onclick="loadAdminGuide()">🔄 Actualizar</button>
+          </div>
+        </div>
+        <p style="font-size:0.8rem; color:#94a3b8; margin-bottom:14px;">
+          Consejos clave que le salvan la estadía al turista: divisas (Dólar Blue / MEP), zonas seguras, transporte (SUBE / Cabify) y propinas. Podés editar los textos en Español, Inglés y Portugués o sumar nuevos tips.
+        </p>
+
+        <div id="admin-guide-container" style="display:flex; flex-direction:column; gap:12px;"></div>
       </div>
     </div>
 
@@ -956,10 +1064,217 @@
     </div>
   </div>
 
+  <!-- MODAL: AGREGAR / EDITAR PORTAL DE AGENDA -->
+  <div class="modal-overlay" id="admin-agenda-modal">
+    <div class="bottom-sheet" style="max-width:440px;">
+      <div class="sheet-handle"></div>
+      <h2 id="agenda-modal-title" style="font-size:1.2rem; margin-bottom:6px;">🏛️ Portal o Agenda Oficial</h2>
+      <p style="font-size:0.8rem; color:#94a3b8; margin-bottom:14px;">
+        Enlazá una cartelera cultural o sitio de eventos oficial para que los turistas lo abran con un toque.
+      </p>
+      <form onsubmit="saveAgendaModal(event)">
+        <input type="hidden" id="agenda-index" value="">
+        <div style="display:grid; grid-template-columns:80px 1fr; gap:10px; margin-bottom:10px;">
+          <div class="form-group" style="margin-bottom:0;">
+            <label style="font-size:0.75rem;">Ícono</label>
+            <input type="text" id="agenda-icon" class="input-field" required value="🎭" style="text-align:center; font-size:1.2rem;" maxlength="4">
+          </div>
+          <div class="form-group" style="margin-bottom:0;">
+            <label style="font-size:0.75rem;">Nombre del Portal *</label>
+            <input type="text" id="agenda-name" class="input-field" required placeholder="ej. Disfrutemos BA">
+          </div>
+        </div>
+        <div class="form-group" style="margin-bottom:10px;">
+          <label style="font-size:0.75rem;">Descripción Corta *</label>
+          <textarea id="agenda-desc" class="input-field" rows="2" required placeholder="Explicá qué encuentra el turista (festivales, cine, teatro)..."></textarea>
+        </div>
+        <div class="form-group" style="margin-bottom:10px;">
+          <label style="font-size:0.75rem;">Enlace / URL Oficial *</label>
+          <input type="url" id="agenda-url" class="input-field" required placeholder="https://disfrutemosba.buenosaires.gob.ar/">
+        </div>
+        <div class="form-group" style="margin-bottom:14px;">
+          <label style="font-size:0.75rem;">Texto del Botón</label>
+          <input type="text" id="agenda-btn-text" class="input-field" placeholder="ej. Abrir Agenda Disfrutemos BA">
+        </div>
+        <button type="submit" class="btn-action" style="width:100%; padding:10px; margin-bottom:8px;">Guardar Portal</button>
+        <button type="button" class="btn-action btn-secondary" style="width:100%; padding:8px;" onclick="closeAgendaModal()">Cancelar</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: AGREGAR / EDITAR EVENTO SEMANAL -->
+  <div class="modal-overlay" id="admin-weekly-event-modal">
+    <div class="bottom-sheet" style="max-width:460px; max-height:85dvh;">
+      <div class="sheet-handle"></div>
+      <h2 id="weekly-event-modal-title" style="font-size:1.2rem; margin-bottom:6px;">🌟 Feria o Evento Semanal</h2>
+      <p style="font-size:0.8rem; color:#94a3b8; margin-bottom:14px;">
+        Ferias tradicionales, noches temáticas o paseos imperdibles de fin de semana.
+      </p>
+      <form onsubmit="saveWeeklyEventModal(event)">
+        <input type="hidden" id="weekly-index" value="">
+        <div class="form-group" style="margin-bottom:10px;">
+          <label style="font-size:0.75rem;">Título del Evento *</label>
+          <input type="text" id="weekly-title" class="input-field" required placeholder="ej. Feria de San Telmo (Calle Defensa)">
+        </div>
+        <div class="form-group" style="margin-bottom:10px;">
+          <label style="font-size:0.75rem;">Días y Horarios (Badge destacado) *</label>
+          <input type="text" id="weekly-badge" class="input-field" required placeholder="ej. Todos los Domingos (10:00 a 18:00 hs)">
+        </div>
+        <div class="form-group" style="margin-bottom:10px;">
+          <label style="font-size:0.75rem;">Descripción del Evento *</label>
+          <textarea id="weekly-desc" class="input-field" rows="3" required placeholder="Qué se puede hacer, comprar, probar o ver..."></textarea>
+        </div>
+        <div class="form-group" style="margin-bottom:10px;">
+          <label style="font-size:0.75rem;">Foto / Imagen (URL o pegar link)</label>
+          <input type="url" id="weekly-image" class="input-field" placeholder="https://images.unsplash.com/...">
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px;">
+          <div class="form-group" style="margin-bottom:0;">
+            <label style="font-size:0.75rem;">ID de Lugar en Mapa (Opcional)</label>
+            <input type="text" id="weekly-place-id" class="input-field" placeholder="ej. f1, f2, s4">
+          </div>
+          <div class="form-group" style="margin-bottom:0;">
+            <label style="font-size:0.75rem;">Texto del Botón</label>
+            <input type="text" id="weekly-btn-text" class="input-field" placeholder="ej. Ver en el Mapa y Trazar Ruta">
+          </div>
+        </div>
+        <div class="form-group" style="margin-bottom:14px;">
+          <label style="font-size:0.75rem;">Link Web Externo (Si no tiene pin en mapa)</label>
+          <input type="url" id="weekly-url" class="input-field" placeholder="https://turismo.buenosaires.gob.ar/...">
+        </div>
+        <button type="submit" class="btn-action" style="width:100%; padding:10px; margin-bottom:8px;">Guardar Evento Semanal</button>
+        <button type="button" class="btn-action btn-secondary" style="width:100%; padding:8px;" onclick="closeWeeklyEventModal()">Cancelar</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: AGREGAR / EDITAR SHOW DE TANGO -->
+  <div class="modal-overlay" id="admin-tango-modal">
+    <div class="bottom-sheet" style="max-width:480px; max-height:85dvh;">
+      <div class="sheet-handle"></div>
+      <h2 id="tango-modal-title" style="font-size:1.2rem; margin-bottom:6px;">💃 Show de Tango Porteño</h2>
+      <p style="font-size:0.8rem; color:#94a3b8; margin-bottom:14px;">
+        Agregá o editá las casas de tango con enlace de reserva directa y secreto de mozo.
+      </p>
+      <form onsubmit="saveTangoModal(event)">
+        <input type="hidden" id="tango-id" value="">
+        <div class="form-group" style="margin-bottom:10px;">
+          <label style="font-size:0.75rem;">Nombre del Show / Casa de Tango *</label>
+          <input type="text" id="tango-name" class="input-field" required placeholder="ej. Madero Tango o El Querandí">
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px;">
+          <div class="form-group" style="margin-bottom:0;">
+            <label style="font-size:0.75rem;">Barrio *</label>
+            <input type="text" id="tango-neighborhood" class="input-field" required placeholder="ej. Puerto Madero o San Telmo">
+          </div>
+          <div class="form-group" style="margin-bottom:0;">
+            <label style="font-size:0.75rem;">Rango de Precio</label>
+            <select id="tango-price" class="input-field">
+              <option value="$$">$$ (Económico / Milonga)</option>
+              <option value="$$$">$$$ (Intermedio / Cena)</option>
+              <option value="$$$$" selected>$$$$ (VIP / Gran Escenario)</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group" style="margin-bottom:10px;">
+          <label style="font-size:0.75rem;">Dirección Física *</label>
+          <input type="text" id="tango-address" class="input-field" required placeholder="ej. Alicia Moreau de Justo y Brasil">
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px;">
+          <div class="form-group" style="margin-bottom:0;">
+            <label style="font-size:0.75rem;">Latitud *</label>
+            <input type="number" step="0.000001" id="tango-lat" class="input-field" required value="-34.6185">
+          </div>
+          <div class="form-group" style="margin-bottom:0;">
+            <label style="font-size:0.75rem;">Longitud *</label>
+            <input type="number" step="0.000001" id="tango-lng" class="input-field" required value="-58.3645">
+          </div>
+        </div>
+        <div class="form-group" style="margin-bottom:10px;">
+          <label style="font-size:0.75rem;">Etiqueta Destacada (Badge)</label>
+          <input type="text" id="tango-tag" class="input-field" placeholder="ej. Escenario al Río o Histórico San Telmo">
+        </div>
+        <div class="form-group" style="margin-bottom:10px;">
+          <label style="font-size:0.75rem;">Foto / Imagen de Portada (URL)</label>
+          <input type="url" id="tango-image" class="input-field" placeholder="https://images.unsplash.com/...">
+        </div>
+        <div class="form-group" style="margin-bottom:10px;">
+          <label style="font-size:0.75rem;">Link de Reserva / WhatsApp Oficial</label>
+          <input type="text" id="tango-menu-url" class="input-field" placeholder="https://wa.me/54911... o sitio oficial">
+        </div>
+        <div class="form-group" style="margin-bottom:14px;">
+          <label style="font-size:0.75rem;">Tip o Secreto del Mozo *</label>
+          <textarea id="tango-tip-es" class="input-field" rows="2" required placeholder="ej. Pedir mesa cerca del escenario. Ofrecen traslado ida y vuelta gratis..."></textarea>
+        </div>
+        <button type="submit" class="btn-action" style="width:100%; padding:10px; margin-bottom:8px; background:#a855f7;">Guardar Show de Tango</button>
+        <button type="button" class="btn-action btn-secondary" style="width:100%; padding:8px;" onclick="closeTangoModal()">Cancelar</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: AGREGAR / EDITAR TIP DE SEGURIDAD Y GUÍA -->
+  <div class="modal-overlay" id="admin-guide-modal">
+    <div class="bottom-sheet" style="max-width:500px; max-height:85dvh;">
+      <div class="sheet-handle"></div>
+      <h2 id="guide-modal-title" style="font-size:1.2rem; margin-bottom:6px;">🛡️ Consejo & Tip de Guía</h2>
+      <p style="font-size:0.8rem; color:#94a3b8; margin-bottom:14px;">
+        Podés redactar el consejo en Español y opcionalmente en Inglés y Portugués para los turistas extranjeros.
+      </p>
+      <form onsubmit="saveGuideModal(event)">
+        <div class="form-group" style="margin-bottom:10px;">
+          <label style="font-size:0.75rem;">Clave Interna (ID único sin espacios) *</label>
+          <input type="text" id="guide-key" class="input-field" required placeholder="ej. subway o taxi_safety">
+        </div>
+
+        <div style="background:#0f172a; border:1px solid rgba(255,255,255,0.08); border-radius:10px; padding:10px; margin-bottom:10px;">
+          <div style="font-size:0.8rem; font-weight:700; color:#10b981; margin-bottom:6px;">🇪🇸 Español (Principal)</div>
+          <div class="form-group" style="margin-bottom:6px;">
+            <label style="font-size:0.7rem;">Título en Español *</label>
+            <input type="text" id="guide-title-es" class="input-field" required placeholder="ej. 💵 Divisas y Efectivo">
+          </div>
+          <div class="form-group" style="margin-bottom:0;">
+            <label style="font-size:0.7rem;">Texto / Explicación en Español *</label>
+            <textarea id="guide-text-es" class="input-field" rows="3" required placeholder="Explicá el consejo detalladamente..."></textarea>
+          </div>
+        </div>
+
+        <div style="background:#0f172a; border:1px solid rgba(255,255,255,0.08); border-radius:10px; padding:10px; margin-bottom:10px;">
+          <div style="font-size:0.8rem; font-weight:700; color:#38bdf8; margin-bottom:6px;">🇺🇸 English (Traducción en Inglés)</div>
+          <div class="form-group" style="margin-bottom:6px;">
+            <label style="font-size:0.7rem;">Título en Inglés</label>
+            <input type="text" id="guide-title-en" class="input-field" placeholder="ej. 💵 Cash & Currency">
+          </div>
+          <div class="form-group" style="margin-bottom:0;">
+            <label style="font-size:0.7rem;">Texto en Inglés</label>
+            <textarea id="guide-text-en" class="input-field" rows="2" placeholder="English description..."></textarea>
+          </div>
+        </div>
+
+        <div style="background:#0f172a; border:1px solid rgba(255,255,255,0.08); border-radius:10px; padding:10px; margin-bottom:14px;">
+          <div style="font-size:0.8rem; font-weight:700; color:#f59e0b; margin-bottom:6px;">🇧🇷 Português (Tradução em Português)</div>
+          <div class="form-group" style="margin-bottom:6px;">
+            <label style="font-size:0.7rem;">Título en Portugués</label>
+            <input type="text" id="guide-title-pt" class="input-field" placeholder="ej. 💵 Câmbio & Dinheiro">
+          </div>
+          <div class="form-group" style="margin-bottom:0;">
+            <label style="font-size:0.7rem;">Texto en Portugués</label>
+            <textarea id="guide-text-pt" class="input-field" rows="2" placeholder="Tradução em Português..."></textarea>
+          </div>
+        </div>
+
+        <button type="submit" class="btn-action" style="width:100%; padding:10px; margin-bottom:8px;">Guardar Consejo</button>
+        <button type="button" class="btn-action btn-secondary" style="width:100%; padding:8px;" onclick="closeGuideModal()">Cancelar</button>
+      </form>
+    </div>
+  </div>
+
   <script>
     let allPlaces = [];
     let allWaiters = [];
     let allTourists = [];
+    let allEvents = null;
+    let allTangoConfig = null;
+    let allGuide = null;
     let dashboardMap = null;
     let dashboardMarkersLayer = null;
     let editorMiniMap = null;
@@ -1005,6 +1320,9 @@
       try { await loadAdminCategories(); } catch(e) { console.warn("Error categorías:", e); }
       try { await loadPlaces(); } catch(e) { console.warn("Error lugares:", e); }
       try { await loadWaiters(); } catch(e) { console.warn("Error mozos:", e); }
+      try { await loadAdminEvents(); } catch(e) { console.warn("Error eventos:", e); }
+      try { await loadAdminTango(); } catch(e) { console.warn("Error tango:", e); }
+      try { await loadAdminGuide(); } catch(e) { console.warn("Error guía:", e); }
       try { loadStats(); } catch(e) {}
       try { loadMpConfig(); } catch(e) {}
       try { loadAdminReviews(); } catch(e) {}
@@ -1449,7 +1767,16 @@ ${qrImageUrl}
         }
       }));
 
-      const clone = { ...APP_DATA, places: formatted };
+      const clone = { 
+        ...APP_DATA, 
+        places: formatted,
+        waiters: (allWaiters && allWaiters.length > 0) ? allWaiters : APP_DATA.waiters,
+        categories: (allCategories && allCategories.length > 0) ? allCategories : APP_DATA.categories,
+        events: allEvents || APP_DATA.events,
+        tangoConfig: allTangoConfig || APP_DATA.tangoConfig,
+        guide: allGuide || APP_DATA.guide,
+        version: "20261124_" + Date.now()
+      };
       const code = `// Base de datos de lugares, traducciones y tips para Buenos Aires\nconst APP_DATA = ${JSON.stringify(clone, null, 2)};\n`;
       const blob = new Blob([code], { type: "text/javascript;charset=utf-8" });
       const a = document.createElement("a");
@@ -1688,7 +2015,16 @@ ${qrImageUrl}
             if (allTourists && allTourists.length > 0) {
               appDataObj.tourists = allTourists;
             }
-            appDataObj.version = "20261118_" + Date.now();
+            if (allEvents) {
+              appDataObj.events = allEvents;
+            }
+            if (allTangoConfig) {
+              appDataObj.tangoConfig = allTangoConfig;
+            }
+            if (allGuide) {
+              appDataObj.guide = allGuide;
+            }
+            appDataObj.version = "20261124_" + Date.now();
             updatedContent = '// Base de datos de lugares, traducciones y tips para Buenos Aires\nconst APP_DATA = ' + JSON.stringify(appDataObj, null, 2) + ';\n';
           }
         } catch(e) {}
@@ -1699,7 +2035,14 @@ ${qrImageUrl}
           if (regex.test(currentContent)) {
             updatedContent = currentContent.replace(regex, `"places": ${placesJson},`);
           } else {
-            const clone = { ...APP_DATA, places: formatted, version: "20261118_" + Date.now() };
+            const clone = { 
+              ...APP_DATA, 
+              places: formatted, 
+              events: allEvents || (typeof APP_DATA !== "undefined" ? APP_DATA.events : null),
+              tangoConfig: allTangoConfig || (typeof APP_DATA !== "undefined" ? APP_DATA.tangoConfig : null),
+              guide: allGuide || (typeof APP_DATA !== "undefined" ? APP_DATA.guide : null),
+              version: "20261124_" + Date.now() 
+            };
             updatedContent = `// Base de datos de lugares, traducciones y tips para Buenos Aires\nconst APP_DATA = ${JSON.stringify(clone, null, 2)};\n`;
           }
         }
@@ -1916,6 +2259,18 @@ ${qrImageUrl}
             }
             if (cloudData.waiters && cloudData.waiters.length > 0) {
               allWaiters = cloudData.waiters;
+            }
+            if (cloudData.events) {
+              allEvents = cloudData.events;
+              try { localStorage.setItem("bsas_admin_events", JSON.stringify(allEvents)); } catch(e){}
+            }
+            if (cloudData.tangoConfig) {
+              allTangoConfig = cloudData.tangoConfig;
+              try { localStorage.setItem("bsas_admin_tango_cfg", JSON.stringify(allTangoConfig)); } catch(e){}
+            }
+            if (cloudData.guide) {
+              allGuide = cloudData.guide;
+              try { localStorage.setItem("bsas_admin_guide", JSON.stringify(allGuide)); } catch(e){}
             }
 
             try {
@@ -2203,7 +2558,571 @@ ${qrImageUrl}
         setTimeout(() => {
           dashboardMap.invalidateSize();
         }, 150);
+      } else if (tabId === "tab-admin-events") {
+        renderAdminEvents();
+      } else if (tabId === "tab-admin-tango") {
+        renderAdminTango();
+      } else if (tabId === "tab-admin-guide") {
+        renderAdminGuide();
       }
+    }
+
+    // ==================== GESTIÓN DE EVENTOS & AGENDA ====================
+    async function loadAdminEvents() {
+      if (!allEvents) {
+        const saved = localStorage.getItem("bsas_admin_events");
+        if (saved) {
+          try { allEvents = JSON.parse(saved); } catch(e){}
+        }
+        if (!allEvents && typeof APP_DATA !== "undefined" && APP_DATA.events) {
+          allEvents = JSON.parse(JSON.stringify(APP_DATA.events));
+        }
+        if (!allEvents) {
+          allEvents = {
+            header: {
+              title: "¿Qué hacer en Buenos Aires hoy?",
+              subtitle: "Consultá en vivo las agendas oficiales del Gobierno de la Ciudad y las mejores ferias semanales recomendadas por los mozos."
+            },
+            officialAgendas: [],
+            weeklyEvents: []
+          };
+        }
+      }
+      renderAdminEvents();
+    }
+
+    function renderAdminEvents() {
+      if (!allEvents) return;
+      // 1. Títulos
+      const titleInput = document.getElementById("events-header-title");
+      const subtitleInput = document.getElementById("events-header-subtitle");
+      if (titleInput && allEvents.header) titleInput.value = allEvents.header.title || "";
+      if (subtitleInput && allEvents.header) subtitleInput.value = allEvents.header.subtitle || "";
+
+      // 2. Agendas Oficiales
+      const agendasContainer = document.getElementById("admin-agendas-container");
+      if (agendasContainer) {
+        const agendas = allEvents.officialAgendas || [];
+        if (agendas.length === 0) {
+          agendasContainer.innerHTML = '<div style="color:#94a3b8; font-size:0.8rem; padding:12px; text-align:center; background:#0f172a; border-radius:10px;">No hay portales de agenda registrados. Tocá "+ Agregar Portal" para sumar uno.</div>';
+        } else {
+          agendasContainer.innerHTML = agendas.map((ag, idx) => `
+            <div style="background:#0f172a; border:1px solid rgba(255,255,255,0.08); border-radius:12px; padding:12px; display:flex; justify-content:space-between; align-items:center; gap:10px;">
+              <div style="display:flex; align-items:center; gap:12px; min-width:0;">
+                <span style="font-size:1.8rem; flex-shrink:0;">${ag.icon || '🏛️'}</span>
+                <div style="min-width:0;">
+                  <div style="font-weight:700; color:#fff; font-size:0.95rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${ag.name}</div>
+                  <div style="font-size:0.8rem; color:#94a3b8; line-height:1.3; margin:2px 0;">${ag.desc}</div>
+                  <a href="${ag.url}" target="_blank" style="font-size:0.75rem; color:#38bdf8; text-decoration:none; word-break:break-all;">🔗 ${ag.url}</a>
+                </div>
+              </div>
+              <div style="display:flex; flex-direction:column; gap:6px; flex-shrink:0;">
+                <button type="button" class="btn-action" style="padding:4px 8px; font-size:0.75rem;" onclick="openAgendaModal(${idx})">✏️ Editar</button>
+                <button type="button" class="btn-action btn-danger" style="padding:4px 8px; font-size:0.75rem;" onclick="deleteAgenda(${idx})">🗑️ Borrar</button>
+              </div>
+            </div>
+          `).join("");
+        }
+      }
+
+      // 3. Ferias & Eventos Semanales
+      const weeklyContainer = document.getElementById("admin-weekly-events-container");
+      if (weeklyContainer) {
+        const events = allEvents.weeklyEvents || [];
+        if (events.length === 0) {
+          weeklyContainer.innerHTML = '<div style="color:#94a3b8; font-size:0.8rem; padding:12px; text-align:center; background:#0f172a; border-radius:10px;">No hay eventos semanales cargados. Tocá "+ Agregar Evento Semanal" para sumar uno.</div>';
+        } else {
+          weeklyContainer.innerHTML = events.map((ev, idx) => `
+            <div style="background:#0f172a; border:1px solid rgba(255,255,255,0.08); border-radius:12px; padding:12px; display:flex; justify-content:space-between; align-items:flex-start; gap:12px;">
+              ${ev.image ? `<img src="${ev.image}" alt="${ev.title}" style="width:70px; height:70px; border-radius:8px; object-fit:cover; flex-shrink:0;">` : `<div style="width:70px; height:70px; border-radius:8px; background:#1e293b; display:flex; align-items:center; justify-content:center; font-size:1.6rem; flex-shrink:0;">🌟</div>`}
+              <div style="min-width:0; flex:1;">
+                <div style="font-weight:700; color:#fff; font-size:0.95rem;">${ev.title}</div>
+                <div style="display:inline-block; font-size:0.72rem; background:rgba(245,158,11,0.15); color:#f59e0b; padding:2px 6px; border-radius:4px; font-weight:600; margin:4px 0;">${ev.badge}</div>
+                <div style="font-size:0.8rem; color:#94a3b8; line-height:1.3; margin-bottom:4px;">${ev.desc}</div>
+                <div style="font-size:0.75rem; color:#38bdf8;">${ev.place_id ? `📍 Vinculado al pin: <strong>${ev.place_id}</strong>` : (ev.url ? `🔗 <a href="${ev.url}" target="_blank" style="color:#38bdf8;">${ev.url}</a>` : '')}</div>
+              </div>
+              <div style="display:flex; flex-direction:column; gap:6px; flex-shrink:0;">
+                <button type="button" class="btn-action" style="padding:4px 8px; font-size:0.75rem;" onclick="openWeeklyEventModal(${idx})">✏️ Editar</button>
+                <button type="button" class="btn-action btn-danger" style="padding:4px 8px; font-size:0.75rem;" onclick="deleteWeeklyEvent(${idx})">🗑️ Borrar</button>
+              </div>
+            </div>
+          `).join("");
+        }
+      }
+    }
+
+    function saveEventsHeader() {
+      if (!allEvents) allEvents = {};
+      if (!allEvents.header) allEvents.header = {};
+      const title = document.getElementById("events-header-title").value.trim();
+      const subtitle = document.getElementById("events-header-subtitle").value.trim();
+      allEvents.header.title = title;
+      allEvents.header.subtitle = subtitle;
+      try { localStorage.setItem("bsas_admin_events", JSON.stringify(allEvents)); } catch(e){}
+      scheduleAutoSync("Guardar encabezado de Eventos");
+      alert("✅ Encabezado de Eventos guardado y sincronizado.");
+    }
+
+    function openAgendaModal(idx = null) {
+      document.getElementById("agenda-index").value = (idx !== null) ? idx : "";
+      if (idx !== null && allEvents && allEvents.officialAgendas && allEvents.officialAgendas[idx]) {
+        const ag = allEvents.officialAgendas[idx];
+        document.getElementById("agenda-modal-title").textContent = "✏️ Editar Portal de Agenda";
+        document.getElementById("agenda-icon").value = ag.icon || "🎭";
+        document.getElementById("agenda-name").value = ag.name || "";
+        document.getElementById("agenda-desc").value = ag.desc || "";
+        document.getElementById("agenda-url").value = ag.url || "";
+        document.getElementById("agenda-btn-text").value = ag.btnText || "";
+      } else {
+        document.getElementById("agenda-modal-title").textContent = "🏛️ Nuevo Portal o Agenda Oficial";
+        document.getElementById("agenda-icon").value = "🎭";
+        document.getElementById("agenda-name").value = "";
+        document.getElementById("agenda-desc").value = "";
+        document.getElementById("agenda-url").value = "";
+        document.getElementById("agenda-btn-text").value = "";
+      }
+      document.getElementById("admin-agenda-modal").classList.add("active");
+    }
+
+    function closeAgendaModal() {
+      document.getElementById("admin-agenda-modal").classList.remove("active");
+    }
+
+    function saveAgendaModal(e) {
+      e.preventDefault();
+      if (!allEvents) allEvents = { officialAgendas: [], weeklyEvents: [] };
+      if (!allEvents.officialAgendas) allEvents.officialAgendas = [];
+
+      const idxStr = document.getElementById("agenda-index").value;
+      const icon = document.getElementById("agenda-icon").value.trim() || "🎭";
+      const name = document.getElementById("agenda-name").value.trim();
+      const desc = document.getElementById("agenda-desc").value.trim();
+      const url = document.getElementById("agenda-url").value.trim();
+      const btnText = document.getElementById("agenda-btn-text").value.trim() || `Abrir Agenda ${name}`;
+
+      const item = {
+        id: (idxStr !== "" && allEvents.officialAgendas[parseInt(idxStr, 10)]) ? allEvents.officialAgendas[parseInt(idxStr, 10)].id : ("agenda_" + Date.now()),
+        icon,
+        name,
+        desc,
+        url,
+        btnText
+      };
+
+      if (idxStr !== "") {
+        allEvents.officialAgendas[parseInt(idxStr, 10)] = item;
+      } else {
+        allEvents.officialAgendas.push(item);
+      }
+
+      try { localStorage.setItem("bsas_admin_events", JSON.stringify(allEvents)); } catch(err){}
+      closeAgendaModal();
+      renderAdminEvents();
+      scheduleAutoSync(`Guardar portal de agenda: ${name}`);
+    }
+
+    function deleteAgenda(idx) {
+      if (!allEvents || !allEvents.officialAgendas || !allEvents.officialAgendas[idx]) return;
+      const name = allEvents.officialAgendas[idx].name;
+      if (!confirm(`¿Eliminar el portal de agenda "${name}"?`)) return;
+      allEvents.officialAgendas.splice(idx, 1);
+      try { localStorage.setItem("bsas_admin_events", JSON.stringify(allEvents)); } catch(err){}
+      renderAdminEvents();
+      scheduleAutoSync(`Eliminar portal de agenda: ${name}`);
+    }
+
+    function openWeeklyEventModal(idx = null) {
+      document.getElementById("weekly-index").value = (idx !== null) ? idx : "";
+      if (idx !== null && allEvents && allEvents.weeklyEvents && allEvents.weeklyEvents[idx]) {
+        const ev = allEvents.weeklyEvents[idx];
+        document.getElementById("weekly-event-modal-title").textContent = "✏️ Editar Evento Semanal";
+        document.getElementById("weekly-title").value = ev.title || "";
+        document.getElementById("weekly-badge").value = ev.badge || "";
+        document.getElementById("weekly-desc").value = ev.desc || "";
+        document.getElementById("weekly-image").value = ev.image || "";
+        document.getElementById("weekly-place-id").value = ev.place_id || "";
+        document.getElementById("weekly-url").value = ev.url || "";
+        document.getElementById("weekly-btn-text").value = ev.btnText || "";
+      } else {
+        document.getElementById("weekly-event-modal-title").textContent = "🌟 Nuevo Evento Semanal";
+        document.getElementById("weekly-title").value = "";
+        document.getElementById("weekly-badge").value = "";
+        document.getElementById("weekly-desc").value = "";
+        document.getElementById("weekly-image").value = "";
+        document.getElementById("weekly-place-id").value = "";
+        document.getElementById("weekly-url").value = "";
+        document.getElementById("weekly-btn-text").value = "Ver en el Mapa y Trazar Ruta";
+      }
+      document.getElementById("admin-weekly-event-modal").classList.add("active");
+    }
+
+    function closeWeeklyEventModal() {
+      document.getElementById("admin-weekly-event-modal").classList.remove("active");
+    }
+
+    function saveWeeklyEventModal(e) {
+      e.preventDefault();
+      if (!allEvents) allEvents = { officialAgendas: [], weeklyEvents: [] };
+      if (!allEvents.weeklyEvents) allEvents.weeklyEvents = [];
+
+      const idxStr = document.getElementById("weekly-index").value;
+      const title = document.getElementById("weekly-title").value.trim();
+      const badge = document.getElementById("weekly-badge").value.trim();
+      const desc = document.getElementById("weekly-desc").value.trim();
+      const image = document.getElementById("weekly-image").value.trim();
+      const place_id = document.getElementById("weekly-place-id").value.trim();
+      const url = document.getElementById("weekly-url").value.trim();
+      const btnText = document.getElementById("weekly-btn-text").value.trim() || (place_id ? "Ver en el Mapa y Trazar Ruta" : "Ver Fechas Oficiales");
+
+      const item = {
+        id: (idxStr !== "" && allEvents.weeklyEvents[parseInt(idxStr, 10)]) ? allEvents.weeklyEvents[parseInt(idxStr, 10)].id : ("event_" + Date.now()),
+        title,
+        badge,
+        desc,
+        image,
+        place_id: place_id || undefined,
+        url: url || undefined,
+        btnText
+      };
+
+      if (idxStr !== "") {
+        allEvents.weeklyEvents[parseInt(idxStr, 10)] = item;
+      } else {
+        allEvents.weeklyEvents.push(item);
+      }
+
+      try { localStorage.setItem("bsas_admin_events", JSON.stringify(allEvents)); } catch(err){}
+      closeWeeklyEventModal();
+      renderAdminEvents();
+      scheduleAutoSync(`Guardar evento semanal: ${title}`);
+    }
+
+    function deleteWeeklyEvent(idx) {
+      if (!allEvents || !allEvents.weeklyEvents || !allEvents.weeklyEvents[idx]) return;
+      const title = allEvents.weeklyEvents[idx].title;
+      if (!confirm(`¿Eliminar el evento semanal "${title}"?`)) return;
+      allEvents.weeklyEvents.splice(idx, 1);
+      try { localStorage.setItem("bsas_admin_events", JSON.stringify(allEvents)); } catch(err){}
+      renderAdminEvents();
+      scheduleAutoSync(`Eliminar evento semanal: ${title}`);
+    }
+
+    // ==================== GESTIÓN DE TANGO & SHOWS ====================
+    async function loadAdminTango() {
+      if (!allTangoConfig) {
+        const saved = localStorage.getItem("bsas_admin_tango_cfg");
+        if (saved) {
+          try { allTangoConfig = JSON.parse(saved); } catch(e){}
+        }
+        if (!allTangoConfig && typeof APP_DATA !== "undefined" && APP_DATA.tangoConfig) {
+          allTangoConfig = JSON.parse(JSON.stringify(APP_DATA.tangoConfig));
+        }
+        if (!allTangoConfig) {
+          allTangoConfig = {
+            title: "Cenas Show de Tango & Noche Porteña",
+            desc: "Los mejores espectáculos de tango tradicional y moderno seleccionados por los mozos. Reserva directa por WhatsApp con traslados y descuentos exclusivos."
+          };
+        }
+      }
+      renderAdminTango();
+    }
+
+    function renderAdminTango() {
+      // 1. Títulos de Tango
+      const titleInput = document.getElementById("tango-header-title");
+      const descInput = document.getElementById("tango-header-desc");
+      if (titleInput && allTangoConfig) titleInput.value = allTangoConfig.title || "";
+      if (descInput && allTangoConfig) descInput.value = allTangoConfig.desc || "";
+
+      // 2. Lugares de Tango
+      const container = document.getElementById("admin-tango-container");
+      if (!container) return;
+
+      const tangoPlaces = (allPlaces || []).filter(p => 
+        p.category === "tango" || 
+        p.category === "tango_milongas" || 
+        (p.tag && p.tag.toLowerCase().includes("tango")) || 
+        (p.name && p.name.toLowerCase().includes("tango"))
+      );
+
+      if (tangoPlaces.length === 0) {
+        container.innerHTML = '<div style="color:#94a3b8; font-size:0.8rem; padding:12px; text-align:center; background:#0f172a; border-radius:10px;">No hay shows de tango registrados aún. Tocá "+ Nuevo Show de Tango" para agregar uno.</div>';
+        return;
+      }
+
+      container.innerHTML = tangoPlaces.map(p => `
+        <div style="background:#0f172a; border:1px solid rgba(255,255,255,0.08); border-radius:12px; padding:12px; display:flex; justify-content:space-between; align-items:flex-start; gap:12px;">
+          ${p.image ? `<img src="${p.image}" alt="${p.name}" style="width:70px; height:70px; border-radius:8px; object-fit:cover; flex-shrink:0;">` : `<div style="width:70px; height:70px; border-radius:8px; background:#1e293b; display:flex; align-items:center; justify-content:center; font-size:1.6rem; flex-shrink:0;">💃</div>`}
+          <div style="min-width:0; flex:1;">
+            <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+              <strong style="color:#fff; font-size:0.95rem;">${p.name}</strong>
+              <span style="font-size:0.75rem; color:#a855f7; font-weight:700;">${p.price || '$$$$'}</span>
+              <span style="font-size:0.7rem; background:#334155; color:#cbd5e1; padding:2px 6px; border-radius:4px;">${p.neighborhood || 'Buenos Aires'}</span>
+            </div>
+            <div style="display:inline-block; font-size:0.7rem; background:rgba(168,85,247,0.15); color:#c084fc; padding:2px 6px; border-radius:4px; font-weight:600; margin:4px 0;">🏷️ ${p.tag || 'Show de Tango'}</div>
+            <div style="font-size:0.8rem; color:#94a3b8; line-height:1.3; margin-bottom:4px;">
+              💡 <em>${p.tip_es || (p.tips ? p.tips.es : '') || 'Recomendado por los mozos'}</em>
+            </div>
+            <div style="font-size:0.75rem; color:#38bdf8;">
+              ${p.menu_url ? `💬 WhatsApp/Reserva: <a href="${p.menu_url}" target="_blank" style="color:#38bdf8;">${p.menu_url}</a>` : '📍 Ubicado en el mapa'}
+            </div>
+          </div>
+          <div style="display:flex; flex-direction:column; gap:6px; flex-shrink:0;">
+            <button type="button" class="btn-action" style="padding:4px 8px; font-size:0.75rem;" onclick="openTangoModal('${p.id}')">✏️ Editar</button>
+            <button type="button" class="btn-action btn-danger" style="padding:4px 8px; font-size:0.75rem;" onclick="deleteTangoPlace('${p.id}')">🗑️ Borrar</button>
+          </div>
+        </div>
+      `).join("");
+    }
+
+    function saveTangoHeader() {
+      if (!allTangoConfig) allTangoConfig = {};
+      const title = document.getElementById("tango-header-title").value.trim();
+      const desc = document.getElementById("tango-header-desc").value.trim();
+      allTangoConfig.title = title;
+      allTangoConfig.desc = desc;
+      try { localStorage.setItem("bsas_admin_tango_cfg", JSON.stringify(allTangoConfig)); } catch(e){}
+      scheduleAutoSync("Guardar encabezado de Tango");
+      alert("✅ Encabezado de Tango & Shows guardado y sincronizado.");
+    }
+
+    function openTangoModal(placeId = null) {
+      document.getElementById("tango-id").value = placeId || "";
+      if (placeId) {
+        const p = allPlaces.find(x => x.id === placeId);
+        if (p) {
+          document.getElementById("tango-modal-title").textContent = `✏️ Editar: ${p.name}`;
+          document.getElementById("tango-name").value = p.name || "";
+          document.getElementById("tango-neighborhood").value = p.neighborhood || "";
+          document.getElementById("tango-address").value = p.address || "";
+          document.getElementById("tango-price").value = p.price || "$$$$";
+          document.getElementById("tango-lat").value = p.lat || -34.6185;
+          document.getElementById("tango-lng").value = p.lng || -58.3645;
+          document.getElementById("tango-tag").value = p.tag || "Show de Tango & Cena";
+          document.getElementById("tango-image").value = p.image || "";
+          document.getElementById("tango-menu-url").value = p.menu_url || "";
+          document.getElementById("tango-tip-es").value = p.tip_es || (p.tips ? p.tips.es : "") || "";
+        }
+      } else {
+        document.getElementById("tango-modal-title").textContent = "💃 Nuevo Show de Tango";
+        document.getElementById("tango-name").value = "";
+        document.getElementById("tango-neighborhood").value = "San Telmo";
+        document.getElementById("tango-address").value = "";
+        document.getElementById("tango-price").value = "$$$$";
+        document.getElementById("tango-lat").value = -34.6185;
+        document.getElementById("tango-lng").value = -58.3645;
+        document.getElementById("tango-tag").value = "Show de Tango & Cena";
+        document.getElementById("tango-image").value = "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=600";
+        document.getElementById("tango-menu-url").value = "";
+        document.getElementById("tango-tip-es").value = "Reserva directa por WhatsApp con traslado ida y vuelta incluido al hotel.";
+      }
+      document.getElementById("admin-tango-modal").classList.add("active");
+    }
+
+    function closeTangoModal() {
+      document.getElementById("admin-tango-modal").classList.remove("active");
+    }
+
+    function saveTangoModal(e) {
+      e.preventDefault();
+      const placeId = document.getElementById("tango-id").value;
+      const name = document.getElementById("tango-name").value.trim();
+      const neighborhood = document.getElementById("tango-neighborhood").value.trim();
+      const address = document.getElementById("tango-address").value.trim();
+      const price = document.getElementById("tango-price").value;
+      const lat = parseFloat(document.getElementById("tango-lat").value) || -34.6185;
+      const lng = parseFloat(document.getElementById("tango-lng").value) || -58.3645;
+      const tag = document.getElementById("tango-tag").value.trim() || "Show de Tango";
+      const image = document.getElementById("tango-image").value.trim() || "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=600";
+      const menu_url = document.getElementById("tango-menu-url").value.trim();
+      const tip_es = document.getElementById("tango-tip-es").value.trim();
+
+      if (placeId) {
+        const p = allPlaces.find(x => x.id === placeId);
+        if (p) {
+          p.name = name;
+          p.category = "tango";
+          p.neighborhood = neighborhood;
+          p.address = address;
+          p.price = price;
+          p.lat = lat;
+          p.lng = lng;
+          p.tag = tag;
+          p.image = image;
+          p.menu_url = menu_url;
+          p.tip_es = tip_es;
+          if (!p.tips) p.tips = {};
+          p.tips.es = tip_es;
+        }
+      } else {
+        const newId = "tango_" + Date.now();
+        allPlaces.push({
+          id: newId,
+          category: "tango",
+          name,
+          neighborhood,
+          address,
+          price,
+          lat,
+          lng,
+          tag,
+          image,
+          menu_url,
+          tip_es,
+          is_indoor: 1,
+          active: 1,
+          tips: { es: tip_es, en: "", pt: "" }
+        });
+      }
+
+      try { localStorage.setItem("bsas_places", JSON.stringify(allPlaces)); } catch(err){}
+      closeTangoModal();
+      renderAdminTango();
+      renderPlacesUI();
+      scheduleAutoSync(`Guardar show de tango: ${name}`);
+    }
+
+    function deleteTangoPlace(placeId) {
+      deletePlace(placeId);
+      setTimeout(() => {
+        renderAdminTango();
+      }, 200);
+    }
+
+    // ==================== GESTIÓN DE TIPS & SEGURIDAD ====================
+    async function loadAdminGuide() {
+      if (!allGuide) {
+        const saved = localStorage.getItem("bsas_admin_guide");
+        if (saved) {
+          try { allGuide = JSON.parse(saved); } catch(e){}
+        }
+        if (!allGuide && typeof APP_DATA !== "undefined" && APP_DATA.guide) {
+          allGuide = JSON.parse(JSON.stringify(APP_DATA.guide));
+        }
+        if (!allGuide) {
+          allGuide = {};
+        }
+      }
+      renderAdminGuide();
+    }
+
+    function renderAdminGuide() {
+      const container = document.getElementById("admin-guide-container");
+      if (!container) return;
+      if (!allGuide || Object.keys(allGuide).length === 0) {
+        container.innerHTML = '<div style="color:#94a3b8; font-size:0.8rem; padding:12px; text-align:center; background:#0f172a; border-radius:10px;">No hay tips registrados. Tocá "+ Agregar Tip" para sumar el primero.</div>';
+        return;
+      }
+
+      const keys = Object.keys(allGuide);
+      container.innerHTML = keys.map(key => {
+        const item = allGuide[key];
+        if (!item) return "";
+        const titleEs = (item.title && typeof item.title === "object") ? (item.title.es || "") : (item.title || key);
+        const textEs = (item.text && typeof item.text === "object") ? (item.text.es || "") : (item.text || "");
+        const hasEn = (item.title && typeof item.title === "object" && item.title.en);
+        const hasPt = (item.title && typeof item.title === "object" && item.title.pt);
+
+        return `
+          <div style="background:#0f172a; border:1px solid rgba(255,255,255,0.08); border-radius:12px; padding:14px; display:flex; justify-content:space-between; align-items:flex-start; gap:12px;">
+            <div style="min-width:0; flex:1;">
+              <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:4px;">
+                <span style="font-size:0.75rem; background:#1e293b; color:#38bdf8; padding:2px 8px; border-radius:6px; font-family:monospace; font-weight:700;">${key}</span>
+                <strong style="color:#fff; font-size:1rem;">${titleEs}</strong>
+              </div>
+              <p style="font-size:0.82rem; color:#cbd5e1; line-height:1.45; margin:6px 0; white-space:pre-line;">${textEs}</p>
+              <div style="display:flex; gap:8px; margin-top:6px;">
+                <span style="font-size:0.7rem; color:${hasEn ? '#10b981' : '#64748b'};">🇺🇸 ${hasEn ? 'Inglés disponible' : 'Sin inglés'}</span>
+                <span style="font-size:0.7rem; color:${hasPt ? '#10b981' : '#64748b'};">🇧🇷 ${hasPt ? 'Portugués disponible' : 'Sin portugués'}</span>
+              </div>
+            </div>
+            <div style="display:flex; flex-direction:column; gap:6px; flex-shrink:0;">
+              <button type="button" class="btn-action" style="padding:4px 8px; font-size:0.75rem;" onclick="openGuideModal('${key}')">✏️ Editar</button>
+              <button type="button" class="btn-action btn-danger" style="padding:4px 8px; font-size:0.75rem;" onclick="deleteGuideItem('${key}')">🗑️ Borrar</button>
+            </div>
+          </div>
+        `;
+      }).join("");
+    }
+
+    function openGuideModal(key = null) {
+      const keyInput = document.getElementById("guide-key");
+      if (key && allGuide && allGuide[key]) {
+        const item = allGuide[key];
+        document.getElementById("guide-modal-title").textContent = `✏️ Editar Tip: ${key}`;
+        keyInput.value = key;
+        keyInput.readOnly = true;
+        keyInput.style.opacity = "0.7";
+
+        document.getElementById("guide-title-es").value = (item.title && typeof item.title === "object") ? (item.title.es || "") : (item.title || "");
+        document.getElementById("guide-text-es").value = (item.text && typeof item.text === "object") ? (item.text.es || "") : (item.text || "");
+        document.getElementById("guide-title-en").value = (item.title && typeof item.title === "object") ? (item.title.en || "") : "";
+        document.getElementById("guide-text-en").value = (item.text && typeof item.text === "object") ? (item.text.en || "") : "";
+        document.getElementById("guide-title-pt").value = (item.title && typeof item.title === "object") ? (item.title.pt || "") : "";
+        document.getElementById("guide-text-pt").value = (item.text && typeof item.text === "object") ? (item.text.pt || "") : "";
+      } else {
+        document.getElementById("guide-modal-title").textContent = "🛡️ Nuevo Consejo / Tip";
+        keyInput.value = "";
+        keyInput.readOnly = false;
+        keyInput.style.opacity = "1";
+
+        document.getElementById("guide-title-es").value = "";
+        document.getElementById("guide-text-es").value = "";
+        document.getElementById("guide-title-en").value = "";
+        document.getElementById("guide-text-en").value = "";
+        document.getElementById("guide-title-pt").value = "";
+        document.getElementById("guide-text-pt").value = "";
+      }
+      document.getElementById("admin-guide-modal").classList.add("active");
+    }
+
+    function closeGuideModal() {
+      document.getElementById("admin-guide-modal").classList.remove("active");
+    }
+
+    function saveGuideModal(e) {
+      e.preventDefault();
+      if (!allGuide) allGuide = {};
+
+      const key = document.getElementById("guide-key").value.trim().toLowerCase().replace(/[^a-z0-9_]/g, "_");
+      if (!key) {
+        alert("Por favor ingresá una clave única para el consejo.");
+        return;
+      }
+
+      const titleEs = document.getElementById("guide-title-es").value.trim();
+      const textEs = document.getElementById("guide-text-es").value.trim();
+      const titleEn = document.getElementById("guide-title-en").value.trim();
+      const textEn = document.getElementById("guide-text-en").value.trim();
+      const titlePt = document.getElementById("guide-title-pt").value.trim();
+      const textPt = document.getElementById("guide-text-pt").value.trim();
+
+      allGuide[key] = {
+        title: {
+          es: titleEs,
+          en: titleEn || titleEs,
+          pt: titlePt || titleEs
+        },
+        text: {
+          es: textEs,
+          en: textEn || textEs,
+          pt: textPt || textEs
+        }
+      };
+
+      try { localStorage.setItem("bsas_admin_guide", JSON.stringify(allGuide)); } catch(err){}
+      closeGuideModal();
+      renderAdminGuide();
+      scheduleAutoSync(`Guardar tip de guía: ${key}`);
+    }
+
+    function deleteGuideItem(key) {
+      if (!allGuide || !allGuide[key]) return;
+      if (!confirm(`¿Eliminar definitivamente el tip "${key}"?`)) return;
+      delete allGuide[key];
+      try { localStorage.setItem("bsas_admin_guide", JSON.stringify(allGuide)); } catch(err){}
+      renderAdminGuide();
+      scheduleAutoSync(`Eliminar tip de guía: ${key}`);
     }
 
     // ==================== GESTIÓN DE CATEGORÍAS ====================
