@@ -1084,37 +1084,6 @@ const APP_DATA = {
       "is_active": 0
     },
     {
-      "id": "PASS-PIN-MWTTJTT7",
-      "device_token": "dev_n5sj7obd6f",
-      "tourist_name": "Noah",
-      "tourist_contact": "Mesa / Local",
-      "receipt_id": "Validado con PIN (Isaias)",
-      "waiter_id": "isaias",
-      "payment_method": "Validado por Mozo (Isaias)",
-      "amount_paid_ars": 1000,
-      "amount_paid_usd": 1,
-      "status": "active",
-      "created_at": 1795471797931,
-      "activated_at": 1795471797931,
-      "expires_at": 1797286197931,
-      "is_active": 1
-    },
-    {
-      "id": "pass_vip_MWR7HXCA",
-      "device_token": "dev_myfiym9efd",
-      "tourist_name": "Sabrina",
-      "tourist_contact": "Billetera Móvil",
-      "waiter_id": "isaias",
-      "payment_method": "Billetera Móvil",
-      "amount_paid_ars": 1000,
-      "amount_paid_usd": 1,
-      "status": "active",
-      "created_at": 1795313825290,
-      "activated_at": 1795313825290,
-      "expires_at": 1797128225290,
-      "is_active": 1
-    },
-    {
       "id": "pass_mp_MWQW3UZ6",
       "device_token": "dev_myfiym9efd",
       "tourist_name": "Sabrina",
@@ -1154,5 +1123,5 @@ const APP_DATA = {
       "is_active": 0
     }
   ],
-  "version": "20261124_1795562144227"
+  "version": "20261124_1795562163430"
 };
