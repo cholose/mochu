@@ -1102,12 +1102,14 @@ const APP_DATA = {
       "tourist_name": "Sabrina",
       "tourist_contact": "1128991873",
       "waiter_id": "isaias",
-      "payment_method": "Mercado Pago",
+      "payment_method": "Mercado Pago (Verificado)",
       "amount_paid_ars": 1000,
       "amount_paid_usd": 1,
-      "status": "pending_payment",
+      "status": "active",
       "created_at": 1795294152323,
-      "is_active": 0
+      "is_active": 1,
+      "activated_at": 1795562164591,
+      "expires_at": 1797376564591
     },
     {
       "id": "pass_mp_MWQVRH9B",
@@ -1123,5 +1125,5 @@ const APP_DATA = {
       "is_active": 0
     }
   ],
-  "version": "20261124_1795562163430"
+  "version": "20261124_1795562174674"
 };
