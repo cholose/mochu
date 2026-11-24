@@ -836,14 +836,6 @@ const APP_DATA = {
   },
   "waiters": [
     {
-      "id": "cholo",
-      "name": "Cholo",
-      "phone": "",
-      "alias": "10.cholo",
-      "pin": "9999",
-      "commission_usd": 1.5
-    },
-    {
       "id": "luna",
       "name": "Luna",
       "phone": "1122446695",
@@ -1240,5 +1232,5 @@ const APP_DATA = {
       "is_active": 1
     }
   ],
-  "version": "20261124_1795562026665"
+  "version": "20261124_1795562031204"
 };
