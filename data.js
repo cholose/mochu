@@ -836,14 +836,6 @@ const APP_DATA = {
   },
   "waiters": [
     {
-      "id": "isaias",
-      "name": "Isaias",
-      "phone": "1123456789",
-      "alias": "isaias.mozo.mp",
-      "pin": "1234",
-      "commission_usd": 1.5
-    },
-    {
       "id": "cholo",
       "name": "Cholo",
       "phone": "",
@@ -1248,5 +1240,5 @@ const APP_DATA = {
       "is_active": 1
     }
   ],
-  "version": "20261124_1795539014925"
+  "version": "20261124_1795562026665"
 };
