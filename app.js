@@ -373,6 +373,7 @@ async function checkOrPromptPass() {
 
   const passId = localStorage.getItem("bsas_pass_id");
   let globalPasses = [];
+  let fetchedFromServer = false;
 
   // 1. Cargar desde passes.json fresco de GitHub Pages
   try {
@@ -381,31 +382,27 @@ async function checkOrPromptPass() {
       const data = await res.json();
       if (Array.isArray(data)) {
         globalPasses = data;
+        fetchedFromServer = true;
       }
     }
   } catch (e) {}
 
-  // 2. Fallback con APP_DATA.tourists
-  if (!globalPasses || globalPasses.length === 0) {
+  // 2. Si no se pudo conectar al servidor, usar data.js o localStorage
+  if (!fetchedFromServer) {
     if (typeof APP_DATA !== "undefined" && Array.isArray(APP_DATA.tourists)) {
       globalPasses = APP_DATA.tourists;
+    } else {
+      globalPasses = JSON.parse(localStorage.getItem("bsas_tourists_passes") || "[]");
     }
   }
-
-  // 3. Fallback con localStorage
-  const localList = JSON.parse(localStorage.getItem("bsas_tourists_passes") || "[]");
-  const mergedMap = new Map();
-  globalPasses.forEach(p => { if (p && p.id) mergedMap.set(p.id, p); });
-  localList.forEach(p => { if (p && p.id && !mergedMap.has(p.id)) mergedMap.set(p.id, p); });
-  const allKnownPasses = Array.from(mergedMap.values());
 
   // Buscar el pase de este celular
   let myPass = null;
   if (passId) {
-    myPass = allKnownPasses.find(p => p.id === passId);
+    myPass = globalPasses.find(p => p && p.id === passId);
   }
   if (!myPass && deviceToken) {
-    myPass = allKnownPasses.find(p => p.device_token === deviceToken);
+    myPass = globalPasses.find(p => p && p.device_token === deviceToken);
   }
 
   const now = Date.now();
@@ -427,8 +424,12 @@ async function checkOrPromptPass() {
       localStorage.setItem("bsas_pass_status", "expired");
     }
   } else {
+    // Si no está en el servidor (o fue eliminado por el admin), limpiar VIP del celular
     state.isVip = false;
     state.pass = null;
+    localStorage.removeItem("bsas_pass_id");
+    localStorage.removeItem("bsas_pass_status");
+    localStorage.removeItem("bsas_tourists_passes");
   }
 
   updateVipUI();

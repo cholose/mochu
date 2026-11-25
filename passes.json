@@ -1,15 +1,1 @@
-[
-  {
-    "id": "pass_mp_MWQVRH9B",
-    "device_token": "dev_myfiym9efd",
-    "tourist_name": "Sabrina",
-    "tourist_contact": "1128991873",
-    "waiter_id": "isaias",
-    "payment_method": "Mercado Pago",
-    "amount_paid_ars": 1000,
-    "amount_paid_usd": 1,
-    "status": "pending_payment",
-    "created_at": 1795294115615,
-    "is_active": 0
-  }
-]
+[]

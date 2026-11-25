@@ -1066,49 +1066,6 @@ const APP_DATA = {
       "created_at": 1794843426404
     }
   ],
-  "tourists": [
-    {
-      "id": "pass_mp_MWQW3LYA",
-      "device_token": "dev_mptw0jdjwl",
-      "tourist_name": "Sabrina",
-      "tourist_contact": "1128991873",
-      "receipt_id": "Validado con PIN (Luna)",
-      "waiter_id": "cholo",
-      "payment_method": "Mercado Pago",
-      "amount_paid_ars": 1000,
-      "amount_paid_usd": 1,
-      "status": "pending_payment",
-      "created_at": 1795294681570,
-      "activated_at": 1795473539847,
-      "expires_at": 1797287939847,
-      "is_active": 0
-    },
-    {
-      "id": "pass_mp_MWQW3UZ6",
-      "device_token": "dev_myfiym9efd",
-      "tourist_name": "Sabrina",
-      "tourist_contact": "1128991873",
-      "waiter_id": "isaias",
-      "payment_method": "Mercado Pago",
-      "amount_paid_ars": 1000,
-      "amount_paid_usd": 1,
-      "status": "pending_payment",
-      "created_at": 1795294693266,
-      "is_active": 0
-    },
-    {
-      "id": "pass_mp_MWQVRH9B",
-      "device_token": "dev_myfiym9efd",
-      "tourist_name": "Sabrina",
-      "tourist_contact": "1128991873",
-      "waiter_id": "isaias",
-      "payment_method": "Mercado Pago",
-      "amount_paid_ars": 1000,
-      "amount_paid_usd": 1,
-      "status": "pending_payment",
-      "created_at": 1795294115615,
-      "is_active": 0
-    }
-  ],
-  "version": "20261124_1795567612744"
+  "tourists": [],
+  "version": "20261124_02"
 };

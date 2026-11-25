@@ -11,8 +11,8 @@
   <!-- Leaflet CSS y JS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <script src="data.js?v=20261124_01"></script>
-  <link rel="stylesheet" href="style.css?v=20261124_01">
+  <script src="data.js?v=20261124_02"></script>
+  <link rel="stylesheet" href="style.css?v=20261124_02">
 
   <style>
     body {
@@ -700,8 +700,9 @@
             <span>🎫 Turistas Registrados & Pases VIP</span>
             <span id="tourists-active-count-badge" style="font-size:0.75rem; background:#1e293b; color:#10b981; padding:2px 8px; border-radius:999px; font-weight:700;"></span>
           </div>
-          <div style="display:flex; gap:8px;">
+          <div style="display:flex; gap:8px; flex-wrap:wrap;">
             <button class="btn-action" style="background:#10b981; font-weight:700;" onclick="openNewTouristModal()">➕ Activar Turista</button>
+            <button class="btn-action btn-danger" style="font-weight:700;" onclick="clearAllAdminTourists()">🗑️ Borrar Todos</button>
             <button class="btn-action btn-secondary" onclick="loadAdminTourists()">🔄 Actualizar</button>
           </div>
         </div>
@@ -1772,6 +1773,7 @@ ${qrImageUrl}
         places: formatted,
         waiters: (allWaiters && allWaiters.length > 0) ? allWaiters : APP_DATA.waiters,
         categories: (allCategories && allCategories.length > 0) ? allCategories : APP_DATA.categories,
+        tourists: Array.isArray(allTourists) ? allTourists : (APP_DATA.tourists || []),
         events: allEvents || APP_DATA.events,
         tangoConfig: allTangoConfig || APP_DATA.tangoConfig,
         guide: allGuide || APP_DATA.guide,
@@ -2012,7 +2014,7 @@ ${qrImageUrl}
             if (allReviews && allReviews.length > 0) {
               appDataObj.reviews = allReviews;
             }
-            if (allTourists && allTourists.length > 0) {
+            if (Array.isArray(allTourists)) {
               appDataObj.tourists = allTourists;
             }
             if (allEvents) {
@@ -2038,6 +2040,7 @@ ${qrImageUrl}
             const clone = { 
               ...APP_DATA, 
               places: formatted, 
+              tourists: Array.isArray(allTourists) ? allTourists : (APP_DATA.tourists || []),
               events: allEvents || (typeof APP_DATA !== "undefined" ? APP_DATA.events : null),
               tangoConfig: allTangoConfig || (typeof APP_DATA !== "undefined" ? APP_DATA.tangoConfig : null),
               guide: allGuide || (typeof APP_DATA !== "undefined" ? APP_DATA.guide : null),
@@ -4115,6 +4118,7 @@ ${qrImageUrl}
 
       try {
         let tourists = [];
+        let fetchedFromCloud = false;
 
         // 1. Cargar desde passes.json en GitHub Pages
         try {
@@ -4123,24 +4127,22 @@ ${qrImageUrl}
             const data = await res.json();
             if (Array.isArray(data)) {
               tourists = data;
+              fetchedFromCloud = true;
             }
           }
         } catch(e) {}
 
-        // 2. Si falló, cargar desde APP_DATA.tourists
-        if (!tourists || tourists.length === 0) {
-          const base = (typeof APP_DATA !== "undefined" && Array.isArray(APP_DATA.tourists)) ? APP_DATA.tourists : [];
-          tourists = base;
+        // 2. Si falló la conexión con GitHub, usar APP_DATA.tourists o localStorage
+        if (!fetchedFromCloud) {
+          if (typeof APP_DATA !== "undefined" && Array.isArray(APP_DATA.tourists)) {
+            tourists = APP_DATA.tourists;
+          } else {
+            const saved = localStorage.getItem("bsas_tourists_passes");
+            tourists = saved ? JSON.parse(saved) : [];
+          }
         }
 
-        // 3. Unir con localStorage
-        const saved = localStorage.getItem("bsas_tourists_passes");
-        const local = saved ? JSON.parse(saved) : [];
-        const map = new Map();
-        tourists.forEach(t => { if (t && t.id) map.set(t.id, t); });
-        local.forEach(t => { if (t && t.id) map.set(t.id, { ...(map.get(t.id) || {}), ...t }); });
-        allTourists = Array.from(map.values());
-
+        allTourists = tourists;
         localStorage.setItem("bsas_tourists_passes", JSON.stringify(allTourists));
         renderAdminTouristsUI();
       } catch (err) {
@@ -4394,7 +4396,18 @@ ${qrImageUrl}
       localStorage.setItem("bsas_tourists_passes", JSON.stringify(allTourists));
       renderAdminTouristsUI();
       await syncPassesToGitHub();
-      scheduleAutoSync("Eliminar registro de turista");
+      scheduleAutoSync(`Eliminar registro de turista: ${t ? t.tourist_name : passId}`);
+    }
+
+    async function clearAllAdminTourists() {
+      if (!confirm("⚠️ ¿Estás seguro de que querés borrar TODOS los turistas y solicitudes registradas?\n\nEsta acción dejará la base de datos de usuarios limpia en 0 para que puedas probar nuevamente los métodos de pago como un usuario nuevo.")) return;
+
+      allTourists = [];
+      localStorage.removeItem("bsas_tourists_passes");
+      renderAdminTouristsUI();
+      await syncPassesToGitHub();
+      scheduleAutoSync("Borrar todos los turistas para reiniciar pruebas");
+      alert("✅ ¡Todos los usuarios y solicitudes de prueba fueron eliminados con éxito!\nLa base de datos quedó limpia en 0.");
     }
   </script>
 </body>
