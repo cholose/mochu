@@ -11,8 +11,8 @@
   <!-- Leaflet CSS y JS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <script src="data.js?v=20261124_02"></script>
-  <link rel="stylesheet" href="style.css?v=20261124_02">
+  <script src="data.js?v=20261125_01"></script>
+  <link rel="stylesheet" href="style.css?v=20261125_01">
 
   <style>
     body {
@@ -648,9 +648,15 @@
           </div>
           <div>
             <label style="font-size:0.75rem; color:#60a5fa; display:block; margin-bottom:4px; font-weight:700;">
-              🅿️ PayPal: Correo receptor *
+              🅿️ PayPal: Correo receptor
             </label>
             <input type="email" id="cfg-paypal-email" class="input-field" style="margin:0;" placeholder="ej. cholose99@gmail.com" value="cholose99@gmail.com">
+          </div>
+          <div>
+            <label style="font-size:0.75rem; color:#60a5fa; display:block; margin-bottom:4px; font-weight:700;">
+              🅿️ PayPal Client ID (Cobro 1-Clic) *
+            </label>
+            <input type="text" id="cfg-paypal-client-id" class="input-field" style="margin:0; font-family:monospace; font-size:0.75rem;" placeholder="BAA7..." value="BAA7I1S-ssMXKWMMtn-XUs1t8wUpglRrJQK3s6mgj4qGMHTxAkdFQ4ScVONPUbOY2p6M13h6V4ibjVySCg">
           </div>
           <div>
             <label style="font-size:0.75rem; color:#cbd5e1; display:block; margin-bottom:4px; font-weight:700;">
@@ -1384,6 +1390,7 @@
         if (APP_DATA.config.prexAlias && document.getElementById("cfg-prex-alias")) document.getElementById("cfg-prex-alias").value = APP_DATA.config.prexAlias;
         if (APP_DATA.config.bnaCbu && document.getElementById("cfg-bna-cbu")) document.getElementById("cfg-bna-cbu").value = APP_DATA.config.bnaCbu;
         if (APP_DATA.config.paypalEmail && document.getElementById("cfg-paypal-email")) document.getElementById("cfg-paypal-email").value = APP_DATA.config.paypalEmail;
+        if (APP_DATA.config.paypalClientId && document.getElementById("cfg-paypal-client-id")) document.getElementById("cfg-paypal-client-id").value = APP_DATA.config.paypalClientId;
         if (APP_DATA.config.passPriceArs && document.getElementById("cfg-mp-price")) document.getElementById("cfg-mp-price").value = APP_DATA.config.passPriceArs;
         if (APP_DATA.config.passPriceUsd && document.getElementById("cfg-paypal-price")) document.getElementById("cfg-paypal-price").value = APP_DATA.config.passPriceUsd;
       }
@@ -1397,6 +1404,8 @@
       if (savedBna && document.getElementById("cfg-bna-cbu")) document.getElementById("cfg-bna-cbu").value = savedBna;
       const savedPaypal = localStorage.getItem("bsas_paypal_email");
       if (savedPaypal && document.getElementById("cfg-paypal-email")) document.getElementById("cfg-paypal-email").value = savedPaypal;
+      const savedClientId = localStorage.getItem("bsas_paypal_client_id");
+      if (savedClientId && document.getElementById("cfg-paypal-client-id")) document.getElementById("cfg-paypal-client-id").value = savedClientId;
     }
 
     async function saveMpConfig() {
@@ -1405,6 +1414,7 @@
       const prexAlias = document.getElementById("cfg-prex-alias") ? document.getElementById("cfg-prex-alias").value.trim() : "10.choloprex";
       const bnaCbu = document.getElementById("cfg-bna-cbu") ? document.getElementById("cfg-bna-cbu").value.trim() : "0110625730062513301251";
       const paypalEmail = document.getElementById("cfg-paypal-email") ? document.getElementById("cfg-paypal-email").value.trim() : "cholose99@gmail.com";
+      const paypalClientId = document.getElementById("cfg-paypal-client-id") ? document.getElementById("cfg-paypal-client-id").value.trim() : "BAA7I1S-ssMXKWMMtn-XUs1t8wUpglRrJQK3s6mgj4qGMHTxAkdFQ4ScVONPUbOY2p6M13h6V4ibjVySCg";
       const mpPrice = document.getElementById("cfg-mp-price") ? (parseInt(document.getElementById("cfg-mp-price").value, 10) || 1000) : 1000;
       const paypalPrice = document.getElementById("cfg-paypal-price") ? (parseFloat(document.getElementById("cfg-paypal-price").value) || 1.0) : 1.0;
 
@@ -1413,6 +1423,7 @@
       localStorage.setItem("bsas_prex_alias", prexAlias);
       localStorage.setItem("bsas_bna_cbu", bnaCbu);
       localStorage.setItem("bsas_paypal_email", paypalEmail);
+      localStorage.setItem("bsas_paypal_client_id", paypalClientId);
       localStorage.setItem("bsas_mp_price", mpPrice);
       localStorage.setItem("bsas_paypal_price", paypalPrice);
 
@@ -1422,6 +1433,7 @@
         APP_DATA.config.prexAlias = prexAlias;
         APP_DATA.config.bnaCbu = bnaCbu;
         APP_DATA.config.paypalEmail = paypalEmail;
+        APP_DATA.config.paypalClientId = paypalClientId;
         APP_DATA.config.passPriceArs = mpPrice;
         APP_DATA.config.passPriceUsd = paypalPrice;
       }

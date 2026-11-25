@@ -88,6 +88,7 @@ function triggerPwaInstall() {
 // Inicialización
 document.addEventListener("DOMContentLoaded", async () => {
   initPwaSupport();
+  try { loadPayPalSDK(); } catch(e){}
   await initWaiterTracking();
   initLanguage();
   initTabs();
@@ -496,6 +497,7 @@ function openUnlockModal() {
   if (!modal) return;
   modal.style.display = "flex";
   detectWalletButton();
+  initPayPalButtons();
 
   // Asegurar que el mozo asignado esté reflejado en el banner y formularios
   const assignedId = state.waiterId || localStorage.getItem("bsas_waiter") || "isaias";
@@ -564,6 +566,131 @@ function resetPassCheckout() {
   const viewPending = document.getElementById("unlock-view-pending");
   if (viewCheckout) viewCheckout.style.display = "block";
   if (viewPending) viewPending.style.display = "none";
+}
+
+// ==================== PAYPAL CHECKOUT 1-CLIC & ACTIVACIÓN INMEDIATA ====================
+let isPayPalSdkLoaded = false;
+
+function loadPayPalSDK(callback) {
+  if (window.paypal && window.paypal.Buttons) {
+    if (callback) callback();
+    return;
+  }
+  const clientId = (typeof APP_DATA !== "undefined" && APP_DATA.config && APP_DATA.config.paypalClientId)
+    ? APP_DATA.config.paypalClientId
+    : "BAA7I1S-ssMXKWMMtn-XUs1t8wUpglRrJQK3s6mgj4qGMHTxAkdFQ4ScVONPUbOY2p6M13h6V4ibjVySCg";
+
+  const existing = document.getElementById("paypal-sdk-script");
+  if (existing) {
+    if (callback) setTimeout(callback, 200);
+    return;
+  }
+
+  const script = document.createElement("script");
+  script.id = "paypal-sdk-script";
+  script.src = `https://www.paypal.com/sdk/js?client-id=${encodeURIComponent(clientId)}&currency=USD&components=buttons`;
+  script.onload = () => {
+    isPayPalSdkLoaded = true;
+    if (callback) callback();
+  };
+  script.onerror = () => {
+    console.warn("No se pudo cargar el SDK de PayPal, mostrando botón de respaldo");
+    const fallback = document.getElementById("paypal-fallback-btn");
+    if (fallback) fallback.style.display = "block";
+  };
+  document.head.appendChild(script);
+}
+
+function initPayPalButtons() {
+  const container = document.getElementById("paypal-button-container");
+  if (!container) return;
+
+  loadPayPalSDK(() => {
+    if (!window.paypal || !window.paypal.Buttons) return;
+    if (container.children.length > 0) return; // ya renderizado
+
+    try {
+      window.paypal.Buttons({
+        style: {
+          layout: 'vertical',
+          color: 'gold',
+          shape: 'rect',
+          label: 'paypal'
+        },
+        createOrder: function(data, actions) {
+          const priceUsd = (typeof APP_DATA !== "undefined" && APP_DATA.config && APP_DATA.config.passPriceUsd)
+            ? parseFloat(APP_DATA.config.passPriceUsd).toFixed(2)
+            : "1.00";
+          return actions.order.create({
+            purchase_units: [{
+              amount: {
+                value: priceUsd,
+                currency_code: 'USD'
+              },
+              description: 'BsAs Local Guide - Pase VIP 21 Días'
+            }]
+          });
+        },
+        onApprove: async function(data, actions) {
+          try {
+            const details = await actions.order.capture();
+            const payerName = (details.payer && details.payer.name && details.payer.name.given_name)
+              ? details.payer.name.given_name
+              : (document.getElementById("input-tourist-name-fast")?.value.trim() || "Turista VIP");
+            const orderId = details.id || data.orderID;
+
+            const passId = "PASS-PP-" + orderId.slice(-8).toUpperCase();
+            const now = Date.now();
+            const expiresAt = now + (21 * 86400000);
+            const deviceToken = localStorage.getItem("bsas_device_token") || ("dev_" + Math.random().toString(36).substring(2, 10));
+
+            const newPass = {
+              id: passId,
+              device_token: deviceToken,
+              tourist_name: payerName,
+              tourist_contact: (details.payer && details.payer.email_address) ? details.payer.email_address : "PayPal Checkout",
+              receipt_id: "PayPal Order: " + orderId,
+              waiter_id: state.waiterId || "isaias",
+              payment_method: "PayPal & Tarjeta",
+              amount_paid_ars: 1000,
+              amount_paid_usd: parseFloat(details.purchase_units?.[0]?.amount?.value || 1.0),
+              status: "active",
+              created_at: now,
+              activated_at: now,
+              expires_at: expiresAt,
+              is_active: 1
+            };
+
+            localStorage.setItem("bsas_pass_id", passId);
+            localStorage.setItem("bsas_pass_status", "active");
+            localStorage.setItem("bsas_tourist_name", payerName);
+
+            state.pass = newPass;
+            state.isVip = true;
+
+            closeUnlockModal();
+            updateVipUI();
+            if (state.selectedPlace) updateModalContent(state.selectedPlace);
+
+            await savePassToGitHubCloud(newPass);
+
+            alert(`🎉 ¡Pago verificado con éxito, ${payerName}!\n\nTu Pase VIP de 21 días quedó 100% ACTIVO.\n¡Disfrutá Buenos Aires con todas las funciones exclusivas!`);
+          } catch (err) {
+            alert("⚠️ Error al confirmar tu pago: " + err.message);
+          }
+        },
+        onError: function(err) {
+          console.warn("Aviso PayPal Buttons:", err);
+          const fallback = document.getElementById("paypal-fallback-btn");
+          if (fallback) fallback.style.display = "block";
+        }
+      }).render('#paypal-button-container');
+    } catch(err) {
+      console.warn("Error al renderizar botones de PayPal:", err);
+      const fallback = document.getElementById("paypal-fallback-btn");
+      if (fallback) fallback.style.display = "block";
+    }
+  });
 }
 
 // 1. COBRO 1-CLIC CON TARJETA / PAYPAL Y ACTIVACIÓN INMEDIATA (SOLUCIÓN 2)

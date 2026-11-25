@@ -22,7 +22,7 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 
   <!-- App Styles -->
-  <link rel="stylesheet" href="style.css?v=20261124_02">
+  <link rel="stylesheet" href="style.css?v=20261125_01">
   <style>
     .activation-overlay {
       position: fixed;
@@ -145,10 +145,13 @@
           <input type="text" id="input-tourist-name-fast" class="input-pass" placeholder="ej. Sarah, Matías o Valentina" style="margin-bottom:0;">
         </div>
 
-        <!-- BOTÓN PRINCIPAL BILLETERA DIGITAL (SE ADAPTA AUTOMÁTICAMENTE A IPHONE O ANDROID) -->
-        <button type="button" onclick="startInstantCardPayment()" id="btn-wallet-pay" class="btn-transport" style="background:#000000; color:#fff; width:100%; padding:14px; font-size:1.05rem; cursor:pointer; border:1.5px solid #475569; margin-bottom:12px; font-weight:800; border-radius:10px; box-shadow:0 4px 16px rgba(0,0,0,0.4); display:flex; align-items:center; justify-content:center; gap:8px;">
-          <span>📱</span> Pagar con Billetera del Celular (US$ 1.00)
-        </button>
+        <!-- BOTONES OFICIALES PAYPAL & TARJETAS INTERNACIONALES (1-CLIC AUTOMÁTICO) -->
+        <div id="paypal-button-container" style="min-height:48px; margin-bottom:12px;"></div>
+        <div id="paypal-fallback-btn" style="display:none;">
+          <button type="button" onclick="startInstantCardPayment()" id="btn-wallet-pay" class="btn-transport" style="background:#003087; color:#fff; width:100%; padding:14px; font-size:1.05rem; cursor:pointer; border:none; margin-bottom:12px; font-weight:800; border-radius:10px; box-shadow:0 4px 16px rgba(0,48,135,0.4); display:flex; align-items:center; justify-content:center; gap:8px;">
+            <span>🅿️</span> Pagar con PayPal (US$ 1.00)
+          </button>
+        </div>
 
         <!-- OPCIONES ALTERNATIVAS COLAPSABLES (ARGENTINA & MOZO) -->
         <details style="margin-bottom:10px; text-align:left; background:rgba(255,255,255,0.02); border-radius:8px; padding:8px 10px; border:1px solid rgba(255,255,255,0.06);">
@@ -753,7 +756,7 @@
   </div>
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <script src="data.js?v=20261124_02"></script>
-  <script src="app.js?v=20261124_02"></script>
+  <script src="data.js?v=20261125_01"></script>
+  <script src="app.js?v=20261125_01"></script>
 </body>
 </html>

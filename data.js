@@ -8,6 +8,7 @@ const APP_DATA = {
     "prexAlias": "10.choloprex",
     "bnaCbu": "0110625730062513301251",
     "paypalEmail": "cholose99@gmail.com",
+    "paypalClientId": "BAA7I1S-ssMXKWMMtn-XUs1t8wUpglRrJQK3s6mgj4qGMHTxAkdFQ4ScVONPUbOY2p6M13h6V4ibjVySCg",
     "paypalLink": "https://www.paypal.com/paypalme/cholose99",
     "passPriceArs": 1000,
     "passPriceUsd": 1,
@@ -1067,5 +1068,5 @@ const APP_DATA = {
     }
   ],
   "tourists": [],
-  "version": "20261124_02"
+  "version": "20261125_01"
 };
