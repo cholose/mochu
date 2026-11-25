@@ -843,6 +843,14 @@ const APP_DATA = {
       "alias": "noahse.mp",
       "pin": "2109",
       "commission_usd": 1.5
+    },
+    {
+      "id": "cholo",
+      "name": "Cholo",
+      "phone": "112314019",
+      "alias": "10.cholo",
+      "pin": "0119",
+      "commission_usd": 1.5
     }
   ],
   "categories": [
@@ -1068,5 +1076,5 @@ const APP_DATA = {
     }
   ],
   "tourists": [],
-  "version": "20261125_01"
+  "version": "20261124_1795580454775"
 };
