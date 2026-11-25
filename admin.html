@@ -11,8 +11,8 @@
   <!-- Leaflet CSS y JS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <script src="data.js?v=20261125_01"></script>
-  <link rel="stylesheet" href="style.css?v=20261125_01">
+  <script src="data.js?v=20261125_02"></script>
+  <link rel="stylesheet" href="style.css?v=20261125_02">
 
   <style>
     body {
@@ -668,7 +668,7 @@
             <label style="font-size:0.75rem; color:#cbd5e1; display:block; margin-bottom:4px; font-weight:700;">
               Importe USD (PayPal Internacional)
             </label>
-            <input type="number" id="cfg-paypal-price" class="input-field" style="margin:0;" placeholder="1.0" value="1.0" step="0.5">
+            <input type="number" id="cfg-paypal-price" class="input-field" style="margin:0;" placeholder="10.0" value="10.0" step="0.5">
           </div>
           <div>
             <label style="font-size:0.75rem; color:#cbd5e1; display:block; margin-bottom:4px; font-weight:700;">
@@ -807,7 +807,7 @@
         </div>
         <div class="form-group">
           <label>Comisión por venta (USD)</label>
-          <input type="number" step="0.1" id="w-commission" class="input-field" value="1.5" required>
+          <input type="number" step="0.1" id="w-commission" class="input-field" value="3.0" required>
         </div>
         <div style="display:flex; gap:10px; margin-top:14px; margin-bottom:20px;">
           <button type="submit" class="btn-action" style="flex:1; padding:12px;">Guardar Mozo</button>
@@ -1416,7 +1416,7 @@
       const paypalEmail = document.getElementById("cfg-paypal-email") ? document.getElementById("cfg-paypal-email").value.trim() : "cholose99@gmail.com";
       const paypalClientId = document.getElementById("cfg-paypal-client-id") ? document.getElementById("cfg-paypal-client-id").value.trim() : "BAA7I1S-ssMXKWMMtn-XUs1t8wUpglRrJQK3s6mgj4qGMHTxAkdFQ4ScVONPUbOY2p6M13h6V4ibjVySCg";
       const mpPrice = document.getElementById("cfg-mp-price") ? (parseInt(document.getElementById("cfg-mp-price").value, 10) || 1000) : 1000;
-      const paypalPrice = document.getElementById("cfg-paypal-price") ? (parseFloat(document.getElementById("cfg-paypal-price").value) || 1.0) : 1.0;
+      const paypalPrice = document.getElementById("cfg-paypal-price") ? (parseFloat(document.getElementById("cfg-paypal-price").value) || 10.0) : 10.0;
 
       localStorage.setItem("bsas_mp_link", mpLink);
       localStorage.setItem("bsas_mp_alias", mpAlias);
@@ -1694,7 +1694,7 @@ ${qrImageUrl}
         document.getElementById("w-phone").value = "";
         document.getElementById("w-alias").value = "";
         document.getElementById("w-pin").value = "1234";
-        document.getElementById("w-commission").value = "1.5";
+        document.getElementById("w-commission").value = "3.0";
       }
       document.getElementById("waiter-modal").classList.add("active");
     }
@@ -1719,7 +1719,7 @@ ${qrImageUrl}
       const phone = document.getElementById("w-phone").value.trim();
       const alias = document.getElementById("w-alias").value.trim();
       const pin = document.getElementById("w-pin").value || "1234";
-      const commissionUsd = parseFloat(document.getElementById("w-commission").value) || 1.5;
+      const commissionUsd = parseFloat(document.getElementById("w-commission").value) || 3.0;
       const id = editId || name.toLowerCase().replace(/\s+/g, "_");
 
       const payload = { id, name, phone, alias, pin, commissionUsd };
@@ -4364,7 +4364,7 @@ ${qrImageUrl}
         waiter_id: waiterId,
         payment_method: paymentMethod,
         amount_paid_ars: 1000,
-        amount_paid_usd: 1.0,
+        amount_paid_usd: (typeof APP_DATA !== "undefined" && APP_DATA.config && APP_DATA.config.passPriceUsd) ? APP_DATA.config.passPriceUsd : 10.0,
         status: "active",
         created_at: now,
         activated_at: now,

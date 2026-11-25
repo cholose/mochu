@@ -475,18 +475,21 @@ function detectWalletButton() {
   const btn = document.getElementById("btn-wallet-pay");
   if (!btn) return;
 
+  const passPriceUsd = (typeof APP_DATA !== "undefined" && APP_DATA.config && APP_DATA.config.passPriceUsd)
+    ? parseFloat(APP_DATA.config.passPriceUsd).toFixed(2)
+    : "10.00";
   if (isIOS) {
-    btn.innerHTML = `<span style="font-size:1.3rem; vertical-align:middle;"></span> Pagar con <strong>Apple Pay</strong> (US$ 1.00)`;
+    btn.innerHTML = `<span style="font-size:1.3rem; vertical-align:middle;"></span> Pagar con <strong>Apple Pay</strong> (US$ ${passPriceUsd})`;
     btn.style.background = "#000000";
     btn.style.borderColor = "#ffffff";
     btn.style.boxShadow = "0 4px 16px rgba(255,255,255,0.2)";
   } else if (isAndroid) {
-    btn.innerHTML = `<span style="font-weight:900; font-size:1.1rem;"><span style="color:#4285f4;">G</span><span style="color:#ea4335;">P</span><span style="color:#fbbc05;">a</span><span style="color:#34a853;">y</span></span> Pagar con <strong>Google Pay</strong> (US$ 1.00)`;
+    btn.innerHTML = `<span style="font-weight:900; font-size:1.1rem;"><span style="color:#4285f4;">G</span><span style="color:#ea4335;">P</span><span style="color:#fbbc05;">a</span><span style="color:#34a853;">y</span></span> Pagar con <strong>Google Pay</strong> (US$ ${passPriceUsd})`;
     btn.style.background = "#000000";
     btn.style.borderColor = "#555555";
     btn.style.boxShadow = "0 4px 16px rgba(66,133,244,0.3)";
   } else {
-    btn.innerHTML = `<span> Pay / GPay / 💳</span> Pagar con <strong>Tarjeta o Billetera</strong> (US$ 1.00)`;
+    btn.innerHTML = `<span> Pay / GPay / 💳</span> Pagar con <strong>Tarjeta o Billetera</strong> (US$ ${passPriceUsd})`;
     btn.style.background = "#0070ba";
     btn.style.borderColor = "transparent";
   }
@@ -620,7 +623,7 @@ function initPayPalButtons() {
         createOrder: function(data, actions) {
           const priceUsd = (typeof APP_DATA !== "undefined" && APP_DATA.config && APP_DATA.config.passPriceUsd)
             ? parseFloat(APP_DATA.config.passPriceUsd).toFixed(2)
-            : "1.00";
+            : "10.00";
           return actions.order.create({
             purchase_units: [{
               amount: {
@@ -653,7 +656,7 @@ function initPayPalButtons() {
               waiter_id: state.waiterId || "isaias",
               payment_method: "PayPal & Tarjeta",
               amount_paid_ars: 1000,
-              amount_paid_usd: parseFloat(details.purchase_units?.[0]?.amount?.value || 1.0),
+              amount_paid_usd: parseFloat(details.purchase_units?.[0]?.amount?.value || 10.0),
               status: "active",
               created_at: now,
               activated_at: now,
@@ -710,9 +713,10 @@ function startInstantCardPayment() {
   localStorage.setItem("bsas_tourist_name", touristName);
 
   // Abrir PayPal.me directamente con el importe de 1 USD
+  const price = (typeof APP_DATA !== "undefined" && APP_DATA.config && APP_DATA.config.passPriceUsd) ? APP_DATA.config.passPriceUsd : 10;
   const paypalUrl = (typeof APP_DATA !== "undefined" && APP_DATA.config && APP_DATA.config.paypalLink)
-    ? (APP_DATA.config.paypalLink.replace(/\/?$/, '') + "/1USD")
-    : "https://www.paypal.com/paypalme/cholose99/1USD";
+    ? (APP_DATA.config.paypalLink.replace(/\/?$/, '') + "/" + price + "USD")
+    : `https://www.paypal.com/paypalme/cholose99/${price}USD`;
 
   window.open(paypalUrl, "_blank");
 
@@ -724,9 +728,10 @@ function startInstantCardPayment() {
 }
 
 function reopenPayPalLink() {
+  const price = (typeof APP_DATA !== "undefined" && APP_DATA.config && APP_DATA.config.passPriceUsd) ? APP_DATA.config.passPriceUsd : 10;
   const paypalUrl = (typeof APP_DATA !== "undefined" && APP_DATA.config && APP_DATA.config.paypalLink)
-    ? (APP_DATA.config.paypalLink.replace(/\/?$/, '') + "/1USD")
-    : "https://www.paypal.com/paypalme/cholose99/1USD";
+    ? (APP_DATA.config.paypalLink.replace(/\/?$/, '') + "/" + price + "USD")
+    : `https://www.paypal.com/paypalme/cholose99/${price}USD`;
   window.open(paypalUrl, "_blank");
 }
 
@@ -780,7 +785,7 @@ async function submitPassVerification(paymentMethod = "Transferencia Local") {
     waiter_id: state.waiterId || "isaias",
     payment_method: paymentMethod,
     amount_paid_ars: (typeof APP_DATA !== "undefined" && APP_DATA.config && APP_DATA.config.passPriceArs) ? APP_DATA.config.passPriceArs : 1000,
-    amount_paid_usd: (typeof APP_DATA !== "undefined" && APP_DATA.config && APP_DATA.config.passPriceUsd) ? APP_DATA.config.passPriceUsd : 1.0,
+    amount_paid_usd: (typeof APP_DATA !== "undefined" && APP_DATA.config && APP_DATA.config.passPriceUsd) ? APP_DATA.config.passPriceUsd : 10.0,
     status: "pending_payment",
     created_at: now,
     expires_at: expiresAt,
@@ -929,7 +934,7 @@ async function submitTouristPin(source = 'default') {
     waiter_id: matchedWaiter.id,
     payment_method: `Validado por Mozo (${matchedWaiter.name})`,
     amount_paid_ars: (typeof APP_DATA !== "undefined" && APP_DATA.config && APP_DATA.config.passPriceArs) ? APP_DATA.config.passPriceArs : 1000,
-    amount_paid_usd: (typeof APP_DATA !== "undefined" && APP_DATA.config && APP_DATA.config.passPriceUsd) ? APP_DATA.config.passPriceUsd : 1.0,
+    amount_paid_usd: (typeof APP_DATA !== "undefined" && APP_DATA.config && APP_DATA.config.passPriceUsd) ? APP_DATA.config.passPriceUsd : 10.0,
     status: "active",
     created_at: now,
     activated_at: now,

@@ -11,7 +11,7 @@ const APP_DATA = {
     "paypalClientId": "BAA7I1S-ssMXKWMMtn-XUs1t8wUpglRrJQK3s6mgj4qGMHTxAkdFQ4ScVONPUbOY2p6M13h6V4ibjVySCg",
     "paypalLink": "https://www.paypal.com/paypalme/cholose99",
     "passPriceArs": 1000,
-    "passPriceUsd": 1,
+    "passPriceUsd": 10,
     "passDays": 21
   },
   "places": [
@@ -842,7 +842,7 @@ const APP_DATA = {
       "phone": "1136978109",
       "alias": "noahse.mp",
       "pin": "2109",
-      "commission_usd": 1.5
+      "commission_usd": 3.0
     },
     {
       "id": "cholo",
@@ -850,7 +850,7 @@ const APP_DATA = {
       "phone": "112314019",
       "alias": "10.cholo",
       "pin": "0119",
-      "commission_usd": 1.5
+      "commission_usd": 3.0
     }
   ],
   "categories": [
