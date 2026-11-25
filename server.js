@@ -889,6 +889,27 @@ function syncPlacesToDataJs() {
     return sendJSON(res, 200, reviews);
   }
 
+  // Editar reseña desde Admin
+  if (pathname === "/api/admin/reviews/update" && method === "POST") {
+    try {
+      const data = await parseBody(req);
+      if (!data.id) return sendJSON(res, 400, { error: "ID requerido" });
+      db.prepare(`
+        UPDATE reviews
+        SET place_id = COALESCE(?, place_id),
+            user_name = COALESCE(?, user_name),
+            user_country = COALESCE(?, user_country),
+            rating = COALESCE(?, rating),
+            comment = COALESCE(?, comment),
+            photo_data = COALESCE(?, photo_data)
+        WHERE id = ?
+      `).run(data.placeId, data.userName, data.userCountry, data.rating, data.comment, data.photoData, data.id);
+      return sendJSON(res, 200, { success: true });
+    } catch (e) {
+      return sendJSON(res, 400, { error: e.message });
+    }
+  }
+
   // Eliminar reseña desde Admin
   if (pathname === "/api/admin/reviews/delete" && method === "POST") {
     try {

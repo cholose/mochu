@@ -11,8 +11,8 @@
   <!-- Leaflet CSS y JS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <script src="data.js?v=20261125_02"></script>
-  <link rel="stylesheet" href="style.css?v=20261125_02">
+  <script src="data.js?v=20261125_03"></script>
+  <link rel="stylesheet" href="style.css?v=20261125_03">
 
   <style>
     body {
@@ -817,12 +817,13 @@
     </div>
   </div>
 
-  <!-- Modal para Agregar Reseña en Admin -->
+  <!-- Modal para Agregar / Editar Reseña en Admin -->
   <div class="modal-overlay" id="admin-review-modal">
     <div class="bottom-sheet" style="max-width:480px;">
       <div class="sheet-handle"></div>
-      <h2 style="font-size:1.2rem; margin-bottom:14px;">➕ Agregar Reseña de Turista</h2>
+      <h2 id="admin-review-modal-title" style="font-size:1.2rem; margin-bottom:14px;">➕ Agregar Reseña de Turista</h2>
       <form onsubmit="saveAdminReview(event)">
+        <input type="hidden" id="rev-edit-id" value="">
         <div class="form-group">
           <label>Lugar *</label>
           <select id="rev-place-id" class="input-field" required></select>
@@ -844,15 +845,15 @@
           </select>
         </div>
         <div class="form-group">
-          <label>Comentario / Opinión *</label>
-          <textarea id="rev-comment" class="input-field" rows="3" required placeholder="Escribí lo que comentó el turista..."></textarea>
+          <label>Comentario / Opinión (podés corregir faltas de ortografía o texto) *</label>
+          <textarea id="rev-comment" class="input-field" rows="4" required placeholder="Escribí o editá lo que comentó el turista..."></textarea>
         </div>
         <div class="form-group">
           <label>Link de Foto (opcional)</label>
           <input type="text" id="rev-photo" class="input-field" placeholder="https://images.unsplash.com/...">
         </div>
         <div style="display:flex; gap:10px; margin-top:14px; margin-bottom:20px;">
-          <button type="submit" class="btn-action" style="flex:1; padding:12px; background:#10b981;">Guardar y Sincronizar</button>
+          <button type="submit" id="btn-save-review-submit" class="btn-action" style="flex:1; padding:12px; background:#10b981;">Guardar y Sincronizar</button>
           <button type="button" class="btn-action btn-secondary" onclick="closeAdminReviewModal()">Cancelar</button>
         </div>
       </form>
@@ -1475,7 +1476,7 @@
             phone: w.phone || "",
             alias: w.alias || "",
             pin: w.pin || "1234",
-            commission_usd: w.commission_usd || 1.5,
+            commission_usd: w.commission_usd || 3.0,
             total_sales: w.total_sales || 0,
             pending_payout_usd: w.pending_payout_usd || 0,
             pending_payout_ars: w.pending_payout_ars || 0
@@ -3724,11 +3725,66 @@ ${qrImageUrl}
       }
     }
 
-    async function loadAdminReviews() {
+    function renderAdminReviewsUI() {
       const container = document.getElementById("admin-reviews-container");
       const countBadge = document.getElementById("reviews-total-count");
       if (!container) return;
-      container.innerHTML = '<div style="color:#94a3b8; font-size:0.85rem;">Cargando opiniones de todos los turistas...</div>';
+
+      if (countBadge) {
+        countBadge.textContent = `${allReviews.length} opiniones`;
+      }
+
+      if (!allReviews || allReviews.length === 0) {
+        container.innerHTML = '<div style="color:#94a3b8; font-size:0.85rem; padding:16px; text-align:center;">Aún no hay comentarios. ¡Tocá en "+ Agregar Reseña" para sumar una!</div>';
+        return;
+      }
+
+      container.innerHTML = allReviews.map(r => {
+        const dateStr = new Date(r.created_at || Date.now()).toLocaleDateString("es-AR", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" });
+        const stars = "★".repeat(r.rating || 5) + "☆".repeat(Math.max(0, 5 - (r.rating || 5)));
+        const escapedId = r.id;
+        return `
+          <div style="background:#0f172a; border:1px solid rgba(255,255,255,0.08); border-radius:12px; padding:14px; margin-bottom:12px; display:flex; flex-direction:column; gap:8px;">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:10px; flex-wrap:wrap;">
+              <div>
+                <div style="font-weight:700; color:#fff; font-size:0.95rem;">
+                  ${r.user_name || 'Turista'} <span style="font-size:0.8rem; color:#94a3b8; font-weight:normal;">(${r.user_country || 'Turista'})</span>
+                </div>
+                <div style="font-size:0.8rem; color:#38bdf8; margin-top:2px;">
+                  📍 Lugar: <strong>${r.place_name || r.place_id}</strong>
+                  ${r.waiter_id ? ` • 👨‍🍳 Mozo: <strong>${r.waiter_id}</strong>` : ''}
+                </div>
+              </div>
+              <div style="display:flex; gap:6px;">
+                <button class="btn-action" style="padding:5px 12px; font-size:0.75rem; background:#3b82f6; display:inline-flex; align-items:center; gap:4px;" onclick="editAdminReview('${escapedId}')">
+                  ✏️ Editar
+                </button>
+                <button class="btn-action btn-danger" style="padding:5px 12px; font-size:0.75rem; display:inline-flex; align-items:center; gap:4px;" onclick="deleteAdminReview('${escapedId}')">
+                  🗑️ Borrar
+                </button>
+              </div>
+            </div>
+
+            <div style="display:flex; align-items:center; gap:8px;">
+              <span style="color:#f59e0b; font-size:0.9rem; letter-spacing:1px;">${stars}</span>
+              <span style="font-size:0.75rem; color:#64748b;">${dateStr}</span>
+            </div>
+
+            <p style="font-size:0.88rem; color:#cbd5e1; margin:0; line-height:1.45; background:rgba(255,255,255,0.02); padding:8px 10px; border-radius:6px; border:1px solid rgba(255,255,255,0.05); white-space:pre-wrap;">${r.comment || ''}</p>
+
+            ${r.photo_data ? `
+              <div style="margin-top:6px;">
+                <img src="${r.photo_data}" style="max-height:140px; border-radius:8px; object-fit:cover; border:1px solid rgba(255,255,255,0.15); cursor:pointer;" alt="Foto turista" onclick="window.open(this.src, '_blank')">
+              </div>
+            ` : ''}
+          </div>
+        `;
+      }).join("");
+    }
+
+    async function loadAdminReviews() {
+      const container = document.getElementById("admin-reviews-container");
+      if (container) container.innerHTML = '<div style="color:#94a3b8; font-size:0.85rem;">Cargando opiniones de todos los turistas...</div>';
 
       try {
         let reviews = [];
@@ -3751,75 +3807,63 @@ ${qrImageUrl}
           }
         }
 
-        // 3. Unir con localStorage local
+        // 3. Unir con localStorage local respetando eliminaciones
+        const deletedIds = new Set(JSON.parse(localStorage.getItem("bsas_deleted_reviews") || "[]"));
         const saved = localStorage.getItem("bsas_reviews");
         const local = saved ? JSON.parse(saved) : [];
         const map = new Map();
-        reviews.forEach(r => { if (r && r.id) map.set(r.id, r); });
-        local.forEach(r => { if (r && r.id) map.set(r.id, { ...(map.get(r.id) || {}), ...r }); });
+        reviews.forEach(r => { if (r && r.id && !deletedIds.has(r.id)) map.set(r.id, r); });
+        local.forEach(r => { if (r && r.id && !deletedIds.has(r.id)) map.set(r.id, { ...(map.get(r.id) || {}), ...r }); });
         allReviews = Array.from(map.values());
 
         localStorage.setItem("bsas_reviews", JSON.stringify(allReviews));
-
-        if (countBadge) {
-          countBadge.textContent = `${allReviews.length} opiniones`;
-        }
-
-        if (!allReviews || allReviews.length === 0) {
-          container.innerHTML = '<div style="color:#94a3b8; font-size:0.85rem; padding:16px; text-align:center;">Aún no hay comentarios. ¡Tocá en "+ Agregar Reseña" para sumar una!</div>';
-          return;
-        }
-
-        container.innerHTML = allReviews.map(r => {
-          const dateStr = new Date(r.created_at || Date.now()).toLocaleDateString("es-AR", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" });
-          const stars = "★".repeat(r.rating || 5) + "☆".repeat(Math.max(0, 5 - (r.rating || 5)));
-          return `
-            <div style="background:#0f172a; border:1px solid rgba(255,255,255,0.08); border-radius:12px; padding:14px; margin-bottom:12px; display:flex; flex-direction:column; gap:8px;">
-              <div style="display:flex; justify-content:space-between; align-items:flex-start;">
-                <div>
-                  <div style="font-weight:700; color:#fff; font-size:0.95rem;">
-                    ${r.user_name} <span style="font-size:0.8rem; color:#94a3b8; font-weight:normal;">(${r.user_country || 'Turista'})</span>
-                  </div>
-                  <div style="font-size:0.8rem; color:#38bdf8; margin-top:2px;">
-                    📍 Lugar: <strong>${r.place_name || r.place_id}</strong>
-                    ${r.waiter_id ? ` • 👨‍🍳 Mozo: <strong>${r.waiter_id}</strong>` : ''}
-                  </div>
-                </div>
-                <button class="btn-action btn-danger" style="padding:4px 10px; font-size:0.75rem;" onclick="deleteAdminReview('${r.id}')">
-                  🗑️ Borrar
-                </button>
-              </div>
-
-              <div style="display:flex; align-items:center; gap:8px;">
-                <span style="color:#f59e0b; font-size:0.9rem; letter-spacing:1px;">${stars}</span>
-                <span style="font-size:0.75rem; color:#64748b;">${dateStr}</span>
-              </div>
-
-              <p style="font-size:0.85rem; color:#cbd5e1; margin:0; line-height:1.4;">${r.comment}</p>
-
-              ${r.photo_data ? `
-                <div style="margin-top:6px;">
-                  <img src="${r.photo_data}" style="max-height:140px; border-radius:8px; object-fit:cover; border:1px solid rgba(255,255,255,0.15);" alt="Foto turista">
-                </div>
-              ` : ''}
-            </div>
-          `;
-        }).join("");
+        renderAdminReviewsUI();
       } catch (e) {
-        container.innerHTML = '<div style="color:#ef4444; font-size:0.85rem;">Error al cargar opiniones: ' + e.message + '</div>';
+        if (container) container.innerHTML = '<div style="color:#ef4444; font-size:0.85rem;">Error al cargar opiniones: ' + e.message + '</div>';
       }
     }
 
-    function openNewReviewModal() {
+    function populateReviewPlacesDropdown(selectedPlaceId) {
       const select = document.getElementById("rev-place-id");
-      if (select) {
-        select.innerHTML = allPlaces.map(p => `<option value="${p.id}">${p.name} (${p.neighborhood || ''})</option>`).join("");
-      }
+      if (!select) return;
+      select.innerHTML = allPlaces.map(p => {
+        const isSel = p.id === selectedPlaceId ? "selected" : "";
+        return `<option value="${p.id}" ${isSel}>${p.name} (${p.neighborhood || ''})</option>`;
+      }).join("");
+    }
+
+    function openNewReviewModal() {
+      populateReviewPlacesDropdown("");
+      document.getElementById("rev-edit-id").value = "";
+      const title = document.getElementById("admin-review-modal-title");
+      if (title) title.innerHTML = "➕ Agregar Reseña de Turista";
+      const submitBtn = document.getElementById("btn-save-review-submit");
+      if (submitBtn) submitBtn.textContent = "Guardar y Sincronizar";
+
       document.getElementById("rev-user-name").value = "";
       document.getElementById("rev-user-country").value = "🌍 Turista";
       document.getElementById("rev-rating").value = "5";
       document.getElementById("rev-comment").value = "";
       document.getElementById("rev-photo").value = "";
+      document.getElementById("admin-review-modal").classList.add("active");
+    }
+
+    function editAdminReview(id) {
+      const r = allReviews.find(x => x.id === id);
+      if (!r) return;
+
+      populateReviewPlacesDropdown(r.place_id);
+      document.getElementById("rev-edit-id").value = r.id;
+      const title = document.getElementById("admin-review-modal-title");
+      if (title) title.innerHTML = "✏️ Editar Comentario / Reseña";
+      const submitBtn = document.getElementById("btn-save-review-submit");
+      if (submitBtn) submitBtn.textContent = "💾 Guardar Cambios";
+
+      document.getElementById("rev-user-name").value = r.user_name || "";
+      document.getElementById("rev-user-country").value = r.user_country || "🌍 Turista";
+      document.getElementById("rev-rating").value = String(r.rating || 5);
+      document.getElementById("rev-comment").value = r.comment || "";
+      document.getElementById("rev-photo").value = r.photo_data || "";
       document.getElementById("admin-review-modal").classList.add("active");
     }
 
@@ -3829,6 +3873,7 @@ ${qrImageUrl}
 
     async function saveAdminReview(e) {
       e.preventDefault();
+      const editId = document.getElementById("rev-edit-id") ? document.getElementById("rev-edit-id").value.trim() : "";
       const placeId = document.getElementById("rev-place-id").value;
       const place = allPlaces.find(p => p.id === placeId);
       const placeName = place ? place.name : placeId;
@@ -3838,36 +3883,58 @@ ${qrImageUrl}
       const comment = document.getElementById("rev-comment").value.trim();
       const photoData = document.getElementById("rev-photo").value.trim();
 
-      const newRev = {
-        id: "rev_" + Date.now(),
-        place_id: placeId,
-        place_name: placeName,
-        user_name: userName,
-        user_country: userCountry,
-        rating,
-        comment,
-        photo_data: photoData || "",
-        waiter_id: "isaias",
-        created_at: Date.now()
-      };
+      if (editId) {
+        const idx = allReviews.findIndex(r => r.id === editId);
+        if (idx !== -1) {
+          allReviews[idx].place_id = placeId;
+          allReviews[idx].place_name = placeName;
+          allReviews[idx].user_name = userName;
+          allReviews[idx].user_country = userCountry;
+          allReviews[idx].rating = rating;
+          allReviews[idx].comment = comment;
+          allReviews[idx].photo_data = photoData || "";
+          allReviews[idx].updated_at = Date.now();
+        }
+      } else {
+        const newRev = {
+          id: "rev_" + Date.now(),
+          place_id: placeId,
+          place_name: placeName,
+          user_name: userName,
+          user_country: userCountry,
+          rating,
+          comment,
+          photo_data: photoData || "",
+          waiter_id: "isaias",
+          created_at: Date.now()
+        };
+        allReviews.unshift(newRev);
+      }
 
-      allReviews.unshift(newRev);
       localStorage.setItem("bsas_reviews", JSON.stringify(allReviews));
       closeAdminReviewModal();
-      await loadAdminReviews();
+      renderAdminReviewsUI();
 
       // Guardar en GitHub tanto reviews.json como data.js
-      syncReviewsToGitHub();
-      scheduleAutoSync("Nueva Reseña: " + placeName);
-      alert("✅ ¡Reseña guardada y sincronizada! Ya está disponible para todos los turistas.");
+      await syncReviewsToGitHub();
+      scheduleAutoSync(editId ? ("Editar comentario: " + placeName) : ("Nueva Reseña: " + placeName));
+      alert(editId ? "✅ ¡Comentario editado y sincronizado con éxito!" : "✅ ¡Reseña guardada y sincronizada! Ya está disponible para todos los turistas.");
     }
 
     async function deleteAdminReview(id) {
-      if (!confirm("¿Seguro que deseas eliminar este comentario?")) return;
-      allReviews = allReviews.filter(r => r.id !== id);
+      const r = allReviews.find(x => x.id === id);
+      const who = r ? (r.user_name || "este comentario") : "este comentario";
+      if (!confirm(`¿Seguro que deseas eliminar el comentario de "${who}"?`)) return;
+
+      const deleted = JSON.parse(localStorage.getItem("bsas_deleted_reviews") || "[]");
+      if (!deleted.includes(id)) deleted.push(id);
+      localStorage.setItem("bsas_deleted_reviews", JSON.stringify(deleted));
+
+      allReviews = allReviews.filter(x => x.id !== id);
       localStorage.setItem("bsas_reviews", JSON.stringify(allReviews));
-      await loadAdminReviews();
-      syncReviewsToGitHub();
+      renderAdminReviewsUI();
+
+      await syncReviewsToGitHub();
       scheduleAutoSync("Eliminar reseña");
     }
 

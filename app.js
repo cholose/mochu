@@ -2451,10 +2451,16 @@ async function loadPlaceReviews(placeId) {
   // 3. Cargar reseñas guardadas localmente en este celular/navegador
   const localList = JSON.parse(localStorage.getItem("bsas_reviews") || "[]");
 
-  // 4. Unir sin duplicados (dando prioridad a la reseña local más reciente)
+  // 4. Unir sin duplicados (dando prioridad a la versión oficial del servidor con correcciones del admin)
   const map = new Map();
-  localList.forEach(r => { if (r && r.id) map.set(r.id, r); });
-  globalList.forEach(r => { if (r && r.id && !map.has(r.id)) map.set(r.id, r); });
+  if (Array.isArray(globalList)) {
+    globalList.forEach(r => { if (r && r.id) map.set(r.id, r); });
+  }
+  localList.forEach(r => {
+    if (r && r.id && !map.has(r.id)) {
+      map.set(r.id, r);
+    }
+  });
   const allMerged = Array.from(map.values());
 
   // 5. Filtrar por el lugar actual (compatibilidad con VALeRIO y evitar mezclar MALBA)
