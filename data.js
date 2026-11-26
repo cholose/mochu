@@ -494,6 +494,166 @@ const APP_DATA = {
         "en": "Belle Époque architectural masterpiece founded in 1912, newly restored with French stained glass, marble columns, and top-tier pastries.",
         "pt": "Obra-prima da Belle Époque portenha inaugurada em 1912 e restaurada com vitrais franceses, mármores e confeitaria de primeiro nível."
       }
+    },
+    {
+      "id": "cult_caminito",
+      "category": "culture",
+      "name": "Caminito & La Boca",
+      "neighborhood": "La Boca",
+      "address": "Vallejo y Magallanes, La Boca",
+      "lat": -34.6394,
+      "lng": -58.3629,
+      "price": "$",
+      "tag": "Ícono Mundial / Tango & Colores",
+      "image": "https://images.unsplash.com/photo-1589802829985-817e51171b92?w=600&auto=format&fit=crop&q=80",
+      "menu_url": "",
+      "is_indoor": 0,
+      "active": 1,
+      "tips": {
+        "es": "El rincón más colorido y fotografiado de Buenos Aires. Caminá por los adoquines, escuchá tango en vivo en la calle y visitá los conventillos históricos. Tip de mozo: visitarlo de día entre las 10 y 17 hs.",
+        "en": "The most colourful and famous outdoor museum in Buenos Aires. Cobblestone walkways, open-air tango dancers and historic conventillos. Waiter tip: visit during daytime between 10 AM and 5 PM.",
+        "pt": "O museu a céu aberto mais colorido e famoso de Buenos Aires. Dançarinos de tango nas calçadas e cortiços históricos. Dica do garçom: visite durante o dia entre 10h e 17h."
+      }
+    },
+    {
+      "id": "cult_jardin_japones",
+      "category": "culture",
+      "name": "Jardín Japonés",
+      "neighborhood": "Palermo",
+      "address": "Av. Casares 2966, Palermo",
+      "lat": -34.5753,
+      "lng": -58.4069,
+      "price": "$",
+      "tag": "Naturaleza & Relax",
+      "image": "https://images.unsplash.com/photo-1503899036084-c55cdd92da26?w=600&auto=format&fit=crop&q=80",
+      "menu_url": "",
+      "is_indoor": 0,
+      "active": 1,
+      "tips": {
+        "es": "Un oasis de paz en medio de la ciudad con puentes rojos tradicionales, peces carpa koi, bonsáis y casa de té tradicional. Ideal para pasear una tarde soleada.",
+        "en": "A peaceful oasis in the city with traditional red arched bridges, koi fish ponds, bonsai trees and authentic Japanese tea house.",
+        "pt": "Um oásis de tranquilidade com pontes vermelhas tradicionais, lago com carpas koi, bonsais e casa de chá japonesa autêntica."
+      }
+    },
+    {
+      "id": "cult_plaza_de_mayo",
+      "category": "culture",
+      "name": "Plaza de Mayo & Casa Rosada",
+      "neighborhood": "Montserrat / Centro",
+      "address": "Balcarce 50, Plaza de Mayo",
+      "lat": -34.6083,
+      "lng": -58.3712,
+      "price": "$",
+      "tag": "Historia Nacional / Visita Obligada",
+      "image": "https://images.unsplash.com/photo-1547981609-4b6bfe67ca0b?w=600&auto=format&fit=crop&q=80",
+      "menu_url": "",
+      "is_indoor": 0,
+      "active": 1,
+      "tips": {
+        "es": "El epicentro histórico de la República Argentina. Rodeada por la Casa de Gobierno (Casa Rosada), el Cabildo Histórico y la Catedral Metropolitana donde predicaba el Papa Francisco.",
+        "en": "The political and historical heart of Argentina, surrounded by the Pink Presidential Palace (Casa Rosada), the historic Cabildo and the Metropolitan Cathedral where Pope Francis preached.",
+        "pt": "O coração histórico e político da Argentina. Cercada pela Casa Rosada, o Cabildo Histórico e a Catedral Metropolitana onde o Papa Francisco pregava."
+      }
+    },
+    {
+      "id": "shop_puente_mujer",
+      "category": "shopping",
+      "name": "Puente de la Mujer",
+      "neighborhood": "Puerto Madero",
+      "address": "Dique 3, Puerto Madero",
+      "lat": -34.6079,
+      "lng": -58.3644,
+      "price": "$",
+      "tag": "Paseo Costero / Arquitectura",
+      "image": "https://images.unsplash.com/photo-1589802829985-817e51171b92?w=600&auto=format&fit=crop&q=80",
+      "menu_url": "",
+      "is_indoor": 0,
+      "active": 1,
+      "tips": {
+        "es": "Obra maestra del arquitecto Santiago Calatrava que representa una pareja bailando tango sobre el dique. Ideal para caminar al atardecer, cenar con vista al río y tomar fotos inolvidables.",
+        "en": "Iconic footbridge by Santiago Calatrava depicting a couple dancing tango. Perfect for sunset strolls along the docks with fine dining restaurants.",
+        "pt": "Famosa ponte giratória de Santiago Calatrava que representa um casal dançando tango. Perfeita para passear ao pôr do sol e jantar nos diques."
+      }
+    },
+    {
+      "id": "food_la_cabrera",
+      "category": "food",
+      "name": "Parrilla La Cabrera",
+      "neighborhood": "Palermo Soho",
+      "address": "José A. Cabrera 5099, Palermo Soho",
+      "lat": -34.5898,
+      "lng": -58.4284,
+      "price": "$$$",
+      "tag": "Cortes Premium & Cazuelitas",
+      "image": "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=600&auto=format&fit=crop&q=80",
+      "menu_url": "",
+      "is_indoor": 1,
+      "active": 1,
+      "tips": {
+        "es": "Famosa por sus carnes maduradas y la infinidad de cazuelitas gourmet de guarnición que acompañan cada plato. Tip de mozo: pedí el Ojo de Bife con loly pop de postre gratis.",
+        "en": "Famous for dry-aged steaks and dozens of miniature side dishes that accompany every cut. Waiter tip: order the Ribeye (Ojo de Bife) and enjoy complimentary dessert.",
+        "pt": "Famosa pelos bifes maturados e pelas dezenas de molhos e guarnições gourmet que acompanham cada prato. Dica: peça o Ojo de Bife."
+      }
+    },
+    {
+      "id": "cafe_las_violetas",
+      "category": "cafes",
+      "name": "Café Las Violetas",
+      "neighborhood": "Almagro",
+      "address": "Av. Rivadavia 3899 (esq. Medrano), Almagro",
+      "lat": -34.6139,
+      "lng": -58.4234,
+      "price": "$$",
+      "tag": "Café Notable 1884 / Vitrales",
+      "image": "https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?w=600&auto=format&fit=crop&q=80",
+      "menu_url": "",
+      "is_indoor": 1,
+      "active": 1,
+      "tips": {
+        "es": "Monumento histórico fundado en 1884 con vitrales franceses imponentes y pisos de mármol italiano. Su merienda completa imperial de té con tortas y sándwiches es legendaria.",
+        "en": "Historic monument founded in 1884 with stunning French stained glass and Italian marble. Legendary for its traditional imperial afternoon tea and artisan pastries.",
+        "pt": "Monumento histórico de 1884 com vitrais franceses deslumbrantes e mármores italianos. O chá da tarde imperial com bolos e doces artesanais é lendário."
+      }
+    },
+    {
+      "id": "cult_rosedal",
+      "category": "culture",
+      "name": "Paseo El Rosedal",
+      "neighborhood": "Palermo (Bosques)",
+      "address": "Av. Infanta Isabel, Parque 3 de Febrero",
+      "lat": -34.5714,
+      "lng": -58.4181,
+      "price": "$",
+      "tag": "Jardín Histórico / Aire Libre",
+      "image": "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=600&auto=format&fit=crop&q=80",
+      "menu_url": "",
+      "is_indoor": 0,
+      "active": 1,
+      "tips": {
+        "es": "Colección botánica con más de 18.000 rosales, un puente griego blanco, lago con botes a pedal y anfiteatro. Ideal para caminar, sacar fotos o hacer un picnic.",
+        "en": "Magnificent botanical rose garden with over 18,000 rose bushes, a picturesque white Greek bridge, paddle boats on the lake and poets' garden.",
+        "pt": "Jardim botânico histórico com mais de 18.000 roseiras, ponte branca estilo grego, lago com pedalinhos e anfiteatro ao ar livre."
+      }
+    },
+    {
+      "id": "dessert_rapanui",
+      "category": "dessert",
+      "name": "Rapanui - Chocolates & Helados",
+      "neighborhood": "Recoleta",
+      "address": "Uruguay 1205 (esq. Arenales), Recoleta",
+      "lat": -34.5936,
+      "lng": -58.3908,
+      "price": "$$",
+      "tag": "Franui Original & Chocolatería",
+      "image": "https://images.unsplash.com/photo-1563805042-7684c019e1cb?w=600&auto=format&fit=crop&q=80",
+      "menu_url": "",
+      "is_indoor": 1,
+      "active": 1,
+      "tips": {
+        "es": "La cuna original del Franui (frambuesas frescas bañadas en doble chocolate con leche y blanco). Tienen helados artesanales de la Patagonia y chocolatería increíble.",
+        "en": "The birthplace of Franui (fresh frozen Patagonian raspberries coated in double milk and white chocolate). Superb artisan ice cream and chocolate boutique.",
+        "pt": "O berço original das Franui (framboesas frescas cobertas de chocolate ao leite e branco). Sorvetes artesanais patagônicos e cafeteria imperdível."
+      }
     }
   ],
   "guide": {
