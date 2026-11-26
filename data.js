@@ -654,6 +654,246 @@ const APP_DATA = {
         "en": "The birthplace of Franui (fresh frozen Patagonian raspberries coated in double milk and white chocolate). Superb artisan ice cream and chocolate boutique.",
         "pt": "O berço original das Franui (framboesas frescas cobertas de chocolate ao leite e branco). Sorvetes artesanais patagônicos e cafeteria imperdível."
       }
+    },
+    {
+      "id": "teatro_gran_rex",
+      "category": "culture",
+      "name": "Teatro Gran Rex",
+      "neighborhood": "Calle Corrientes / Centro",
+      "address": "Av. Corrientes 857",
+      "lat": -34.6033,
+      "lng": -58.3789,
+      "price": "$$",
+      "tag": "Teatro Emblemático / Conciertos",
+      "image": "https://images.unsplash.com/photo-1514306191717-452ec28c7814?w=600&auto=format&fit=crop&q=80",
+      "menu_url": "",
+      "is_indoor": 1,
+      "active": 1,
+      "tips": {
+        "es": "El templo de los espectáculos más grandes de la mítica Calle Corrientes. Sala art déco monumental inaugurada en 1937, con acústica impecable y cartelera internacional.",
+        "en": "Iconic Art Deco theater on Corrientes Avenue opened in 1937, hosting world-class concerts, Broadway musicals and major entertainment events.",
+        "pt": "Templo dos grandes espetáculos na emblemática Avenida Corrientes. Sala art déco inaugurada em 1937 com acústica impecável e shows internacionais."
+      }
+    },
+    {
+      "id": "teatro_san_martin",
+      "category": "culture",
+      "name": "Teatro San Martín",
+      "neighborhood": "Calle Corrientes / Tribunales",
+      "address": "Av. Corrientes 1530",
+      "lat": -34.6047,
+      "lng": -58.3889,
+      "price": "$",
+      "tag": "Polo Cultural / Danza & Cine",
+      "image": "https://images.unsplash.com/photo-1507676184212-d03ab07a01bf?w=600&auto=format&fit=crop&q=80",
+      "menu_url": "",
+      "is_indoor": 1,
+      "active": 1,
+      "tips": {
+        "es": "El mayor complejo teatral público de la ciudad. Cuenta con tres salas teatrales, cineclub de culto (Sala Lugones) y talleres de títeres y danza contemporánea a precios muy accesibles.",
+        "en": "Buenos Aires' premier public theatre complex with 3 performing stages, renowned film archives, contemporary ballet and accessible ticket pricing.",
+        "pt": "O maior complexo teatral público da cidade. Três grandes palcos, cinemateca cult, dança contemporânea e ingressos muito acessíveis."
+      }
+    },
+    {
+      "id": "food_cabana_las_lilas",
+      "category": "food",
+      "name": "Cabaña Las Lilas",
+      "neighborhood": "Puerto Madero",
+      "address": "Av. Alicia Moreau de Justo 516 (Dique 3)",
+      "lat": -34.6046,
+      "lng": -58.3653,
+      "price": "$$$",
+      "tag": "Parrilla de Lujo / Vista al Río",
+      "image": "https://images.unsplash.com/photo-1544025162-d76694265947?w=600&auto=format&fit=crop&q=80",
+      "menu_url": "",
+      "is_indoor": 1,
+      "active": 1,
+      "tips": {
+        "es": "La parrilla más prestigiosa de Puerto Madero, con carnes de campo propio seleccionadas. Su mesa de panes caseros, quesos y copas de bienvenida es de nivel mundial.",
+        "en": "Puerto Madero's most exclusive riverside steakhouse, serving prime Argentine Angus & Hereford beef with an extraordinary bread buffet and award-winning wine cellar.",
+        "pt": "A churrascaria mais sofisticada de Puerto Madero, carnes nobres de fazenda própria com mesa de pães e queijos artesanais de cortesia."
+      }
+    },
+    {
+      "id": "cult_fragata_sarmiento",
+      "category": "culture",
+      "name": "Buque Museo Fragata Sarmiento",
+      "neighborhood": "Puerto Madero",
+      "address": "Dique 3, Puerto Madero",
+      "lat": -34.6063,
+      "lng": -58.3659,
+      "price": "$",
+      "tag": "Museo Flotante Histórico",
+      "image": "https://images.unsplash.com/photo-1509233725247-49e657c54213?w=600&auto=format&fit=crop&q=80",
+      "menu_url": "",
+      "is_indoor": 1,
+      "active": 1,
+      "tips": {
+        "es": "Histórico buque escuela que dio la vuelta al mundo decenas de veces. Podés subir a bordo, recorrer la sala de máquinas, el timón original y camarotes del siglo XIX.",
+        "en": "Historic 1897 naval training ship that circumnavigated the globe. Visitors can board and explore the engine rooms, original helm and authentic captain quarters.",
+        "pt": "Navio-escola histórico de 1897 que deu a volta ao mundo dezenas de vezes. É possível subir a bordo e visitar os aposentos e salas de comando originais."
+      }
+    },
+    {
+      "id": "bar_crystal_madero",
+      "category": "bars",
+      "name": "Crystal Bar - Alvear Icon",
+      "neighborhood": "Puerto Madero",
+      "address": "Aimé Painé 1130 (Piso 32)",
+      "lat": -34.6133,
+      "lng": -58.3589,
+      "price": "$$$",
+      "tag": "Rooftop Piso 32 / Vista 360°",
+      "image": "https://images.unsplash.com/photo-1514933651103-005eec06c04b?w=600&auto=format&fit=crop&q=80",
+      "menu_url": "",
+      "is_indoor": 1,
+      "active": 1,
+      "tips": {
+        "es": "El bar más alto de Buenos Aires en el piso 32 del hotel Alvear Icon. Vista panorámica alucinante de los rascacielos y del Río de la Plata. Tip: llegar antes del atardecer.",
+        "en": "The highest rooftop bar in Buenos Aires on the 32nd floor of Alvear Icon. Stunning 360-degree sunset views of the skyline and river. Signature cocktails.",
+        "pt": "O bar mais alto da cidade no 32º andar do hotel Alvear Icon. Vista panorâmica espetacular de 360 graus do skyline e do Rio da Prata. Drinques autorais."
+      }
+    },
+    {
+      "id": "food_la_brigada",
+      "category": "food",
+      "name": "Parrilla La Brigada",
+      "neighborhood": "San Telmo",
+      "address": "Estados Unidos 465, San Telmo",
+      "lat": -34.6186,
+      "lng": -58.3718,
+      "price": "$$$",
+      "tag": "Carne que se corta con cuchara",
+      "image": "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=600&auto=format&fit=crop&q=80",
+      "menu_url": "",
+      "is_indoor": 1,
+      "active": 1,
+      "tips": {
+        "es": "Célebre por cortar el bife con cuchara frente a tu mesa para demostrar su terneza. Ambientada como museo del fútbol con camisetas firmadas por Messi, Maradona y Pelé.",
+        "en": "Legendary San Telmo steakhouse where waiters cut your steak with a spoon to prove how tender it is. Packed with signed football memorabilia from Maradona and Messi.",
+        "pt": "Famosa pelo garçom cortar a carne com uma colher para mostrar a maciez. Paredes repletas de camisas históricas autografadas por Messi e Maradona."
+      }
+    },
+    {
+      "id": "food_pobre_luis",
+      "category": "food",
+      "name": "Parrilla El Pobre Luis",
+      "neighborhood": "Belgrano / Barrio Chino",
+      "address": "Arribeños 2393, Belgrano",
+      "lat": -34.5552,
+      "lng": -58.4503,
+      "price": "$$",
+      "tag": "Pamplonas & Parrilla Auténtica",
+      "image": "https://images.unsplash.com/photo-1544025162-d76694265947?w=600&auto=format&fit=crop&q=80",
+      "menu_url": "",
+      "is_indoor": 1,
+      "active": 1,
+      "tips": {
+        "es": "El templo de las 'pamplonas' (rollos de lomo, cerdo o pollo rellenos de queso y pimientos a la parrilla). Ambiente futbolero clásico y de los mejores vacíos de la ciudad.",
+        "en": "Famous for authentic 'pamplonas' (tender rolled meat filled with cheese, peppers and bacon grilled to perfection). A beloved local gem in Belgrano.",
+        "pt": "Famosa pelas 'pamplonas' artesanais recheadas com queijo e bacon na brasa. Uma das churrasqueiras mais tradicionais e autênticas de Belgrano."
+      }
+    },
+    {
+      "id": "food_happening_costanera",
+      "category": "food",
+      "name": "Happening Costanera Norte",
+      "neighborhood": "Costanera Norte",
+      "address": "Av. Costanera Rafael Obligado 3100",
+      "lat": -34.5519,
+      "lng": -58.4283,
+      "price": "$$$",
+      "tag": "Parrilla Clásica Frente al Río",
+      "image": "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=600&auto=format&fit=crop&q=80",
+      "menu_url": "",
+      "is_indoor": 1,
+      "active": 1,
+      "tips": {
+        "es": "Un clásico indiscutido sobre la ribera del Río de la Plata desde 1965. Salón elegante, cortes de novillo premium, pescados frescos y postres como el panqueque de manzana flambeado.",
+        "en": "Iconic riverfront dining since 1965 along the Costanera promenade. Premium beef, grilled river fish, extensive Argentine wines and panoramic water views.",
+        "pt": "Clássico gastronômico à beira do Rio da Prata desde 1965. Salão elegante com carnes nobres, peixes grelhados e o famoso crepe de maçã flambado."
+      }
+    },
+    {
+      "id": "cult_parque_memoria",
+      "category": "culture",
+      "name": "Parque de la Memoria",
+      "neighborhood": "Costanera Norte",
+      "address": "Av. Costanera Rafael Obligado 6745",
+      "lat": -34.5422,
+      "lng": -58.4419,
+      "price": "$",
+      "tag": "Monumento & Arte Costero",
+      "image": "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=600&auto=format&fit=crop&q=80",
+      "menu_url": "",
+      "is_indoor": 0,
+      "active": 1,
+      "tips": {
+        "es": "Parque escultórico de 14 hectáreas junto al Río de la Plata. Impresionante monumento arquitectónico y obras de arte al aire libre con vista al horizonte y brisa de río.",
+        "en": "14-hectare riverside sculpture park and historical monument right on the Rio de la Plata shoreline, combining powerful modern art with open coastal vistas.",
+        "pt": "Parque de esculturas de 14 hectares à beira do Rio da Prata. Monumento arquitetônico com obras de arte contemporâneas e brisa do rio."
+      }
+    },
+    {
+      "id": "food_carritos_costanera",
+      "category": "food",
+      "name": "Carritos de Costanera Norte",
+      "neighborhood": "Costanera Norte",
+      "address": "Av. Costanera Rafael Obligado (frente a Aeroparque)",
+      "lat": -34.5614,
+      "lng": -58.4069,
+      "price": "$",
+      "tag": "Bondiola & Choripán al Paso",
+      "image": "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=600&auto=format&fit=crop&q=80",
+      "menu_url": "",
+      "is_indoor": 0,
+      "active": 1,
+      "tips": {
+        "es": "La auténtica experiencia callejera porteña: pedir un sándwich caliente de bondiola completa o choripán con chimichurri y salsa criolla viendo aterrizar los aviones sobre el río.",
+        "en": "True Buenos Aires street food culture: grab a grilled pork shoulder sandwich (bondiola) or choripan loaded with chimichurri while watching airplanes take off over the river.",
+        "pt": "A autêntica comida de rua portenha: sanduíche de bondiola grelhada ou choripán com chimichurri artesanal vendo os aviões pousarem no Aeroparque."
+      }
+    },
+    {
+      "id": "cult_bombonera",
+      "category": "culture",
+      "name": "Estadio La Bombonera & Museo de Boca",
+      "neighborhood": "La Boca",
+      "address": "Brandsen 805, La Boca",
+      "lat": -34.6356,
+      "lng": -58.3648,
+      "price": "$$",
+      "tag": "Pasión del Fútbol / Visita Mundial",
+      "image": "https://images.unsplash.com/photo-1508098682722-e99c43a406b2?w=600&auto=format&fit=crop&q=80",
+      "menu_url": "",
+      "is_indoor": 1,
+      "active": 1,
+      "tips": {
+        "es": "El estadio de fútbol más mítico del mundo. Conocé el Museo de la Pasión Boquense, trofeos de Copa Libertadores, vestuarios y parate al borde del campo de juego.",
+        "en": "One of football's greatest cathedrals. Tour the interactive club museum, trophy rooms, and stand pitchside in the stadium celebrated by Diego Maradona.",
+        "pt": "O mítico estádio do Boca Juniors. Visite o Museu da Paixão Boquense, taças da Libertadores e sinta a energia do gramado onde brilhou Maradona."
+      }
+    },
+    {
+      "id": "cult_palacio_barolo",
+      "category": "culture",
+      "name": "Palacio Barolo",
+      "neighborhood": "Montserrat / Av. de Mayo",
+      "address": "Av. de Mayo 1370",
+      "lat": -34.6094,
+      "lng": -58.3853,
+      "price": "$$",
+      "tag": "Faro Panorámico & Divina Comedia",
+      "image": "https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?w=600&auto=format&fit=crop&q=80",
+      "menu_url": "",
+      "is_indoor": 1,
+      "active": 1,
+      "tips": {
+        "es": "Joya arquitectónica de 1923 inspirada en la Divina Comedia de Dante. Sus visitas nocturnas suben al faro giratorio en la cúpula con copa de vino y la vista más hermosa de la ciudad.",
+        "en": "Stunning 1923 skyscraper inspired by Dante's Divine Comedy. Take the guided sunset or night tour up to the functioning lighthouse with 360-degree city views and wine.",
+        "pt": "Edifício histórico de 1923 inspirado na Divina Comédia de Dante. As visitas guiadas levam até o farol no topo para admirar o pôr do sol com taça de vinho."
+      }
     }
   ],
   "guide": {
