@@ -11,8 +11,8 @@
   <!-- Leaflet CSS y JS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <script src="data.js?v=20261125_03"></script>
-  <link rel="stylesheet" href="style.css?v=20261125_03">
+  <script src="data.js?v=20261125_04"></script>
+  <link rel="stylesheet" href="style.css?v=20261125_04">
 
   <style>
     body {
@@ -3800,12 +3800,15 @@ ${qrImageUrl}
           }
         } catch (e) {}
 
-        // 2. Si falló o vino vacío, usar APP_DATA.reviews de data.js
-        if (!reviews || reviews.length === 0) {
-          if (typeof APP_DATA !== "undefined" && Array.isArray(APP_DATA.reviews)) {
-            reviews = APP_DATA.reviews;
+        // 2. Unir con APP_DATA.reviews de data.js para no perder ninguna reseña histórica
+        const dataReviews = (typeof APP_DATA !== "undefined" && Array.isArray(APP_DATA.reviews)) ? APP_DATA.reviews : [];
+        const existingCloudIds = new Set(reviews.map(r => r && r.id));
+        dataReviews.forEach(dr => {
+          if (dr && dr.id && !existingCloudIds.has(dr.id)) {
+            reviews.push(dr);
+            existingCloudIds.add(dr.id);
           }
-        }
+        });
 
         // 3. Unir con localStorage local respetando eliminaciones
         const deletedIds = new Set(JSON.parse(localStorage.getItem("bsas_deleted_reviews") || "[]"));
@@ -3814,7 +3817,7 @@ ${qrImageUrl}
         const map = new Map();
         reviews.forEach(r => { if (r && r.id && !deletedIds.has(r.id)) map.set(r.id, r); });
         local.forEach(r => { if (r && r.id && !deletedIds.has(r.id)) map.set(r.id, { ...(map.get(r.id) || {}), ...r }); });
-        allReviews = Array.from(map.values());
+        allReviews = Array.from(map.values()).sort((a, b) => (b.created_at || 0) - (a.created_at || 0));
 
         localStorage.setItem("bsas_reviews", JSON.stringify(allReviews));
         renderAdminReviewsUI();
