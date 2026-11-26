@@ -454,7 +454,8 @@ function updateVipUI() {
     if (unlockBtn) {
       unlockBtn.style.display = "inline-flex";
       const isPending = state.pass && state.pass.status === "pending_payment";
-      unlockBtn.textContent = isPending ? "⏳ Pase Pendiente ($1.000)" : "⭐ Activar Guía ($1.000)";
+            const priceUsd = (typeof APP_DATA !== "undefined" && APP_DATA.config && APP_DATA.config.passPriceUsd) ? APP_DATA.config.passPriceUsd : 10;
+      unlockBtn.textContent = isPending ? `⏳ Pase Pendiente (US$ ${priceUsd})` : `⭐ Activar Guía (US$ ${priceUsd})`;
       if (isPending) {
         unlockBtn.style.background = "#f59e0b";
         unlockBtn.style.color = "#0f172a";

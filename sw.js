@@ -1,5 +1,5 @@
 // Service Worker para BsAs Local Guide (PWA)
-const CACHE_NAME = 'bsas-guide-v20261126_01';
+const CACHE_NAME = 'bsas-guide-v20261126_02';
 
 const PRECACHE_ASSETS = [
   './',
