@@ -2272,6 +2272,8 @@ function clearReviewPhoto() {
   state.newReviewPhotoBase64 = null;
   const fileInput = document.getElementById("review-photo-file");
   if (fileInput) fileInput.value = "";
+  const cameraInput = document.getElementById("review-photo-camera");
+  if (cameraInput) cameraInput.value = "";
   const previewWrap = document.getElementById("review-photo-preview-wrap");
   if (previewWrap) previewWrap.style.display = "none";
 }
@@ -2933,6 +2935,15 @@ function openRecommendModal() {
 function closeRecommendModal() {
   const modal = document.getElementById("recommend-modal");
   if (modal) modal.style.display = "none";
+  currentRecPhotoData = "";
+  const photoName = document.getElementById("rec-photo-name");
+  if (photoName) photoName.textContent = "";
+  const preview = document.getElementById("rec-photo-preview");
+  if (preview) preview.style.display = "none";
+  const f1 = document.getElementById("rec-photo-file");
+  if (f1) f1.value = "";
+  const f2 = document.getElementById("rec-photo-camera");
+  if (f2) f2.value = "";
 }
 
 function handleRecPhotoUpload(event) {
