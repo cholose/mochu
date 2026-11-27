@@ -1,5 +1,21 @@
 [
   {
+    "id": "PASS-PIN-MWZ83LSB",
+    "device_token": "dev_wjqw8bw0x6",
+    "tourist_name": "Turista VIP",
+    "tourist_contact": "Mesa / Local",
+    "receipt_id": "Validado con PIN (Cholo)",
+    "waiter_id": "cholo",
+    "payment_method": "Validado por Mozo (Cholo)",
+    "amount_paid_ars": 1000,
+    "amount_paid_usd": 10,
+    "status": "active",
+    "created_at": 1795798566155,
+    "activated_at": 1795798566155,
+    "expires_at": 1797612966155,
+    "is_active": 1
+  },
+  {
     "id": "PASS-PIN-MWWW2SYH",
     "device_token": "dev_06o75s6b8z",
     "tourist_name": "luiz",
