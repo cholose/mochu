@@ -1251,6 +1251,14 @@ const APP_DATA = {
       "alias": "10.cholo",
       "pin": "0119",
       "commission_usd": 3
+    },
+    {
+      "id": "nicolas",
+      "name": "Nicolas",
+      "phone": "1160304380",
+      "alias": "valerio.cafe",
+      "pin": "4380",
+      "commission_usd": 1.5
     }
   ],
   "categories": [
@@ -1506,5 +1514,5 @@ const APP_DATA = {
       "is_active": 1
     }
   ],
-  "version": "20261124_1795660158412"
+  "version": "20261124_1795777312151"
 };
